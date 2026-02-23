@@ -87,8 +87,8 @@ class ScheduleEntry(models.Model):
 
     class Meta:
         db_table = 'schedule_entries'
-        # ✅ sr + time_type + row_order se unique — 2 SETUP rows allow hongi
-        ordering = ['sr', 'time_type', 'row_order']
+        # slot_index se order karo — yahi correct form order hai
+        ordering = ['sr', 'slot_index', 'row_order']
 
     def __str__(self):
         return f"SR {self.sr} - {self.time_type} - {'UP' if self.row_order == 0 else 'DOWN'}"
