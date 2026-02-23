@@ -47,6 +47,7 @@ class InspectionItem(models.Model):
 class ScheduleEntry(models.Model):
     TIME_CHOICES = [
         ('SETUP', 'Setup'),
+        ('2HRS', '2 Hours'),
         ('4HRS', '4 Hours'),
         ('LAST', 'Last'),
     ]
@@ -57,8 +58,10 @@ class ScheduleEntry(models.Model):
         related_name='schedule_entries'
     )
     sr = models.IntegerField(default=1)
-    # ✅ row_order: 0 = UP (first row), 1 = DOWN (second row)
+    # row_order: 0 = UP, 1 = DOWN
     row_order = models.IntegerField(default=0)
+    # slot_index: konsa slot hai (0=pehla, 1=doosra SETUP, etc.)
+    slot_index = models.IntegerField(default=0)
     date = models.DateField(null=True, blank=True)
     operator = models.CharField(max_length=100, blank=True)
     machine_no = models.CharField(max_length=50, blank=True)

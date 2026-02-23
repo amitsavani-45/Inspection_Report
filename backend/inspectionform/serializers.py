@@ -14,7 +14,7 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleEntry
         fields = [
-            'id', 'sr', 'row_order', 'date', 'operator', 'machine_no', 'time_type',
+            'id', 'sr', 'row_order', 'slot_index', 'date', 'operator', 'machine_no', 'time_type',
             'value_1',  'value_2',  'value_3',  'value_4',
             'value_5',  'value_6',  'value_7',  'value_8',
             'value_9',  'value_10', 'value_11', 'value_12',
