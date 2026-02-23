@@ -90,15 +90,11 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
                 InspectionItem.objects.create(report=instance, **item_data)
 
         if schedule_data is not None:
-            # ✅ Pehle SARI purani entries delete karo, phir fresh save karo
+            # Pehle SARI purani entries delete karo, phir fresh save karo
             instance.schedule_entries.all().delete()
-            for idx, entry_data in enumerate(schedule_data):
+            for entry_data in schedule_data:
                 entry_data.pop('values', None)
-                entry_data.pop('id', None)  # id kabhi set mat karo — naya create hoga
-                # slot_index already frontend se aa raha hai (0-based)
-                # agar nahi aaya toh idx use karo
-                if 'slot_index' not in entry_data:
-                    entry_data['slot_index'] = idx
+                entry_data.pop('id', None)
                 ScheduleEntry.objects.create(report=instance, **entry_data)
 
         return instance
