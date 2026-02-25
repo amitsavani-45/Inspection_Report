@@ -106,11 +106,19 @@ td, th { border:1px solid black;
 
 /* ── INSPECTION TABLE ── */
 .inspection-table 
-{ border:2px solid black; table-layout:fixed; }
+{ border:2px solid black; 
+  table-layout:fixed; }
+
 .inspection-table th
- { background:#f5f5f5; font-weight:bold; font-size:12px; padding:6px 4px; }
+ { background:#f5f5f5; 
+  font-weight:bold; 
+  font-size:12px;
+   padding:6px 4px; }
+
 .inspection-table td 
-{ font-size:11px; padding:4px; }
+{ font-size:11px;
+   padding:4px; }
+   
 .inspection-table tbody tr:nth-child(even) td 
 { background:#fafafa; }
 
