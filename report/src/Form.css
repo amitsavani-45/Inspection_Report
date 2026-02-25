@@ -757,20 +757,27 @@
   border-right: 1px solid #e8e8e8;
   white-space: nowrap;
 }
-.prev-th:last-child { border-right: none; }
+.prev-th:last-child
+ { border-right: none; }
+
 .prev-td {
   padding: 9px 12px;
   font-size: 13px;
   border-right: 1px solid #f5f5f5;
   white-space: nowrap;
 }
-.prev-td:last-child { border-right: none; }
+.prev-td:last-child
+ { border-right: none; }
 /* zebra rows */
-tbody tr:nth-child(even) { background: #fafafa; }
-tbody tr:hover { background: #f5f9ff; }
+tbody tr:nth-child(even) 
+{ background: #fafafa; }
+tbody tr:hover 
+{ background: #f5f9ff; }
 /* ══ PREVIEW TABLE / CARDS RESPONSIVE ══ */
-.prev-table-wrap { display: block; }
-.prev-cards-wrap { display: none; }
+.prev-table-wrap
+ { display: block; }
+.prev-cards-wrap
+ { display: none; }
 
 .prev-card {
   display: flex;
@@ -781,26 +788,47 @@ tbody tr:hover { background: #f5f9ff; }
   background: white;
 }
 .prev-card-sr {
-  width: 26px; height: 26px; border-radius: 5px;
-  color: white; font-size: 12px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
+  width: 26px;
+  height: 26px; 
+  border-radius: 5px;
+  color: white; 
+  font-size: 12px; 
+  font-weight: 700;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
   flex-shrink: 0;
 }
-.prev-card-info { flex: 1; min-width: 0; }
+.prev-card-info
+ { flex: 1; 
+  min-width: 0; }
+
 .prev-card-name {
-  font-size: 13px; font-weight: 700; color: #222;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 13px; 
+  font-weight: 700; 
+  color: #222;
+  white-space: nowrap;
+   overflow: hidden; 
+   text-overflow: ellipsis;
 }
 .prev-card-meta {
-  display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap;
-  font-size: 11px; color: #777;
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+  font-size: 11px; 
+  color: #777;
 }
 .prev-card-meta span {
-  background: #f5f5f5; border-radius: 10px;
-  padding: 1px 7px; border: 1px solid #e8e8e8;
+  background: #f5f5f5; 
+  border-radius: 10px;
+  padding: 1px 7px; 
+  border: 1px solid #e8e8e8;
 }
 
 @media (max-width: 600px) {
-  .prev-table-wrap { display: none; }
-  .prev-cards-wrap { display: block; }
+  .prev-table-wrap 
+  { display: none; }
+  .prev-cards-wrap 
+  { display: block; }
 }
