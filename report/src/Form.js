@@ -204,7 +204,7 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
             + Add
           </button>
         </div>
-        <div style={{ fontSize:11, color:'#9e9e9e', marginTop:8 }}>💡 Enter dabao ya + Add click karo next column pe jaane ke liye</div>
+
       </div>
 
       {/* Filled values — exact table style */}
