@@ -229,11 +229,22 @@ td, th { border:1px solid black;
     margin:0 !important;
     overflow:hidden !important;
   }
-  .logo-image { max-height:42px !important; }
-  .title-cell { font-size:13px !important; }
-  .doc-info-cell table td { height:21px !important; font-size:8.5px !important; padding:0 6px !important; }
-  .doc-label { font-size:8.5px !important; }
-  .doc-value { font-size:10px !important; }
+  .logo-image 
+  { max-height:42px !important; }
+
+  .title-cell 
+  { font-size:13px !important; }
+
+  .doc-info-cell table td 
+  { height:21px !important; 
+    font-size:8.5px !important;
+     padding:0 6px !important; }
+
+  .doc-label 
+  { font-size:8.5px !important; }
+  
+  .doc-value 
+  { font-size:10px !important; }
 
   /* ── FLEET INFO: 60px ── */
   .fleet-info-table {
