@@ -138,6 +138,8 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
   );
 
   const filledIdxs = colLabels.filter(({idx})=>slot.upVals[idx]||slot.downVals[idx]).map(c=>c.idx);
+  const unfilledCols = colLabels.filter(({idx})=>!slot.upVals[idx]&&!slot.downVals[idx]);
+  const allFilled = unfilledCols.length === 0;
   const handleAdd = () => {
     if (selectedIdx==='') return;
     const next = colLabels.find(({idx})=>idx!==Number(selectedIdx)&&!slot.upVals[idx]&&!slot.downVals[idx]);
@@ -148,8 +150,13 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
 
   return (
     <div style={{padding:'12px'}}>
-      {/* Input area */}
-      <div className="slot-add-row">
+      {/* Input area — sirf tab dikhao jab unfilled columns baaki hon */}
+      {allFilled && (
+        <div style={{padding:'10px 0 6px',textAlign:'center',color:'#4CAF50',fontWeight:700,fontSize:13}}>
+          ✅ Saare columns fill ho gaye!
+        </div>
+      )}
+      {!allFilled && <div className="slot-add-row">
         <div className="slot-add-col" style={{flex:2}}>
           <div className="slot-add-label" style={{color:'#7b1fa2'}}>Column</div>
           <select value={selectedIdx} onChange={e=>setSelectedIdx(e.target.value)} className="slot-select">
@@ -174,7 +181,7 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
           </div>
         )}
         <button onClick={handleAdd} className="slot-add-btn">+ Add</button>
-      </div>
+      </div>}
 
       {/* Filled table */}
       {filledIdxs.length>0 && (
