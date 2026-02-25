@@ -28,40 +28,66 @@ table { width:100%; border-collapse:collapse; }
 td, th { border:1px solid black; text-align:center; vertical-align:middle; overflow:hidden; }
 
 /* ── HEADER ── */
-.header-table { border:2px solid black; }
-.logo-cell { width:120px; padding:6px; text-align:center; border-right:2px solid black; }
-.logo-image { max-width:100%; max-height:55px; object-fit:contain; }
-.title-cell { font-weight:bold; font-size:18px; padding:0 12px; letter-spacing:0.5px; }
-.doc-info-cell { width:220px; padding:0; border-left:2px solid black; }
-.doc-info-cell table { border:none; }
-.doc-info-cell table td { border:none; border-bottom:1px solid black; padding:4px 8px; font-size:11px; height:24px; text-align:left; }
-.doc-info-cell table tr:last-child td { border-bottom:none; }
-.doc-label { font-weight:bold; width:95px; border-right:1px solid black !important; }
-.doc-value { font-size:13px; font-weight:600; }
+.header-table
+ { border:2px solid black; }
+.logo-cell 
+{ width:120px; padding:6px; text-align:center; border-right:2px solid black; }
+.logo-image
+ { max-width:100%; max-height:55px; object-fit:contain; }
+.title-cell
+ { font-weight:bold; font-size:18px; padding:0 12px; letter-spacing:0.5px; }
+.doc-info-cell
+ { width:220px; padding:0; border-left:2px solid black; }
+.doc-info-cell table
+ { border:none; }
+.doc-info-cell table td 
+{ border:none; border-bottom:1px solid black; padding:4px 8px; font-size:11px; height:24px; text-align:left; }
+.doc-info-cell table tr:last-child td 
+{ border-bottom:none; }
+.doc-label 
+{ font-weight:bold; width:95px; border-right:1px solid black !important; }
+.doc-value 
+{ font-size:13px; font-weight:600; }
 
 /* ── FLEET INFO ── */
-.fleet-info-table { border:2px solid black; }
-.fleet-info-table td { padding:6px 10px; height:32px; }
-.field-label { background:#f5f5f5; font-size:11px; font-weight:bold; text-transform:uppercase; width:13%; }
-.field-input { width:37%; font-size:12px; font-weight:600; text-align:left; padding-left:10px; }
+.fleet-info-table
+ { border:2px solid black; }
+.fleet-info-table td 
+{ padding:6px 10px; height:32px; }
+.field-label 
+{ background:#f5f5f5; font-size:11px; font-weight:bold; text-transform:uppercase; width:13%; }
+.field-input 
+{ width:37%; font-size:12px; font-weight:600; text-align:left; padding-left:10px; }
 
 /* ── INSPECTION TABLE ── */
-.inspection-table { border:2px solid black; table-layout:fixed; }
-.inspection-table th { background:#f5f5f5; font-weight:bold; font-size:12px; padding:6px 4px; }
-.inspection-table td { font-size:11px; padding:4px; }
-.inspection-table tbody tr:nth-child(even) td { background:#fafafa; }
+.inspection-table 
+{ border:2px solid black; table-layout:fixed; }
+.inspection-table th
+ { background:#f5f5f5; font-weight:bold; font-size:12px; padding:6px 4px; }
+.inspection-table td 
+{ font-size:11px; padding:4px; }
+.inspection-table tbody tr:nth-child(even) td 
+{ background:#fafafa; }
 
 /* ── SCHEDULE ── */
-.schedule-wrapper { width:100%; }
-.schedule-table { border:2px solid black; table-layout:fixed; }
-.schedule-table th { background:#f5f5f5; font-weight:bold; font-size:11px; padding:4px 3px; white-space:normal; word-break:break-word; line-height:1.2; }
-.schedule-table td { font-size:11px; padding:2px; }
+.schedule-wrapper 
+{ width:100%; }
+.schedule-table 
+{ border:2px solid black; table-layout:fixed; }
+.schedule-table th 
+{ background:#f5f5f5; font-weight:bold; font-size:11px; padding:4px 3px; white-space:normal; word-break:break-word; line-height:1.2; }
+.schedule-table td
+ { font-size:11px; padding:2px; }
 
 /* ── FOOTER ── */
-.footer { display:flex; justify-content:space-between; padding:10px 10px 4px; margin-top:8px; }
-.signature-field { display:flex; align-items:flex-end; min-width:300px; gap:8px; }
-.signature-field label { font-weight:bold; font-size:12px; white-space:nowrap; flex-shrink:0; padding-bottom:2px; }
-.signature-field input { flex:1; border:none; border-bottom:1.5px solid black; outline:none; font-size:11px; background:transparent; min-width:200px; }
+.footer 
+{ display:flex; justify-content:space-between; padding:10px 10px 4px; margin-top:8px; }
+.signature-field
+ { display:flex; align-items:flex-end; min-width:300px; gap:8px; }
+.signature-field label 
+{ font-weight:bold; font-size:12px; white-space:nowrap; flex-shrink:0; padding-bottom:2px; }
+.signature-field input 
+{ flex:1; border:none; border-bottom:1.5px solid black; outline:none; font-size:11px; background:transparent; min-width:200px; }
 
 /* ══════════════════════════════════════════════════════
    PRINT STYLES
