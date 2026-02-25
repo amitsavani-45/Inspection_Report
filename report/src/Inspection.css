@@ -145,13 +145,32 @@ td, th { border:1px solid black;
 
 /* ── FOOTER ── */
 .footer 
-{ display:flex; justify-content:space-between; padding:10px 10px 4px; margin-top:8px; }
+{ display:flex;
+   justify-content:space-between; 
+   padding:10px 10px 4px;
+    margin-top:8px; }
+
 .signature-field
- { display:flex; align-items:flex-end; min-width:300px; gap:8px; }
+ { display:flex; 
+  align-items:flex-end;
+   min-width:300px; 
+   gap:8px; }
+
 .signature-field label 
-{ font-weight:bold; font-size:12px; white-space:nowrap; flex-shrink:0; padding-bottom:2px; }
+{ font-weight:bold;
+   font-size:12px; 
+   white-space:nowrap; 
+   flex-shrink:0; 
+   padding-bottom:2px; }
+
 .signature-field input 
-{ flex:1; border:none; border-bottom:1.5px solid black; outline:none; font-size:11px; background:transparent; min-width:200px; }
+{ flex:1; 
+  border:none;
+   border-bottom:1.5px solid black; 
+   outline:none; 
+   font-size:11px;
+    background:transparent; 
+    min-width:200px; }
 
 /* ══════════════════════════════════════════════════════
    PRINT STYLES
