@@ -224,12 +224,14 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
   /* Step 1 */
   const [header, setHeader] = useState({
-    partName:      initialData.part_name      || '',
-    partNumber:    initialData.part_number    || '',
-    operationName: initialData.operation_name || '',
     customerName:  initialData.customer_name  || '',
+    partName:      initialData.part_name      || '',
+    operationName: initialData.operation_name || '',
+    partNumber:    initialData.part_number    || '',
+   
+   
   });
-  const step1Done = !!(header.partName && header.partNumber && header.operationName && header.customerName);
+  const step1Done = !!(header.customerName && header.partName && header.operationName && header.partNumber);
 
   /* Step 2 */
   const existingProducts  = items.filter(i=>i.sr_no<=10);
@@ -379,10 +381,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           <div className="wiz-card">
             <div className="wiz-card-title">📋 Report Information</div>
             <div className="wiz-grid-2">
-              <Field label="Part Name" required value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={PART_NAMES} placeholder="Select part..." />
-              <Field label="Part Number" required value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={PART_NUMBERS} placeholder="Select number..." />
-              <Field label="Operation" required value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={OPERATIONS} placeholder="Select operation..." />
-              <Field label="Customer" required value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={CUSTOMER_NAMES} placeholder="Select customer..." />
+              <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={CUSTOMER_NAMES} placeholder="Select customer..." required />
+              <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={PART_NAMES} placeholder="Select part..." required />
+              <Field label="Operation" value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={OPERATIONS} placeholder="Select operation..." required />
+              <Field label="Part Number" value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={PART_NUMBERS} placeholder="Select number..." required /> 
             </div>
           </div>
         )}
