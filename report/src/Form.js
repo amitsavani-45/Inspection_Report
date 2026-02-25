@@ -139,7 +139,8 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
 
   const filledIdxs = colLabels.filter(({idx})=>slot.upVals[idx]||slot.downVals[idx]).map(c=>c.idx);
   const unfilledCols = colLabels.filter(({idx})=>!slot.upVals[idx]&&!slot.downVals[idx]);
-  const allFilled = unfilledCols.length === 0;
+  // allFilled tabhi true ho jab koi unfilled column na ho AND selectedIdx bhi empty ho (user still typing scenario cover)
+  const allFilled = unfilledCols.length === 0 && selectedIdx === '';
   const handleAdd = () => {
     if (selectedIdx==='') return;
     const next = colLabels.find(({idx})=>idx!==Number(selectedIdx)&&!slot.upVals[idx]&&!slot.downVals[idx]);
