@@ -1,0 +1,216 @@
+/* ══════════════════════════════════════════════════════
+   Inspection.css — Setup & Patrol Inspection Report
+   Print: A4 Landscape, 2mm margin = 1107 x 779px usable
+   ══════════════════════════════════════════════════════ */
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+/* ── Screen container ── */
+.inspection-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.inspection-report {
+  background: white;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Base table reset ── */
+table { width:100%; border-collapse:collapse; }
+td, th { border:1px solid black; text-align:center; vertical-align:middle; overflow:hidden; }
+
+/* ── HEADER ── */
+.header-table { border:2px solid black; }
+.logo-cell { width:120px; padding:6px; text-align:center; border-right:2px solid black; }
+.logo-image { max-width:100%; max-height:55px; object-fit:contain; }
+.title-cell { font-weight:bold; font-size:18px; padding:0 12px; letter-spacing:0.5px; }
+.doc-info-cell { width:220px; padding:0; border-left:2px solid black; }
+.doc-info-cell table { border:none; }
+.doc-info-cell table td { border:none; border-bottom:1px solid black; padding:4px 8px; font-size:11px; height:24px; text-align:left; }
+.doc-info-cell table tr:last-child td { border-bottom:none; }
+.doc-label { font-weight:bold; width:95px; border-right:1px solid black !important; }
+.doc-value { font-size:13px; font-weight:600; }
+
+/* ── FLEET INFO ── */
+.fleet-info-table { border:2px solid black; }
+.fleet-info-table td { padding:6px 10px; height:32px; }
+.field-label { background:#f5f5f5; font-size:11px; font-weight:bold; text-transform:uppercase; width:13%; }
+.field-input { width:37%; font-size:12px; font-weight:600; text-align:left; padding-left:10px; }
+
+/* ── INSPECTION TABLE ── */
+.inspection-table { border:2px solid black; table-layout:fixed; }
+.inspection-table th { background:#f5f5f5; font-weight:bold; font-size:12px; padding:6px 4px; }
+.inspection-table td { font-size:11px; padding:4px; }
+.inspection-table tbody tr:nth-child(even) td { background:#fafafa; }
+
+/* ── SCHEDULE ── */
+.schedule-wrapper { width:100%; }
+.schedule-table { border:2px solid black; table-layout:fixed; }
+.schedule-table th { background:#f5f5f5; font-weight:bold; font-size:11px; padding:4px 3px; white-space:normal; word-break:break-word; line-height:1.2; }
+.schedule-table td { font-size:11px; padding:2px; }
+
+/* ── FOOTER ── */
+.footer { display:flex; justify-content:space-between; padding:10px 10px 4px; margin-top:8px; }
+.signature-field { display:flex; align-items:flex-end; min-width:300px; gap:8px; }
+.signature-field label { font-weight:bold; font-size:12px; white-space:nowrap; flex-shrink:0; padding-bottom:2px; }
+.signature-field input { flex:1; border:none; border-bottom:1.5px solid black; outline:none; font-size:11px; background:transparent; min-width:200px; }
+
+/* ══════════════════════════════════════════════════════
+   PRINT STYLES
+   Layout px (96dpi, 2mm margin):
+     Page    = 1107 × 779px
+     Header  =  67px  (fixed)
+     Fleet   =  60px  (fixed)
+     Insp    =  auto  (JS calculates: 20–28px per row, min 20)
+     Schedule=  auto  (JS: 22px thead + rows × 26px fixed)
+     Footer  =  35px  (margin-top:auto → always at bottom)
+     Gaps    =   6px
+   ══════════════════════════════════════════════════════ */
+@media print {
+
+  .no-print { display:none !important; }
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  html, body, #root {
+    margin:0 !important; padding:0 !important;
+    width:1078px !important; height:749px !important;
+    overflow:hidden !important; background:white !important;
+  }
+
+  .inspection-container {
+    padding:0 !important; background:white !important;
+    min-height:unset !important;
+    width:1078px !important; height:749px !important;
+    overflow:hidden !important;
+  }
+
+  /* Page wrapper — flex column, exact 749px */
+  .inspection-report {
+    display:flex !important;
+    flex-direction:column !important;
+    width:1078px !important;
+    height:749px !important;
+    padding:0 !important;
+    margin:0 !important;
+    gap:2px !important;
+    box-shadow:none !important;
+    overflow:hidden !important;
+    background:white !important;
+  }
+
+  /* ── HEADER: 67px ── */
+  .header-table {
+    flex:0 0 67px !important;
+    height:67px !important;
+    max-height:67px !important;
+    width:1078px !important;
+    margin:0 !important;
+    overflow:hidden !important;
+  }
+  .logo-image { max-height:42px !important; }
+  .title-cell { font-size:13px !important; }
+  .doc-info-cell table td { height:21px !important; font-size:8.5px !important; padding:0 6px !important; }
+  .doc-label { font-size:8.5px !important; }
+  .doc-value { font-size:10px !important; }
+
+  /* ── FLEET INFO: 60px ── */
+  .fleet-info-table {
+    flex:0 0 60px !important;
+    height:60px !important;
+    max-height:60px !important;
+    width:1078px !important;
+    margin:0 !important;
+    overflow:hidden !important;
+  }
+  .fleet-info-table td { height:29px !important; font-size:9.5px !important; padding:0 8px !important; }
+  .field-label { font-size:8.5px !important; }
+  .field-input { font-size:10.5px !important; }
+
+  /* ── INSPECTION: height set by JS inline style ── */
+  .inspection-table {
+    flex:0 0 auto !important;
+    width:1078px !important;
+    margin:0 !important;
+    overflow:hidden !important;
+    table-layout:fixed !important;
+  }
+  .inspection-table th {
+    font-size:9px !important;
+    padding:1px 3px !important;
+    background:#f5f5f5 !important;
+  }
+  .inspection-table td {
+    font-size:9px !important;
+    padding:0 3px !important;
+    overflow:hidden !important;
+  }
+  .inspection-table tbody tr:nth-child(even) td { background:#fafafa !important; }
+
+  /* ── SCHEDULE WRAPPER: height = thead(22) + rows×26 ── */
+  .schedule-wrapper {
+    flex:0 0 auto !important;
+    width:1078px !important;
+    margin:0 !important;
+    overflow:hidden !important;
+  }
+  .schedule-table {
+    width:1078px !important;
+    table-layout:fixed !important;
+    overflow:hidden !important;
+    border-collapse:collapse !important;
+  }
+  .schedule-table thead tr { height:22px !important; }
+  .schedule-table th {
+    font-size:8px !important;
+    padding:1px 2px !important;
+    height:22px !important;
+    background:#f5f5f5 !important;
+    white-space:normal !important;
+    word-break:break-word !important;
+    line-height:1.1 !important;
+  }
+  /* Schedule data rows — height set by JS inline style (26px fixed) */
+  .schedule-table td {
+    font-size:8.5px !important;
+    padding:0 2px !important;
+    overflow:hidden !important;
+  }
+
+  /* ── FOOTER: 40px, margin-top:auto → always at bottom ── */
+  .footer {
+    flex:0 0 40px !important;
+    height:40px !important;
+    max-height:40px !important;
+    margin-top:auto !important;
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:flex-end !important;
+    padding:0 10px 8px !important;
+    overflow:hidden !important;
+  }
+  .signature-field { display:flex !important; align-items:flex-end !important; gap:8px !important; min-width:320px !important; }
+  .signature-field label { font-size:10px !important; font-weight:bold !important; white-space:nowrap !important; padding-bottom:2px !important; }
+  .signature-field input {
+    font-size:10px !important;
+    border:none !important;
+    border-bottom:1.5px solid black !important;
+    min-width:220px !important;
+    flex:1 !important;
+    background:transparent !important;
+    outline:none !important;
+  }
+
+}
+
+@page {
+  size: A4 landscape;
+  margin: 6mm;
+}
