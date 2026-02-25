@@ -17,45 +17,19 @@ const PENDING_SLOT_TYPES = ['2HRS','4HRS','LAST'];
 const MAX_COLS = 14;
 const emptyRow = () => ({ name:'', spec:'', tolerance:'', inst:'' });
 
-/* ── Step Header ── */
-const StepHeader = ({ num, title, subtitle, color, done, onClick, isOpen }) => (
-  <div onClick={onClick} style={{
-    display:'flex', alignItems:'center', gap:12, padding:'14px 16px',
-    cursor:'pointer', borderLeft:`4px solid ${done ? '#4CAF50' : color}`,
-    background: isOpen ? '#fafafa' : 'white', userSelect:'none', minHeight:58,
-  }}>
-    <div style={{
-      width:32, height:32, borderRadius:'50%', flexShrink:0,
-      background: done ? '#4CAF50' : color,
-      color:'white', fontWeight:700, fontSize:14,
-      display:'flex', alignItems:'center', justifyContent:'center',
-    }}>
-      {done ? '✓' : num}
-    </div>
-    <div style={{ flex:1, minWidth:0 }}>
-      <div style={{ fontWeight:700, fontSize:14, color:'#222' }}>{title}</div>
-      <div style={{ fontSize:11, color:'#888', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{subtitle}</div>
-    </div>
-    <span style={{
-      display:'inline-block', width:20, height:20, flexShrink:0,
-      borderRight:'2.5px solid #aaa', borderBottom:'2.5px solid #aaa',
-      transform: isOpen ? 'rotate(225deg) translateY(4px)' : 'rotate(45deg) translateY(-2px)',
-      transition:'transform 0.2s ease',
-      marginRight:4,
-    }} />
-  </div>
-);
+const STEPS = [
+  { id:1, label:'Report',     icon:'📋' },
+  { id:2, label:'Inspection', icon:'🔍' },
+  { id:3, label:'Schedule',   icon:'📅' },
+];
 
-/* ── Field (select with label) ── */
+/* ── Reusable Select Field ── */
 const Field = ({ label, value, onChange, options, placeholder, required }) => (
-  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-    <label style={{ fontSize:12, fontWeight:600, color:'#555' }}>
-      {label}{required && <span style={{ color:'#e53935' }}> *</span>}
-    </label>
-    <select value={value} onChange={e => onChange(e.target.value)}
-      className={`f-select${value ? ' filled' : ''}`}>
+  <div className="wiz-field">
+    <label className="wiz-label">{label}{required && <span style={{color:'#e53935'}}> *</span>}</label>
+    <select value={value} onChange={e => onChange(e.target.value)} className={`wiz-select${value?' filled':''}`}>
       <option value="">{placeholder || 'Select...'}</option>
-      {options.map(o => typeof o === 'string'
+      {options.map(o => typeof o==='string'
         ? <option key={o} value={o}>{o}</option>
         : <option key={o.v} value={o.v}>{o.l}</option>
       )}
@@ -63,181 +37,170 @@ const Field = ({ label, value, onChange, options, placeholder, required }) => (
   </div>
 );
 
-/* ══════════════════════════════════════
-   INSPECTION ITEM — renders both desktop row + mobile card
-   CSS hides the irrelevant one
-══════════════════════════════════════ */
+/* ── Inspection Row ── */
 const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove }) => {
   const [spec, setSpec] = useState(row.spec || '');
   useEffect(() => setSpec(row.spec || ''), [row.spec]);
-
-  const color = isProduct ? '#1976d2' : '#e65100';
-  const items = isProduct ? PRODUCT_ITEMS : PROCESS_ITEMS;
-  const tols  = isProduct
+  const color  = isProduct ? '#1976d2' : '#e65100';
+  const items  = isProduct ? PRODUCT_ITEMS : PROCESS_ITEMS;
+  const tols   = isProduct
     ? TOLERANCES.map(t => ({ v:t, l:`± ${t}` }))
     : PROCESS_TOLERANCES.map(t => ({ v:t, l: t==='MIN'||t==='MAX' ? t : `± ${t}` }));
   const filled = !!(row.name && row.spec && row.tolerance && row.inst);
 
-  /* ── DESKTOP ROW ── */
-  const desktopRow = (
-    <div className={`insp-row-desktop${filled ? ' done' : ''}`}>
-      <span style={{ background:color, color:'white', fontSize:11, fontWeight:700, borderRadius:5, padding:'4px 3px', textAlign:'center' }}>{srNum}</span>
-      <select value={row.name} onChange={e => onUpdate('name', e.target.value)}>
-        <option value="">Select item...</option>
-        {items.map(i => <option key={i} value={i}>{i}</option>)}
-      </select>
-      <input type="text" value={spec} placeholder="Spec"
-        onChange={e => { setSpec(e.target.value); onUpdate('spec', e.target.value); }} />
-      <select value={row.tolerance} onChange={e => onUpdate('tolerance', e.target.value)}>
-        <option value="">Tolerance</option>
-        {tols.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-      </select>
-      <select value={row.inst} onChange={e => onUpdate('inst', e.target.value)}>
-        <option value="">Instrument</option>
-        {INSTRUMENTS.map(i => <option key={i} value={i}>{i}</option>)}
-      </select>
+  return (
+    <div className={`insp-row${filled?' done':''}`} style={{borderLeftColor: filled?'#4CAF50':color}}>
+      <div className="insp-sr" style={{background:color}}>{srNum}</div>
+      <div className="insp-fields">
+        <select value={row.name} onChange={e=>onUpdate('name',e.target.value)} className="insp-select">
+          <option value="">{isProduct ? '📦 Product item select karo...' : '⚙️ Process item select karo...'}</option>
+          {items.map(i=><option key={i} value={i}>{i}</option>)}
+        </select>
+        <div className="insp-row-bottom">
+          <input className="insp-input" type="text" value={spec} placeholder="Spec"
+            onChange={e=>{setSpec(e.target.value);onUpdate('spec',e.target.value);}} />
+          <select value={row.tolerance} onChange={e=>onUpdate('tolerance',e.target.value)} className="insp-select-sm">
+            <option value="">Tolerance</option>
+            {tols.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+          </select>
+          <select value={row.inst} onChange={e=>onUpdate('inst',e.target.value)} className="insp-select-sm">
+            <option value="">Instrument</option>
+            {INSTRUMENTS.map(i=><option key={i} value={i}>{i}</option>)}
+          </select>
+        </div>
+      </div>
       {onRemove
-        ? <button onClick={onRemove} style={{ background:'none', border:'none', color:'#e53935', cursor:'pointer', fontSize:18, fontWeight:700, padding:0, minHeight:36, minWidth:34 }}>✕</button>
-        : <div />}
+        ? <button onClick={onRemove} className="insp-remove">✕</button>
+        : <div style={{width:28}}/>}
     </div>
   );
-
-  /* ── MOBILE CARD ── */
-  const mobileCard = (
-    <div className={`insp-card-mobile${filled ? ' done' : ''}`}>
-      <div className="card-head">
-        <span style={{ background:color, color:'white', fontSize:12, fontWeight:700, borderRadius:6, padding:'4px 10px' }}>SR {srNum}</span>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          {filled && <span style={{ fontSize:12, color:'#4CAF50', fontWeight:700 }}>✓ Done</span>}
-          {onRemove && <button className="remove-btn" onClick={onRemove}>✕ Hatao</button>}
-        </div>
-      </div>
-      <div className="card-body">
-        <div className="full-col">
-          <label>Item Name</label>
-          <select value={row.name} onChange={e => onUpdate('name', e.target.value)}>
-            <option value="">Item select karo...</option>
-            {items.map(i => <option key={i} value={i}>{i}</option>)}
-          </select>
-        </div>
-        <div>
-          <label>Spec</label>
-          <input type="text" value={spec} placeholder="Enter spec"
-            onChange={e => { setSpec(e.target.value); onUpdate('spec', e.target.value); }} />
-        </div>
-        <div>
-          <label>Tolerance</label>
-          <select value={row.tolerance} onChange={e => onUpdate('tolerance', e.target.value)}>
-            <option value="">Select...</option>
-            {tols.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-          </select>
-        </div>
-        <div className="full-col">
-          <label>Instrument</label>
-          <select value={row.inst} onChange={e => onUpdate('inst', e.target.value)}>
-            <option value="">Select...</option>
-            {INSTRUMENTS.map(i => <option key={i} value={i}>{i}</option>)}
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-
-  return <>{desktopRow}{mobileCard}</>;
 };
 
-/* ══════════════════════════════════════
-   SLOT VALUE ENTRY — Column-wise entry UI
-══════════════════════════════════════ */
+/* ── Inspection Preview Table ── */
+const PreviewTable = ({ rows, color, startSr, onRemove }) => (
+  <>
+    {/* Desktop table */}
+    <div className="prev-table-wrap">
+      <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
+        <thead>
+          <tr style={{background:'#f5f5f5',borderBottom:'2px solid #e0e0e0'}}>
+            <th className="prev-th" style={{width:40}}>SR</th>
+            <th className="prev-th" style={{textAlign:'left'}}>Item</th>
+            <th className="prev-th">Spec</th>
+            <th className="prev-th">Tolerance</th>
+            <th className="prev-th">Inst</th>
+            <th style={{width:32}}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row,i)=>(
+            <tr key={i} style={{borderBottom:'1px solid #f0f0f0',background:i%2===0?'white':'#fafafa'}}>
+              <td className="prev-td" style={{textAlign:'center',fontWeight:700,color}}>{startSr+i}</td>
+              <td className="prev-td" style={{fontWeight:600,color:'#222'}}>{row.name}</td>
+              <td className="prev-td" style={{textAlign:'center',color:'#555'}}>{row.spec}</td>
+              <td className="prev-td" style={{textAlign:'center',color:'#555'}}>± {row.tolerance}</td>
+              <td className="prev-td" style={{textAlign:'center',color:'#555'}}>{row.inst}</td>
+              <td style={{textAlign:'center',padding:'4px'}}>
+                <button onClick={()=>onRemove(i)} style={{background:'none',border:'none',color:'#e53935',cursor:'pointer',fontSize:16,fontWeight:700}}>✕</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {/* Mobile cards */}
+    <div className="prev-cards-wrap">
+      {rows.map((row,i)=>(
+        <div key={i} className="prev-card">
+          <div className="prev-card-sr" style={{background:color}}>{startSr+i}</div>
+          <div className="prev-card-info">
+            <div className="prev-card-name">{row.name}</div>
+            <div className="prev-card-meta">
+              <span>{row.spec}</span>
+              <span>± {row.tolerance}</span>
+              <span>{row.inst}</span>
+            </div>
+          </div>
+          <button onClick={()=>onRemove(i)} className="insp-preview-del">✕</button>
+        </div>
+      ))}
+    </div>
+  </>
+);
+
+/* ── Slot Value Entry ── */
 const SlotValueEntry = ({ slot, colLabels, setVal }) => {
   const [selectedIdx, setSelectedIdx] = React.useState('');
+  if (colLabels.length===0) return (
+    <div style={{padding:'20px',textAlign:'center',color:'#aaa',fontSize:13}}>
+      Pehle Step 2 mein inspection items add karo
+    </div>
+  );
 
-  if (colLabels.length === 0) {
-    return <div style={{ padding:'16px', color:'#aaa', fontSize:13, fontStyle:'italic', textAlign:'center' }}>Pehle Section 2 mein inspection items add karo.</div>;
-  }
-
-  const filledIdxs = colLabels.filter(({ idx }) => slot.upVals[idx] || slot.downVals[idx]).map(c => c.idx);
-
+  const filledIdxs = colLabels.filter(({idx})=>slot.upVals[idx]||slot.downVals[idx]).map(c=>c.idx);
   const handleAdd = () => {
-    if (selectedIdx === '') return;
-    const nextCol = colLabels.find(({ idx }) => idx !== Number(selectedIdx) && !slot.upVals[idx] && !slot.downVals[idx]);
-    setSelectedIdx(nextCol ? String(nextCol.idx) : '');
+    if (selectedIdx==='') return;
+    const next = colLabels.find(({idx})=>idx!==Number(selectedIdx)&&!slot.upVals[idx]&&!slot.downVals[idx]);
+    setSelectedIdx(next ? String(next.idx) : '');
   };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleAdd();
-  };
-
-  const upVal = selectedIdx !== '' ? slot.upVals[Number(selectedIdx)] || '' : '';
-  const dnVal = selectedIdx !== '' ? slot.downVals[Number(selectedIdx)] || '' : '';
+  const upVal = selectedIdx!=='' ? slot.upVals[Number(selectedIdx)]||'' : '';
+  const dnVal = selectedIdx!=='' ? slot.downVals[Number(selectedIdx)]||'' : '';
 
   return (
-    <div style={{ padding:'14px' }}>
-
-      {/* Add row — clean card style */}
-      <div style={{ background:'#faf5ff', border:'1.5px solid #ce93d8', borderRadius:10, padding:'14px', marginBottom:14 }}>
-        <div style={{ display:'flex', gap:10, alignItems:'flex-end', flexWrap:'wrap' }}>
-          <div style={{ flex:'2', minWidth:160 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#7b1fa2', marginBottom:5, textTransform:'uppercase' }}>Column</div>
-            <select value={selectedIdx} onChange={e => setSelectedIdx(e.target.value)}
-              style={{ width:'100%', padding:'10px 12px', border:'1.5px solid #7b1fa2', borderRadius:8, fontSize:14, outline:'none', background:'white', minHeight:44 }}>
-              <option value="">Select column...</option>
-              {colLabels.filter(({ idx }) => !slot.upVals[idx] && !slot.downVals[idx]).map(({ idx, label }) => (
-                <option key={idx} value={idx}>{label}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ flex:'1', minWidth:100 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#1565c0', marginBottom:5, textTransform:'uppercase' }}>⬆ UP</div>
-            <input type="text" value={upVal}
-              onChange={e => selectedIdx !== '' && setVal(slot.id, 'up', Number(selectedIdx), e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="UP value"
-              style={{ width:'100%', padding:'10px 12px', border:`1.5px solid ${upVal?'#4CAF50':'#1976d2'}`, borderRadius:8, fontSize:14, outline:'none', minHeight:44, background: upVal?'#f1f8e9':'white', color: upVal?'#2e7d32':'#333', fontWeight: upVal?700:400 }} />
-          </div>
-          {!slot.singleRow && (
-            <div style={{ flex:'1', minWidth:100 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#e65100', marginBottom:5, textTransform:'uppercase' }}>⬇ DOWN</div>
-              <input type="text" value={dnVal}
-                onChange={e => selectedIdx !== '' && setVal(slot.id, 'down', Number(selectedIdx), e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="DOWN value"
-                style={{ width:'100%', padding:'10px 12px', border:`1.5px solid ${dnVal?'#ff9800':'#e65100'}`, borderRadius:8, fontSize:14, outline:'none', minHeight:44, background: dnVal?'#fff8e1':'white', color: dnVal?'#e65100':'#333', fontWeight: dnVal?700:400 }} />
-            </div>
-          )}
-          <button onClick={handleAdd}
-            style={{ padding:'0 20px', height:44, background:'#7b1fa2', border:'none', borderRadius:8, color:'white', fontWeight:700, fontSize:13, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}>
-            + Add
-          </button>
+    <div style={{padding:'12px'}}>
+      {/* Input area */}
+      <div className="slot-add-row">
+        <div className="slot-add-col" style={{flex:2}}>
+          <div className="slot-add-label" style={{color:'#7b1fa2'}}>Column</div>
+          <select value={selectedIdx} onChange={e=>setSelectedIdx(e.target.value)} className="slot-select">
+            <option value="">Select column...</option>
+            {colLabels.filter(({idx})=>!slot.upVals[idx]&&!slot.downVals[idx]).map(({idx,label})=>(
+              <option key={idx} value={idx}>{label}</option>
+            ))}
+          </select>
         </div>
-
+        <div className="slot-add-col">
+          <div className="slot-add-label" style={{color:'#1565c0'}}>⬆ UP</div>
+          <input type="text" value={upVal} placeholder="—" className="slot-input"
+            onChange={e=>selectedIdx!==''&&setVal(slot.id,'up',Number(selectedIdx),e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&handleAdd()} />
+        </div>
+        {!slot.singleRow && (
+          <div className="slot-add-col">
+            <div className="slot-add-label" style={{color:'#e65100'}}>⬇ DOWN</div>
+            <input type="text" value={dnVal} placeholder="—" className="slot-input"
+              onChange={e=>selectedIdx!==''&&setVal(slot.id,'down',Number(selectedIdx),e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&handleAdd()} />
+          </div>
+        )}
+        <button onClick={handleAdd} className="slot-add-btn">+ Add</button>
       </div>
 
-      {/* Filled values — exact table style */}
-      {filledIdxs.length > 0 && (
-        <div style={{ border:'1px solid #e0e0e0', borderRadius:8, overflow:'hidden', marginTop:4 }}>
-          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+      {/* Filled table */}
+      {filledIdxs.length>0 && (
+        <div className="slot-table-wrap">
+          <table className="slot-table">
             <thead>
-              <tr style={{ background:'#fafafa', borderBottom:'1px solid #e0e0e0' }}>
-                <th style={{ padding:'5px 10px', textAlign:'left', fontWeight:700, color:'#666', width:'50%' }}>Column</th>
-                <th style={{ padding:'5px 10px', textAlign:'center', fontWeight:700, color:'#1565c0', width:'22%' }}>⬆ UP</th>
-                {!slot.singleRow && <th style={{ padding:'5px 10px', textAlign:'center', fontWeight:700, color:'#e65100', width:'22%' }}>⬇ DOWN</th>}
-                <th style={{ width:28 }}></th>
+              <tr>
+                <th style={{textAlign:'left'}}>Column</th>
+                <th style={{color:'#1565c0'}}>⬆ UP</th>
+                {!slot.singleRow && <th style={{color:'#e65100'}}>⬇ DOWN</th>}
+                <th style={{width:28}}></th>
               </tr>
             </thead>
             <tbody>
-              {filledIdxs.map(idx => {
-                const col = colLabels.find(c => c.idx === idx);
-                const uv = slot.upVals[idx] || '';
-                const dv = slot.downVals[idx] || '';
+              {filledIdxs.map(idx=>{
+                const col=colLabels.find(c=>c.idx===idx);
+                const uv=slot.upVals[idx]||'';
+                const dv=slot.downVals[idx]||'';
                 return (
-                  <tr key={idx} style={{ borderBottom:'1px solid #f5f5f5' }}>
-                    <td style={{ padding:'5px 10px', color:'#444', fontWeight:500 }}>{col?.label}</td>
-                    <td style={{ padding:'5px 10px', textAlign:'center', fontWeight:700, fontSize:12, color: uv==='NG'?'#c62828':'#2e7d32', background: uv?(uv==='NG'?'#ffebee':'#f1f8e9'):'transparent' }}>{uv || '—'}</td>
-                    {!slot.singleRow && <td style={{ padding:'5px 10px', textAlign:'center', fontWeight:700, fontSize:12, color: dv==='NG'?'#c62828':'#e65100', background: dv?(dv==='NG'?'#ffebee':'#fff8e1'):'transparent' }}>{dv || '—'}</td>}
-                    <td style={{ padding:'2px 6px', textAlign:'center' }}>
-                      <button onClick={() => { setVal(slot.id,'up',idx,''); setVal(slot.id,'down',idx,''); }}
-                        style={{ background:'none', border:'none', color:'#e53935', cursor:'pointer', fontSize:13, fontWeight:700, lineHeight:1, padding:'2px' }}>✕</button>
+                  <tr key={idx}>
+                    <td>{col?.label}</td>
+                    <td className={`sv ${uv==='NG'?'ng':'ok'}`}>{uv||'—'}</td>
+                    {!slot.singleRow && <td className={`sv ${dv==='NG'?'ng':'dn'}`}>{dv||'—'}</td>}
+                    <td style={{textAlign:'center'}}>
+                      <button onClick={()=>{setVal(slot.id,'up',idx,'');setVal(slot.id,'down',idx,'');}}
+                        style={{background:'none',border:'none',color:'#e53935',cursor:'pointer',fontSize:13,fontWeight:700}}>✕</button>
                     </td>
                   </tr>
                 );
@@ -246,439 +209,365 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
           </table>
         </div>
       )}
-
     </div>
   );
 };
 
 /* ══════════════════════════════════════
-   MAIN FORM
+   MAIN FORM — WIZARD
 ══════════════════════════════════════ */
-const Form = ({ onSubmit, onCancel, initialData = {}, items = [] }) => {
-  const [openStep, setOpenStep] = useState(1);
-  const toggleStep = (n) => setOpenStep(p => p === n ? 0 : n);
+const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
+  const [step, setStep] = useState(1);
 
-  /* ── Step 1: Report ── */
+  /* Step 1 */
   const [header, setHeader] = useState({
     partName:      initialData.part_name      || '',
     partNumber:    initialData.part_number    || '',
     operationName: initialData.operation_name || '',
     customerName:  initialData.customer_name  || '',
   });
-  const reportDone = !!(header.partName && header.partNumber && header.operationName && header.customerName);
+  const step1Done = !!(header.partName && header.partNumber && header.operationName && header.customerName);
 
-  /* ── Step 2: Inspection ── */
-  const existingProducts  = items.filter(i => i.sr_no <= 10);
-  const existingProcesses = items.filter(i => i.sr_no >= 11);
-
+  /* Step 2 */
+  const existingProducts  = items.filter(i=>i.sr_no<=10);
+  const existingProcesses = items.filter(i=>i.sr_no>=11);
   const [productRows, setProductRows] = useState(
-    existingProducts.length > 0
-      ? existingProducts.map(r => ({ name:r.item||'', spec:r.spec||'', tolerance:r.tolerance?.replace('± ','')||'', inst:r.inst||'' }))
+    existingProducts.length>0
+      ? existingProducts.map(r=>({name:r.item||'',spec:r.spec||'',tolerance:r.tolerance?.replace('± ','')||'',inst:r.inst||''}))
       : [emptyRow()]
   );
   const [processRows, setProcessRows] = useState(
-    existingProcesses.length > 0
-      ? existingProcesses.map(r => ({ name:r.item||'', spec:r.spec||'', tolerance:r.tolerance||'', inst:r.inst||'' }))
+    existingProcesses.length>0
+      ? existingProcesses.map(r=>({name:r.item||'',spec:r.spec||'',tolerance:r.tolerance||'',inst:r.inst||''}))
       : [emptyRow()]
   );
-
   const updateRow = (setter, rows, i, field, val) => {
     setter(prev => {
-      const updated = prev.map((r, j) => j === i ? { ...r, [field]: val } : r);
-      const isLastRow = i === updated.length - 1;
+      const updated = prev.map((r,j)=>j===i?{...r,[field]:val}:r);
+      const isLast = i===updated.length-1;
       const cur = updated[i];
-      if (isLastRow && cur.name && cur.spec && cur.tolerance && cur.inst && updated.length < 10) {
-        return [...updated, emptyRow()];
-      }
+      if (isLast&&cur.name&&cur.spec&&cur.tolerance&&cur.inst&&updated.length<10)
+        return [...updated,emptyRow()];
       return updated;
     });
   };
-
   const removeRow = (setter, rows, i) => {
-    const updated = rows.filter((_,j) => j !== i);
+    const updated = rows.filter((_,j)=>j!==i);
     setter(updated.length ? updated : [emptyRow()]);
   };
+  const filledProducts  = productRows.filter(r=>r.name&&r.spec&&r.tolerance&&r.inst);
+  const filledProcesses = processRows.filter(r=>r.name&&r.spec&&r.tolerance&&r.inst);
+  const step2Done = filledProducts.length>0 || filledProcesses.length>0;
+  const [inspType, setInspType] = useState(''); // 'product' | 'process'
 
-  const filledProducts  = productRows.filter(r => r.name && r.spec && r.tolerance && r.inst);
-  const filledProcesses = processRows.filter(r => r.name && r.spec && r.tolerance && r.inst);
-  const inspDone = filledProducts.length > 0 || filledProcesses.length > 0;
-
-  /* ── Step 3: Schedule ── */
-  const [schedDate,    setSchedDate]    = useState(initialData.date || new Date().toISOString().split('T')[0]);
-  const existingEntries = initialData.schedule_entries || [];
-  const firstEntry = existingEntries[0] || {};
-  const [operatorName, setOperatorName] = useState(firstEntry.operator || '');
-  const [mcNo,         setMcNo]         = useState(firstEntry.machine_no || '');
+  /* Step 3 */
+  const [schedDate,    setSchedDate]   = useState(initialData.date||new Date().toISOString().split('T')[0]);
+  const existingEntries = initialData.schedule_entries||[];
+  const firstEntry = existingEntries[0]||{};
+  const [operatorName, setOperatorName] = useState(firstEntry.operator||'');
+  const [mcNo,         setMcNo]         = useState(firstEntry.machine_no||'');
   const [schedExpanded, setSchedExpanded] = useState(false);
 
-  const makeSlot = (id, type) => ({ id, type, singleRow: true, upVals: Array(MAX_COLS).fill(''), downVals: Array(MAX_COLS).fill('') });
-
+  const makeSlot = (id,type) => ({id,type,singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
     if (!existingEntries.length) return [makeSlot(1,'SETUP')];
-    const map = {};
-    existingEntries.forEach(e => {
-      const k = e.slot_index ?? 0;
-      if (!map[k]) map[k] = { id:k+1, type:e.time_type||'SETUP', singleRow:true, upVals:Array(MAX_COLS).fill(''), downVals:Array(MAX_COLS).fill('') };
-      const vals = Array(MAX_COLS).fill('');
-      for (let i=0;i<MAX_COLS;i++) vals[i] = e[`value_${i+1}`]||'';
-      if (e.row_order === 0) { map[k].upVals = vals; }
-      else { map[k].downVals = vals; map[k].singleRow = false; }
+    const map={};
+    existingEntries.forEach(e=>{
+      const k=e.slot_index??0;
+      if (!map[k]) map[k]={id:k+1,type:e.time_type||'SETUP',singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+      const vals=Array(MAX_COLS).fill('');
+      for(let i=0;i<MAX_COLS;i++) vals[i]=e[`value_${i+1}`]||'';
+      if (e.row_order===0){map[k].upVals=vals;}
+      else{map[k].downVals=vals;map[k].singleRow=false;}
     });
-    const r = Object.values(map).sort((a,b)=>a.id-b.id);
-    return r.length ? r : [makeSlot(1,'SETUP')];
+    const r=Object.values(map).sort((a,b)=>a.id-b.id);
+    return r.length?r:[makeSlot(1,'SETUP')];
   };
-
   const initSlots = buildInitialSlots();
   const [slots,        setSlots]        = useState(initSlots);
-  const [nextId,       setNextId]       = useState(initSlots.length + 1);
-  const [activeSlotId, setActiveSlotId] = useState(initSlots[0]?.id ?? 1);
+  const [nextId,       setNextId]       = useState(initSlots.length+1);
+  const [activeSlotId, setActiveSlotId] = useState(initSlots[0]?.id??1);
 
   const addSlot = (type) => {
-    const s = makeSlot(nextId, type);
-    setSlots(prev => {
-      if (type === 'SETUP') {
-        const li = prev.map(x=>x.type).lastIndexOf('SETUP');
-        const at = li >= 0 ? li+1 : 0;
-        const n = [...prev]; n.splice(at,0,s); return n;
-      }
-      return [...prev, s];
+    const s=makeSlot(nextId,type);
+    setSlots(prev=>{
+      if(type==='SETUP'){const li=prev.map(x=>x.type).lastIndexOf('SETUP');const at=li>=0?li+1:0;const n=[...prev];n.splice(at,0,s);return n;}
+      return [...prev,s];
     });
-    setNextId(p=>p+1);
-    setActiveSlotId(s.id);
+    setNextId(p=>p+1); setActiveSlotId(s.id);
   };
-
-  const removeSlot = (id) => { setSlots(p=>p.filter(s=>s.id!==id)); if (activeSlotId===id) setActiveSlotId(null); };
+  const removeSlot = (id) => {setSlots(p=>p.filter(s=>s.id!==id));if(activeSlotId===id)setActiveSlotId(null);};
   const toggleRows  = (id) => setSlots(p=>p.map(s=>s.id===id?{...s,singleRow:!s.singleRow}:s));
-  const setVal = (slotId, row, idx, val) =>
+  const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
-      ? { ...s, [row==='up'?'upVals':'downVals']: s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v) }
-      : s
-    ));
+      ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
 
   const colLabels = [
-    ...filledProducts.map((r,i)  => ({ idx:i,                      label:`${i+1}. ${r.name}` })),
-    ...filledProcesses.map((r,i) => ({ idx:filledProducts.length+i, label:`${filledProducts.length+i+1}. ${r.name}` })),
-  ].slice(0, MAX_COLS);
+    ...filledProducts.map((r,i)  =>({idx:i,                     label:`${i+1}. ${r.name}`})),
+    ...filledProcesses.map((r,i) =>({idx:filledProducts.length+i,label:`${filledProducts.length+i+1}. ${r.name}`})),
+  ].slice(0,MAX_COLS);
 
-  const activeSlot    = slots.find(s=>s.id===activeSlotId) || null;
+  const activeSlot    = slots.find(s=>s.id===activeSlotId)||null;
   const setupSlot     = slots.find(s=>s.type==='SETUP');
-  const isSetupFilled = setupSlot
-    ? setupSlot.upVals.filter(v=>v&&v.trim()).length + setupSlot.downVals.filter(v=>v&&v.trim()).length > 0
-    : false;
+  const isSetupFilled = setupSlot ? setupSlot.upVals.filter(v=>v&&v.trim()).length+setupSlot.downVals.filter(v=>v&&v.trim()).length>0 : false;
+  const slotTypes     = slots.map(s=>s.type);
+  const pendingTypes  = PENDING_SLOT_TYPES.filter(t=>!slotTypes.includes(t));
+  const addedTypes    = PENDING_SLOT_TYPES.filter(t=>slotTypes.includes(t));
 
-  const slotTypes    = slots.map(s=>s.type);
-  const pendingTypes = PENDING_SLOT_TYPES.filter(t=>!slotTypes.includes(t));
-  const addedTypes   = PENDING_SLOT_TYPES.filter(t=>slotTypes.includes(t));
-
-  /* ── Submit ── */
   const handleSubmit = () => {
-    if (!reportDone) { alert('Report Information puri bharo'); return; }
-    const allItems = [
-      ...filledProducts.map((r,i)  => ({ sr_no:i+1,  item:r.name, spec:r.spec, tolerance:`± ${r.tolerance}`, inst:r.inst })),
-      ...filledProcesses.map((r,i) => ({ sr_no:11+i, item:r.name, spec:r.spec, tolerance:r.tolerance, inst:r.inst })),
+    if (!step1Done){alert('Step 1 pura karo');return;}
+    const allItems=[
+      ...filledProducts.map((r,i) =>({sr_no:i+1, item:r.name,spec:r.spec,tolerance:`± ${r.tolerance}`,inst:r.inst})),
+      ...filledProcesses.map((r,i)=>({sr_no:11+i,item:r.name,spec:r.spec,tolerance:r.tolerance,inst:r.inst})),
     ];
-    const scheduleEntries = [];
-    slots.forEach((slot,si) => {
-      if (slot.singleRow) {
-        const e = { time_type:slot.type, row_order:0, slot_index:si, operator:operatorName, machine_no:mcNo, date:schedDate };
-        slot.upVals.forEach((v,i) => { e[`value_${i+1}`]=v||''; });
+    const scheduleEntries=[];
+    slots.forEach((slot,si)=>{
+      if(slot.singleRow){
+        const e={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
+        slot.upVals.forEach((v,i)=>{e[`value_${i+1}`]=v||'';});
         scheduleEntries.push(e);
       } else {
-        ['upVals','downVals'].forEach((key,ri) => {
-          const e = { time_type:slot.type, row_order:ri, slot_index:si, operator:operatorName, machine_no:mcNo, date:schedDate };
-          slot[key].forEach((v,i) => { e[`value_${i+1}`]=v||''; });
+        ['upVals','downVals'].forEach((key,ri)=>{
+          const e={time_type:slot.type,row_order:ri,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
+          slot[key].forEach((v,i)=>{e[`value_${i+1}`]=v||'';});
           scheduleEntries.push(e);
         });
       }
     });
-    onSubmit({ partName:header.partName, partNumber:header.partNumber, operationName:header.operationName, customerName:header.customerName, scheduleDate:schedDate, operatorName, mcNo, items:allItems, schedule_entries:scheduleEntries });
+    onSubmit({partName:header.partName,partNumber:header.partNumber,operationName:header.operationName,customerName:header.customerName,scheduleDate:schedDate,operatorName,mcNo,items:allItems,schedule_entries:scheduleEntries});
   };
 
-  /* ─────────── RENDER ─────────── */
-  return (
-    <div className="form-wrap">
+  const stepDone = [false, step1Done, step2Done, isSetupFilled];
+  const progress = ((step-1)/2)*100;
 
-      {/* Top Bar */}
-      <div className="form-topbar">
-        <span className="form-topbar-title">📋 Inspection Form</span>
-        <button className="btn-cancel-top" onClick={onCancel}>✕ Cancel</button>
+  return (
+    <div className="wiz-wrap">
+
+      {/* ── Top Bar ── */}
+      <div className="wiz-topbar">
+        <button onClick={onCancel} className="wiz-back-btn">← Back</button>
+        <span className="wiz-topbar-title">📋 Inspection Form</span>
+        <div style={{width:60}} />
       </div>
 
-      <div className="form-body">
-
-        {/* ════ STEP 1: REPORT ════ */}
-        <div className="acc-card">
-          <StepHeader num="1" title="Report Information" color="#4CAF50" done={reportDone}
-            subtitle={reportDone ? `${header.partName} · ${header.operationName} · ${header.customerName}` : 'Part, operation, customer select karo'}
-            onClick={() => toggleStep(1)} isOpen={openStep === 1} />
-
-          {openStep === 1 && (
-            <div style={{ padding:'16px', borderTop:'1px solid #eee' }}>
-              <div className="grid-2" style={{ gap:14 }}>
-                <Field label="Part Name" required value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={PART_NAMES} placeholder="Part Name select karo" />
-                <Field label="Part Number" required value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={PART_NUMBERS} placeholder="Part Number select karo" />
-                <Field label="Operation Name" required value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={OPERATIONS} placeholder="Operation select karo" />
-                <Field label="Customer Name" required value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={CUSTOMER_NAMES} placeholder="Customer select karo" />
-              </div>
-              {reportDone && (
-                <button className="next-btn" onClick={() => toggleStep(2)} style={{
-                  marginTop:16, padding:'0 24px', height:46, background:'#4CAF50',
-                  color:'white', border:'none', borderRadius:8, fontWeight:700, fontSize:14, cursor:'pointer',
-                }}>
-                  Aage → Inspection
-                </button>
-              )}
-            </div>
-          )}
+      {/* ── Progress Bar ── */}
+      <div className="wiz-progress-wrap">
+        <div className="wiz-progress-track">
+          <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
         </div>
-
-        {/* ════ STEP 2: INSPECTION ════ */}
-        <div className="acc-card">
-          <StepHeader num="2" title="Inspection Items" color="#1976d2" done={inspDone}
-            subtitle={inspDone ? `${filledProducts.length} product · ${filledProcesses.length} process items` : 'Product aur process items add karo'}
-            onClick={() => toggleStep(2)} isOpen={openStep === 2} />
-
-          {openStep === 2 && (
-            <div style={{ padding:'16px', borderTop:'1px solid #eee' }}>
-
-              {/* ── Product Items ── */}
-              <div style={{ marginBottom:22 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, flexWrap:'wrap' }}>
-                  <span style={{ fontWeight:700, fontSize:13, color:'#1976d2' }}>📦 Product Items</span>
-                  <span style={{ fontSize:11, color:'#aaa' }}>(max 10)</span>
-                  {filledProducts.length > 0 && (
-                    <span style={{ background:'#e3f2fd', color:'#1976d2', border:'1px solid #90caf9', borderRadius:10, padding:'3px 10px', fontSize:11, fontWeight:700 }}>
-                      {filledProducts.length} items ✓
-                    </span>
-                  )}
-                </div>
-                {/* Desktop column labels */}
-                <div className="insp-col-header" style={{ display:'grid', gridTemplateColumns:'34px 2fr 1fr 1fr 1.2fr 34px', gap:6, padding:'0 8px 6px' }}>
-                  {['SR','Item Name','Spec','Tolerance','Instrument',''].map((h,i) => (
-                    <div key={i} style={{ fontSize:10, fontWeight:700, color:'#bbb', textTransform:'uppercase' }}>{h}</div>
-                  ))}
-                </div>
-                {productRows.map((row, i) => (
-                  <InspItem key={i} row={row} srNum={i+1} isProduct={true}
-                    onUpdate={(f,v) => updateRow(setProductRows, productRows, i, f, v)}
-                    onRemove={productRows.length > 1 && row.name ? () => removeRow(setProductRows, productRows, i) : null} />
-                ))}
+        <div className="wiz-steps-row">
+          {STEPS.map(s=>(
+            <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
+              onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
+              <div className="wiz-dot-circle">
+                {stepDone[s.id] ? '✓' : s.icon}
               </div>
-
-              {/* ── Process Items ── */}
-              <div style={{ marginBottom:16 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, flexWrap:'wrap' }}>
-                  <span style={{ fontWeight:700, fontSize:13, color:'#e65100' }}>⚙️ Process Items</span>
-                  <span style={{ fontSize:11, color:'#aaa' }}>(max 10)</span>
-                  {filledProcesses.length > 0 && (
-                    <span style={{ background:'#fff3e0', color:'#e65100', border:'1px solid #ffcc80', borderRadius:10, padding:'3px 10px', fontSize:11, fontWeight:700 }}>
-                      {filledProcesses.length} items ✓
-                    </span>
-                  )}
-                </div>
-                <div className="insp-col-header" style={{ display:'grid', gridTemplateColumns:'34px 2fr 1fr 1fr 1.2fr 34px', gap:6, padding:'0 8px 6px' }}>
-                  {['SR','Item Name','Spec','Tolerance','Instrument',''].map((h,i) => (
-                    <div key={i} style={{ fontSize:10, fontWeight:700, color:'#bbb', textTransform:'uppercase' }}>{h}</div>
-                  ))}
-                </div>
-                {processRows.map((row, i) => (
-                  <InspItem key={i} row={row} srNum={filledProducts.length + i + 1} isProduct={false}
-                    onUpdate={(f,v) => updateRow(setProcessRows, processRows, i, f, v)}
-                    onRemove={processRows.length > 1 && row.name ? () => removeRow(setProcessRows, processRows, i) : null} />
-                ))}
-              </div>
-
-              {inspDone && (
-                <button className="next-btn" onClick={() => toggleStep(3)} style={{
-                  padding:'0 24px', height:46, background:'#1976d2',
-                  color:'white', border:'none', borderRadius:8, fontWeight:700, fontSize:14, cursor:'pointer',
-                }}>
-                  Aage → Schedule
-                </button>
-              )}
+              <div className="wiz-dot-label">{s.label}</div>
             </div>
-          )}
+          ))}
         </div>
+      </div>
 
-        {/* ════ STEP 3: SCHEDULE ════ */}
-        <div className="acc-card">
-          <StepHeader num="3" title="Schedule Information" color="#7b1fa2" done={isSetupFilled}
-            subtitle={isSetupFilled ? `SETUP done · ${operatorName||'—'} · M/C ${mcNo||'—'}` : 'Date, operator, time slots fill karo'}
-            onClick={() => toggleStep(3)} isOpen={openStep === 3} />
+      {/* ── Step Content ── */}
+      <div className="wiz-body">
 
-          {openStep === 3 && (
-            <div style={{ padding:'16px', borderTop:'1px solid #eee' }}>
+        {/* ════ STEP 1 ════ */}
+        {step===1 && (
+          <div className="wiz-card">
+            <div className="wiz-card-title">📋 Report Information</div>
+            <div className="wiz-grid-2">
+              <Field label="Part Name" required value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={PART_NAMES} placeholder="Select part..." />
+              <Field label="Part Number" required value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={PART_NUMBERS} placeholder="Select number..." />
+              <Field label="Operation" required value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={OPERATIONS} placeholder="Select operation..." />
+              <Field label="Customer" required value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={CUSTOMER_NAMES} placeholder="Select customer..." />
+            </div>
+          </div>
+        )}
 
-              {/* Date / Operator / MC */}
-              <div className="grid-3" style={{ marginBottom:18, gap:14 }}>
-                {/* Date */}
-                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                  <label style={{ fontSize:12, fontWeight:600, color:'#555' }}>Date <span style={{ color:'#e53935' }}>*</span></label>
-                  <div style={{ position:'relative', border:`1.5px solid ${schedDate?'#4CAF50':'#ddd'}`, borderRadius:8, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, background:'white', cursor:'pointer', minHeight:44 }}>
-                    <span style={{ flex:1, fontSize:14 }}>{schedDate ? schedDate.split('-').reverse().join('/') : 'DD/MM/YYYY'}</span>
-                    <span>📅</span>
-                    <input type="date" value={schedDate} onChange={e=>setSchedDate(e.target.value)}
-                      style={{ position:'absolute', opacity:0, inset:0, cursor:'pointer', width:'100%', height:'100%' }} />
-                  </div>
-                </div>
-                <Field label="Operator Name" required value={operatorName} onChange={setOperatorName} options={OPERATOR_NAMES} placeholder="Operator select karo" />
-                <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Machine select karo" />
-              </div>
+        {/* ════ STEP 2 ════ */}
+        {step===2 && (
+          <div className="wiz-card">
+            <div className="wiz-card-title">🔍 Inspection Items</div>
 
-              {/* ── SETUP done banner ── */}
-              {isSetupFilled && (
-                <div style={{ background:'#e8f5e9', border:'1.5px solid #4CAF50', borderRadius:10, padding:'14px', marginBottom:16 }}>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                      <span style={{ background:'#2e7d32', color:'white', fontWeight:700, fontSize:13, borderRadius:6, padding:'5px 14px' }}>
-                        ✅ SETUP — Data Save Ho Gaya!
-                      </span>
-                      <span style={{ fontSize:12, color:'#2e7d32', fontWeight:600 }}>
-                        {setupSlot.upVals.filter(v=>v&&v.trim()).length + setupSlot.downVals.filter(v=>v&&v.trim()).length} values
-                      </span>
+            {/* Type dropdown */}
+            <div className="wiz-field" style={{marginBottom:16}}>
+              <label className="wiz-label">Item Type select karo</label>
+              <select value={inspType} onChange={e=>setInspType(e.target.value)}
+                className={`wiz-select${inspType?' filled':''}`}>
+                <option value="">-- Select Type --</option>
+                <option value="product">📦 Product Items{filledProducts.length>0?` (${filledProducts.length} added)`:''}</option>
+                <option value="process">⚙️ Process Items{filledProcesses.length>0?` (${filledProcesses.length} added)`:''}</option>
+              </select>
+            </div>
+
+            {/* Product section */}
+            {inspType==='product' && (
+              <div>
+                {/* New entry row */}
+                {filledProducts.length < 10 && (()=>{
+                  const lastRow = productRows[productRows.length-1];
+                  const lastIdx = productRows.length-1;
+                  return (
+                    <div style={{marginBottom:14}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#1976d2',marginBottom:8,textTransform:'uppercase',letterSpacing:'0.5px'}}>+ New Product Item</div>
+                      <InspItem row={lastRow} srNum={filledProducts.length+1} isProduct={true}
+                        onUpdate={(f,v)=>updateRow(setProductRows,productRows,lastIdx,f,v)}
+                        onRemove={null} />
                     </div>
-                    <button onClick={() => setSchedExpanded(p=>!p)} style={{
-                      background: schedExpanded ? '#f3e5f5' : '#7b1fa2',
-                      color: schedExpanded ? '#7b1fa2' : 'white',
-                      border:'1.5px solid #7b1fa2', borderRadius:8,
-                      padding:'10px 16px', fontSize:13, fontWeight:700, cursor:'pointer',
-                      minHeight:44, width:'100%', maxWidth:220,
-                    }}>
-                      {schedExpanded ? '▲ Collapse' : '✏️ Edit / Add Slots'}
-                    </button>
+                  );
+                })()}
+
+                {/* Preview table */}
+                {filledProducts.length>0 && (
+                  <div className="insp-preview-table">
+                    <PreviewTable rows={filledProducts} color="#1976d2" startSr={1}
+                      onRemove={i=>removeRow(setProductRows,productRows,productRows.findIndex(r=>r===filledProducts[i]))} />
                   </div>
-                  {/* Slot badges */}
-                  <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginTop:10, paddingTop:10, borderTop:'1px solid #c8e6c9' }}>
-                    <span style={{ fontSize:12, fontWeight:700, color:'#555' }}>Slots:</span>
-                    {addedTypes.map(t => (
-                      <span key={t} style={{ background:'#e8f5e9', border:'1px solid #4CAF50', color:'#2e7d32', borderRadius:12, padding:'4px 14px', fontSize:12, fontWeight:700 }}>✓ {t}</span>
-                    ))}
-                    {pendingTypes.map(t => (
-                      <span key={t} style={{ background:'#fff8e1', border:'1.5px solid #ffb300', color:'#e65100', borderRadius:12, padding:'4px 14px', fontSize:12, fontWeight:700 }}>⏳ {t}</span>
-                    ))}
+                )}
+              </div>
+            )}
+
+            {/* Process section */}
+            {inspType==='process' && (
+              <div>
+                {/* New entry row */}
+                {filledProcesses.length < 10 && (()=>{
+                  const lastRow = processRows[processRows.length-1];
+                  const lastIdx = processRows.length-1;
+                  return (
+                    <div style={{marginBottom:14}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#e65100',marginBottom:8,textTransform:'uppercase',letterSpacing:'0.5px'}}>+ New Process Item</div>
+                      <InspItem row={lastRow} srNum={filledProducts.length+filledProcesses.length+1} isProduct={false}
+                        onUpdate={(f,v)=>updateRow(setProcessRows,processRows,lastIdx,f,v)}
+                        onRemove={null} />
+                    </div>
+                  );
+                })()}
+
+                {/* Preview table */}
+                {filledProcesses.length>0 && (
+                  <div className="insp-preview-table">
+                    <PreviewTable rows={filledProcesses} color="#e65100" startSr={filledProducts.length+1}
+                      onRemove={i=>removeRow(setProcessRows,processRows,processRows.findIndex(r=>r===filledProcesses[i]))} />
                   </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════ STEP 3 ════ */}
+        {step===3 && (
+          <div className="wiz-card">
+            <div className="wiz-card-title">📅 Schedule</div>
+
+            {/* Basic info */}
+            <div className="wiz-grid-3" style={{marginBottom:20}}>
+              <div className="wiz-field">
+                <label className="wiz-label">Date <span style={{color:'#e53935'}}>*</span></label>
+                <div className="date-box">
+                  <span>{schedDate?schedDate.split('-').reverse().join('/'):'DD/MM/YYYY'}</span>
+                  <span>📅</span>
+                  <input type="date" value={schedDate} onChange={e=>setSchedDate(e.target.value)} className="date-input-hidden" />
                 </div>
-              )}
+              </div>
+              <Field label="Operator" required value={operatorName} onChange={setOperatorName} options={OPERATOR_NAMES} placeholder="Select operator..." />
+              <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
+            </div>
 
-              {/* ── Slot editing area ── */}
-              {(!isSetupFilled || schedExpanded) && (
-                <div>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#999', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:12 }}>Time Slots</div>
+            {/* SETUP done banner — UPAR, always visible when done */}
+            {isSetupFilled && (
+              <div className="setup-done-banner" style={{marginBottom:16}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+                  <div style={{display:'flex',alignItems:'center',gap:10}}>
+                    <span style={{fontSize:18}}>✅</span>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:13,color:'#2e7d32'}}>SETUP Complete!</div>
+                      <div style={{fontSize:11,color:'#388e3c',marginTop:2}}>
+                        {addedTypes.map(t=>(
+                          <span key={t} style={{marginRight:8}}>✓ {t}</span>
+                        ))}
+                        {pendingTypes.map(t=>(
+                          <span key={t} style={{color:'#e65100',marginRight:8}}>⏳ {t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={()=>setSchedExpanded(p=>!p)} className="slot-toggle-btn"
+                    style={{background: schedExpanded?'#c8e6c9':'#2e7d32',border:'none',color:'white',padding:'8px 16px',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer'}}>
+                    {schedExpanded ? '▲ Close' : '✏️ Edit / Add Slots'}
+                  </button>
+                </div>
+              </div>
+            )}
 
-                  {/* Slot tabs — scrollable row on mobile */}
-                  <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14, alignItems:'center', overflowX:'auto', paddingBottom:4 }}>
-                    {slots.map((slot, i) => {
-                      const isActive = slot.id === activeSlotId;
-                      const filled = slot.upVals.filter(v=>v&&v.trim()).length + slot.downVals.filter(v=>v&&v.trim()).length;
+            {/* Slot section — show always if not setup, else show only when expanded */}
+            {(!isSetupFilled || schedExpanded) && (
+              <div>
+                {/* Slot tabs */}
+                <div style={{marginBottom:8}}>
+                  <div style={{fontSize:12,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Time Slots</div>
+                  <div className="slot-tabs">
+                    {slots.map((slot,i)=>{
+                      const isActive=slot.id===activeSlotId;
+                      const cnt=slot.upVals.filter(v=>v&&v.trim()).length+slot.downVals.filter(v=>v&&v.trim()).length;
                       return (
-                        <button key={slot.id} onClick={() => setActiveSlotId(slot.id)} style={{
-                          flexShrink:0,
-                          padding:'10px 16px', minHeight:46,
-                          borderRadius:24,
-                          border:`2px solid ${isActive ? '#7b1fa2' : filled > 0 ? '#4CAF50' : '#ddd'}`,
-                          background: isActive ? '#7b1fa2' : filled > 0 ? '#e8f5e9' : 'white',
-                          color: isActive ? 'white' : filled > 0 ? '#2e7d32' : '#555',
-                          fontWeight:700, fontSize:13, cursor:'pointer',
-                          display:'flex', alignItems:'center', gap:7,
-                        }}>
-                          {i+1}. {slot.type}
-                          {filled > 0 && !isActive && <span style={{ fontSize:11, opacity:0.8 }}>✓{filled}</span>}
-                          {isActive && (
-                            <button onClick={e=>{ e.stopPropagation(); toggleRows(slot.id); }} style={{
-                              background:'rgba(255,255,255,0.25)', border:'1px solid rgba(255,255,255,0.5)',
-                              borderRadius:10, padding:'2px 8px', fontSize:11, color:'white', cursor:'pointer', fontWeight:700,
-                            }}>
-                              {slot.singleRow ? '1L' : '2L'}
-                            </button>
-                          )}
-                          {slots.length > 1 && (
-                            <span onClick={e=>{ e.stopPropagation(); removeSlot(slot.id); }}
-                              style={{ color: isActive?'rgba(255,255,255,0.6)':'#ccc', fontSize:16, fontWeight:700, cursor:'pointer', lineHeight:1 }}>×</span>
-                          )}
+                        <button key={slot.id} onClick={()=>setActiveSlotId(slot.id)}
+                          className={`slot-tab${isActive?' active':''}${cnt>0&&!isActive?' filled':''}`}>
+                          {slot.type}
+                          {cnt>0&&!isActive&&<span className="slot-tab-cnt">✓{cnt}</span>}
+                          {isActive&&<button onClick={e=>{e.stopPropagation();toggleRows(slot.id);}} className="slot-tab-toggle">
+                            {slot.singleRow?'1L':'2L'}
+                          </button>}
+                          {slots.length>1&&<span onClick={e=>{e.stopPropagation();removeSlot(slot.id);}} className="slot-tab-remove">×</span>}
                         </button>
                       );
                     })}
-
-                    {/* Add slot dropdown */}
-                    <select value="" onChange={e=>{ const t=e.target.value; if(!t) return; addSlot(t); }} style={{
-                      flexShrink:0,
-                      padding:'10px 14px', minHeight:46, borderRadius:24,
-                      border:'2px dashed #7b1fa2', background:'#faf0ff',
-                      color:'#7b1fa2', fontWeight:700, fontSize:13, cursor:'pointer', outline:'none',
-                    }}>
-                      <option value="">+ Slot add karo</option>
-                      {TIME_TYPE_OPTIONS.map(t => (
-                        <option key={t} value={t} disabled={t!=='SETUP' && !isSetupFilled}>
-                          {t}{t!=='SETUP' && !isSetupFilled ? ' 🔒' : ''}
+                    <select value="" onChange={e=>{if(!e.target.value)return;addSlot(e.target.value);}} className="slot-add-select">
+                      <option value="">+ Add Slot</option>
+                      {TIME_TYPE_OPTIONS.map(t=>(
+                        <option key={t} value={t} disabled={t!=='SETUP'&&!isSetupFilled}>
+                          {t}{t!=='SETUP'&&!isSetupFilled?' 🔒':''}
                         </option>
                       ))}
                     </select>
                   </div>
-
-                  {/* Active slot value entry */}
-                  {activeSlot && (
-                    <div style={{ border:'1px solid #e0e0e0', borderRadius:10, overflow:'hidden', marginBottom:16 }}>
-                      <div style={{ background:'#7b1fa2', color:'white', padding:'12px 14px', display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                        <span style={{ fontWeight:700, fontSize:13 }}>✏️ Slot {slots.findIndex(s=>s.id===activeSlotId)+1} — {activeSlot.type}</span>
-                        <span style={{ fontSize:11, opacity:0.75 }}>{activeSlot.singleRow ? '(1 line)' : '(UP + DOWN)'}</span>
-                        <button onClick={() => toggleRows(activeSlot.id)} style={{
-                          marginLeft:'auto', background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.4)',
-                          borderRadius:7, padding:'7px 14px', color:'white', fontSize:12, fontWeight:700, cursor:'pointer', minHeight:36,
-                        }}>
-                          {activeSlot.singleRow ? '2 Lines mein karo' : '1 Line mein karo'}
-                        </button>
-                      </div>
-                      <SlotValueEntry slot={activeSlot} colLabels={colLabels} setVal={setVal} />
-                    </div>
-                  )}
-
-                  {/* Schedule Preview — desktop only */}
-                  {colLabels.length > 0 && slots.length > 0 && (
-                    <div className="sched-preview" style={{ overflowX:'auto', marginTop:6 }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#999', textTransform:'uppercase', marginBottom:6 }}>Schedule Preview</div>
-                      <table className="mini-table">
-                        <thead>
-                          <tr>
-                            <th>#</th><th>Time</th><th>Row</th>
-                            {colLabels.map(({idx,label}) => <th key={idx}>{label.split('. ')[0]}</th>)}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {slots.flatMap((slot,si) => {
-                            const rows = slot.singleRow ? ['upVals'] : ['upVals','downVals'];
-                            return rows.map((rk,ri) => (
-                              <tr key={`${slot.id}-${rk}`} style={{ background: slot.id===activeSlotId ? '#fdf6ff' : 'white' }}>
-                                <td style={{ fontWeight:700, color:'#7b1fa2' }}>{ri===0 ? si+1 : ''}</td>
-                                <td style={{ fontWeight:700 }}>{ri===0 ? slot.type : ''}</td>
-                                <td style={{ color: slot.singleRow ? '#7b1fa2' : ri===0 ? '#1565c0':'#e65100', fontWeight:600, fontSize:11 }}>
-                                  {slot.singleRow ? 'VAL' : ri===0 ? 'UP':'DOWN'}
-                                </td>
-                                {colLabels.map(({idx}) => {
-                                  const v = slot[rk][idx];
-                                  return <td key={idx} style={{ color:v?(v==='NG'?'#c62828':'#2e7d32'):'#ccc', fontWeight:v?700:400, background:v?(v==='NG'?'#ffebee':'#f1f8e9'):'transparent' }}>{v||'—'}</td>;
-                                })}
-                              </tr>
-                            ));
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
                 </div>
-              )}
 
-            </div>
-          )}
-        </div>
-
+                {/* Active slot entry */}
+                {activeSlot && (
+                  <div className="slot-entry-card">
+                    <div className="slot-entry-head">
+                      <span>✏️ {activeSlot.type} — {activeSlot.singleRow?'Single Row':'UP + DOWN'}</span>
+                      <button onClick={()=>toggleRows(activeSlot.id)} className="slot-toggle-btn">
+                        {activeSlot.singleRow?'2 Lines':'1 Line'}
+                      </button>
+                    </div>
+                    <SlotValueEntry slot={activeSlot} colLabels={colLabels} setVal={setVal} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Save Bar */}
-      <div className="save-bar">
-        <button className="btn-cancel" onClick={onCancel}>Cancel</button>
-        <button className="btn-save" onClick={handleSubmit}>✅ Save</button>
+      {/* ── Bottom Nav ── */}
+      <div className="wiz-footer">
+        {step>1
+          ? <button onClick={()=>setStep(s=>s-1)} className="wiz-btn-back">← Back</button>
+          : <button onClick={onCancel} className="wiz-btn-back">Cancel</button>
+        }
+        {step<3
+          ? <button onClick={()=>setStep(s=>s+1)}
+              disabled={step===1&&!step1Done || step===2&&!step2Done}
+              className={`wiz-btn-next${(step===1&&!step1Done)||(step===2&&!step2Done)?' disabled':''}`}>
+              Next →
+            </button>
+          : <button onClick={handleSubmit} className="wiz-btn-save">✅ Save</button>
+        }
       </div>
+
     </div>
   );
 };
