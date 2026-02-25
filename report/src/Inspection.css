@@ -262,7 +262,7 @@ td, th { border:1px solid black;
 
   .field-label
    { font-size:8.5px !important; }
-   
+
   .field-input
    { font-size:10.5px !important; }
 
@@ -284,7 +284,8 @@ td, th { border:1px solid black;
     padding:0 3px !important;
     overflow:hidden !important;
   }
-  .inspection-table tbody tr:nth-child(even) td { background:#fafafa !important; }
+  .inspection-table tbody tr:nth-child(even) td
+  { background:#fafafa !important; }
 
   /* ── SCHEDULE WRAPPER: height = thead(22) + rows×26 ── */
   .schedule-wrapper {
@@ -328,8 +329,18 @@ td, th { border:1px solid black;
     padding:0 10px 8px !important;
     overflow:hidden !important;
   }
-  .signature-field { display:flex !important; align-items:flex-end !important; gap:8px !important; min-width:320px !important; }
-  .signature-field label { font-size:10px !important; font-weight:bold !important; white-space:nowrap !important; padding-bottom:2px !important; }
+  .signature-field 
+  { display:flex !important; 
+    align-items:flex-end !important; 
+    gap:8px !important; 
+    min-width:320px !important; }
+
+  .signature-field label
+   { font-size:10px !important; 
+    font-weight:bold !important; 
+    white-space:nowrap !important; 
+    padding-bottom:2px !important; }
+    
   .signature-field input {
     font-size:10px !important;
     border:none !important;
