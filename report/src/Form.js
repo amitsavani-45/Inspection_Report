@@ -152,11 +152,6 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
   return (
     <div style={{padding:'12px'}}>
       {/* Input area — sirf tab dikhao jab unfilled columns baaki hon */}
-      {allFilled && (
-        <div style={{padding:'10px 0 6px',textAlign:'center',color:'#4CAF50',fontWeight:700,fontSize:13}}>
-          ✅ Saare columns fill ho gaye!
-        </div>
-      )}
       {!allFilled && <div className="slot-add-row">
         <div className="slot-add-col" style={{flex:2}}>
           <div className="slot-add-label" style={{color:'#7b1fa2'}}>Column</div>
