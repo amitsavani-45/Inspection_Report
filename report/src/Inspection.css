@@ -3,7 +3,9 @@
    Print: A4 Landscape, 2mm margin = 1107 x 779px usable
    ══════════════════════════════════════════════════════ */
 
-* { margin:0; padding:0; box-sizing:border-box; }
+* { margin:0; 
+  padding:0; 
+  box-sizing:border-box; }
 
 /* ── Screen container ── */
 .inspection-container {
@@ -24,30 +26,62 @@
 }
 
 /* ── Base table reset ── */
-table { width:100%; border-collapse:collapse; }
-td, th { border:1px solid black; text-align:center; vertical-align:middle; overflow:hidden; }
+table { width:100%; 
+  border-collapse:collapse; }
+
+td, th { border:1px solid black; 
+  text-align:center; 
+  vertical-align:middle;
+   overflow:hidden; }
 
 /* ── HEADER ── */
 .header-table
  { border:2px solid black; }
+
 .logo-cell 
-{ width:120px; padding:6px; text-align:center; border-right:2px solid black; }
+{ width:120px; 
+  padding:6px;
+   text-align:center;
+    border-right:2px solid black; }
+
 .logo-image
- { max-width:100%; max-height:55px; object-fit:contain; }
+ { max-width:100%;
+   max-height:55px;
+    object-fit:contain; }
+
 .title-cell
- { font-weight:bold; font-size:18px; padding:0 12px; letter-spacing:0.5px; }
+ { font-weight:bold; 
+  font-size:18px;
+   padding:0 12px;
+    letter-spacing:0.5px; }
+
 .doc-info-cell
- { width:220px; padding:0; border-left:2px solid black; }
+ { width:220px; 
+  padding:0; 
+  border-left:2px solid black; }
+
 .doc-info-cell table
  { border:none; }
+
 .doc-info-cell table td 
-{ border:none; border-bottom:1px solid black; padding:4px 8px; font-size:11px; height:24px; text-align:left; }
+{ border:none; 
+  border-bottom:1px solid black;
+   padding:4px 8px;
+    font-size:11px; 
+    height:24px; 
+    text-align:left; }
+
 .doc-info-cell table tr:last-child td 
 { border-bottom:none; }
+
 .doc-label 
-{ font-weight:bold; width:95px; border-right:1px solid black !important; }
+{ font-weight:bold; 
+  width:95px; 
+  border-right:1px solid black !important; }
+
 .doc-value 
-{ font-size:13px; font-weight:600; }
+{ font-size:13px; 
+  font-weight:600; }
 
 /* ── FLEET INFO ── */
 .fleet-info-table
