@@ -242,7 +242,7 @@ td, th { border:1px solid black;
 
   .doc-label 
   { font-size:8.5px !important; }
-  
+
   .doc-value 
   { font-size:10px !important; }
 
@@ -255,9 +255,16 @@ td, th { border:1px solid black;
     margin:0 !important;
     overflow:hidden !important;
   }
-  .fleet-info-table td { height:29px !important; font-size:9.5px !important; padding:0 8px !important; }
-  .field-label { font-size:8.5px !important; }
-  .field-input { font-size:10.5px !important; }
+  .fleet-info-table td 
+  { height:29px !important;
+     font-size:9.5px !important;
+      padding:0 8px !important; }
+
+  .field-label
+   { font-size:8.5px !important; }
+   
+  .field-input
+   { font-size:10.5px !important; }
 
   /* ── INSPECTION: height set by JS inline style ── */
   .inspection-table {
