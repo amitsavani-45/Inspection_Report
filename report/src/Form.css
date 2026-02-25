@@ -326,57 +326,117 @@
 
 /* ══ SLOT TABS ══ */
 .slot-tabs {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  align-items: center; margin-bottom: 14px;
+  display: flex; 
+  gap: 8px; 
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
 }
 .slot-tab {
-  padding: 8px 16px; border-radius: 20px;
-  border: 2px solid #ddd; background: white;
-  color: #555; font-weight: 700; font-size: 13px;
-  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid #ddd; 
+  background: white;
+  color: #555; 
+  font-weight: 700; 
+  font-size: 13px;
+  cursor: pointer; 
+  display: flex; 
+  align-items: center;
+  gap: 6px;
   transition: all 0.15s;
 }
-.slot-tab.active  { border-color: var(--purple); background: var(--purple); color: white; }
-.slot-tab.filled  { border-color: var(--green);  background: #e8f5e9; color: #2e7d32; }
-.slot-tab-cnt     { font-size: 11px; opacity: 0.8; }
+.slot-tab.active  
+{ border-color: var(--purple); 
+  background: var(--purple);
+  color: white; }
+.slot-tab.filled 
+ { border-color: var(--green);  
+   background: #e8f5e9; 
+   color: #2e7d32; }
+.slot-tab-cnt     
+{ font-size: 11px;
+   opacity: 0.8; }
+
 .slot-tab-toggle  {
-  background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5);
-  border-radius: 8px; padding: 1px 7px; font-size: 11px;
-  color: white; cursor: pointer; font-weight: 700;
+  background: rgba(255,255,255,0.25);
+   border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 8px; 
+  padding: 1px 7px; 
+  font-size: 11px;
+  color: white; 
+  cursor: pointer; 
+  font-weight: 700;
 }
-.slot-tab-remove  { color: #ccc; font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1; }
-.slot-tab.active .slot-tab-remove { color: rgba(255,255,255,0.6); }
+.slot-tab-remove 
+ { color: #ccc; 
+  font-size: 16px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  line-height: 1; }
+
+.slot-tab.active .slot-tab-remove
+ { color: rgba(255,255,255,0.6); }
+
 .slot-add-select  {
-  padding: 8px 14px; border-radius: 20px; min-height: 40px;
-  border: 2px dashed var(--purple); background: #faf0ff;
-  color: var(--purple); font-weight: 700; font-size: 13px;
-  cursor: pointer; outline: none;
+  padding: 8px 14px; 
+  border-radius: 20px; 
+  min-height: 40px;
+  border: 2px dashed var(--purple);
+   background: #faf0ff;
+  color: var(--purple); 
+  font-weight: 700; 
+  font-size: 13px;
+  cursor: pointer; 
+  outline: none;
 }
 
 /* ══ SLOT ENTRY CARD ══ */
 .slot-entry-card {
-  border: 1px solid #e0e0e0; border-radius: 10px;
-  overflow: hidden; margin-bottom: 14px;
+  border: 1px solid #e0e0e0;
+   border-radius: 10px;
+  overflow: hidden; 
+  margin-bottom: 14px;
 }
 .slot-entry-head {
-  background: var(--purple); color: white;
-  padding: 11px 14px; display: flex; align-items: center;
-  justify-content: space-between; font-weight: 700; font-size: 13px;
+  background: var(--purple); 
+  color: white;
+  padding: 11px 14px; 
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  font-weight: 700;
+  font-size: 13px;
 }
 .slot-toggle-btn {
-  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
-  border-radius: 6px; padding: 6px 12px; color: white;
-  font-size: 12px; font-weight: 700; cursor: pointer;
+  background: rgba(255,255,255,0.2); 
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 6px;
+   padding: 6px 12px; 
+   color: white;
+  font-size: 12px; 
+  font-weight: 700; 
+  cursor: pointer;
 }
 
 /* ══ SLOT ADD ROW ══ */
 .slot-add-row {
-  display: flex; gap: 8px; align-items: flex-end;
-  background: #faf5ff; border: 1.5px solid #ce93d8;
-  border-radius: 8px; padding: 12px; margin-bottom: 10px;
+  display: flex; 
+  gap: 8px; 
+  align-items: flex-end;
+  background: #faf5ff;
+  border: 1.5px solid #ce93d8;
+  border-radius: 8px;
+  padding: 12px; 
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
-.slot-add-col { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 90px; }
+.slot-add-col 
+{ display: flex; 
+  flex-direction: column; 
+  gap: 5px; flex: 1;
+  min-width: 90px; }
+  
 .slot-add-label { font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .slot-select {
   width: 100%; padding: 9px 10px;
