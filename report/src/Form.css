@@ -1,7 +1,7 @@
 * { box-sizing: border-box;
    margin: 0; 
    padding: 0; }
-   
+
 :root {
   --green:  #4CAF50;
   --blue:   #1976d2;
@@ -36,10 +36,18 @@
   z-index: 200;
   box-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
-.wiz-topbar-title { font-weight: 700; font-size: 15px; color: #222; }
+.wiz-topbar-title 
+{ font-weight: 700; 
+  font-size: 15px; 
+  color: #222; }
+
 .wiz-back-btn {
-  background: none; border: none; color: #555;
-  font-size: 14px; cursor: pointer; padding: 8px 4px;
+  background: none; 
+  border: none; 
+  color: #555;
+  font-size: 14px;
+   cursor: pointer;
+    padding: 8px 4px;
   font-weight: 600;
 }
 
@@ -83,7 +91,8 @@
   border-radius: 50%;
   border: 2px solid #ddd;
   background: white;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; 
+  justify-content: center;
   font-size: 15px;
   transition: all 0.2s;
 }
@@ -133,22 +142,45 @@
 }
 
 /* ══ GRIDS ══ */
-.wiz-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.wiz-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.wiz-grid-2 
+{ display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 14px; }
+
+.wiz-grid-3 
+{ display: grid; 
+  grid-template-columns: 1fr 1fr 1fr;
+   gap: 14px; }
 
 /* ══ FIELD ══ */
-.wiz-field { display: flex; flex-direction: column; gap: 6px; }
-.wiz-label { font-size: 12px; font-weight: 600; color: #555; }
+.wiz-field
+ { display: flex;
+   flex-direction: column;
+    gap: 6px; }
+
+.wiz-label { font-size: 12px;
+   font-weight: 600; 
+   color: #555; }
+
 .wiz-select {
-  width: 100%; padding: 10px 36px 10px 12px;
-  border: 1.5px solid #ddd; border-radius: 8px;
-  font-size: 14px; font-family: inherit;
+  width: 100%; 
+  padding: 10px 36px 10px 12px;
+  border: 1.5px solid #ddd; 
+  border-radius: 8px;
+  font-size: 14px;
+   font-family: inherit;
   background: white;
-  color: #333; outline: none;
-  min-height: 44px; cursor: pointer;
+  color: #333;
+   outline: none;
+  min-height: 44px; 
+  cursor: pointer;
 }
-.wiz-select:focus { border-color: var(--green); }
-.wiz-select.filled { border-color: var(--green); color: #222; }
+.wiz-select:focus
+ { border-color: var(--green); }
+ 
+.wiz-select.filled 
+{ border-color: var(--green); 
+  color: #222; }
 
 /* ══ DATE BOX ══ */
 .date-box {
