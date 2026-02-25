@@ -118,19 +118,30 @@ td, th { border:1px solid black;
 .inspection-table td 
 { font-size:11px;
    padding:4px; }
-   
+
 .inspection-table tbody tr:nth-child(even) td 
 { background:#fafafa; }
 
 /* ── SCHEDULE ── */
 .schedule-wrapper 
 { width:100%; }
+
 .schedule-table 
-{ border:2px solid black; table-layout:fixed; }
+{ border:2px solid black; 
+  table-layout:fixed; }
+
 .schedule-table th 
-{ background:#f5f5f5; font-weight:bold; font-size:11px; padding:4px 3px; white-space:normal; word-break:break-word; line-height:1.2; }
+{ background:#f5f5f5; 
+  font-weight:bold; 
+  font-size:11px; 
+  padding:4px 3px; 
+  white-space:normal;
+   word-break:break-word; 
+   line-height:1.2; }
+
 .schedule-table td
- { font-size:11px; padding:2px; }
+ { font-size:11px; 
+  padding:2px; }
 
 /* ── FOOTER ── */
 .footer 
