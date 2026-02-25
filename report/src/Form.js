@@ -36,7 +36,13 @@ const StepHeader = ({ num, title, subtitle, color, done, onClick, isOpen }) => (
       <div style={{ fontWeight:700, fontSize:14, color:'#222' }}>{title}</div>
       <div style={{ fontSize:11, color:'#888', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{subtitle}</div>
     </div>
-    <span style={{ fontSize:13, color:'#aaa', flexShrink:0 }}>{isOpen ? '▲' : '▼'}</span>
+    <span style={{
+      display:'inline-block', width:20, height:20, flexShrink:0,
+      borderRight:'2.5px solid #aaa', borderBottom:'2.5px solid #aaa',
+      transform: isOpen ? 'rotate(225deg) translateY(4px)' : 'rotate(45deg) translateY(-2px)',
+      transition:'transform 0.2s ease',
+      marginRight:4,
+    }} />
   </div>
 );
 
