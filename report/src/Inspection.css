@@ -189,15 +189,20 @@ td, th { border:1px solid black;
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
 
   html, body, #root {
-    margin:0 !important; padding:0 !important;
-    width:1078px !important; height:749px !important;
-    overflow:hidden !important; background:white !important;
+    margin:0 !important; 
+    padding:0 !important;
+    width:1078px !important;
+     height:749px !important;
+    overflow:hidden !important; 
+    background:white !important;
   }
 
   .inspection-container {
-    padding:0 !important; background:white !important;
+    padding:0 !important; 
+    background:white !important;
     min-height:unset !important;
-    width:1078px !important; height:749px !important;
+    width:1078px !important;
+     height:749px !important;
     overflow:hidden !important;
   }
 
