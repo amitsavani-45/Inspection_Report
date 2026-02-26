@@ -399,18 +399,18 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     if (!step1Done){alert('Step 1 pura karo');return;}
     const allItems=[
       ...filledProducts.map((r,i) =>{
-        const parsed = parseSpecTol(r.spec); const tol = r.tolerance ? `± ${r.tolerance}` : parsed.tol;
-        return {sr_no:i+1, item:r.name,spec:r.spec,tolerance:tol,inst:r.inst};
+        // spec aur tolerance alag-alag save karo — combine mat karo
+        const parsed = parseSpecTol(r.spec);
+        const cleanSpec = parsed.spec || r.spec;          // sirf number/text part
+        const tol = r.tolerance ? `± ${r.tolerance}` : parsed.tol;
+        return {sr_no:i+1, item:r.name, spec:cleanSpec, tolerance:tol, inst:r.inst};
       }),
       ...filledProcesses.map((r,i)=>{
-        const tol = r.tolerance ? r.tolerance : (()=>{
-          const s=r.spec||'';
-          const pm=s.match(/±\s*([\d.]+)/); if(pm) return `± ${pm[1]}`;
-          const plm=s.match(/\+([\d.]+)\s*\/\s*-([\d.]+)/); if(plm) return `+${plm[1]}/-${plm[2]}`;
-          const pl=s.match(/\+\s*([\d.]+)/); if(pl) return `+${pl[1]}`;
-          return '';
-        })();
-        return {sr_no:11+i,item:r.name,spec:r.spec,tolerance:tol,inst:r.inst};
+        // spec aur tolerance alag-alag save karo
+        const parsed = parseSpecTol(r.spec);
+        const cleanSpec = parsed.spec || r.spec;
+        const tol = r.tolerance ? r.tolerance : parsed.tol;
+        return {sr_no:11+i, item:r.name, spec:cleanSpec, tolerance:tol, inst:r.inst};
       }),
     ];
     const scheduleEntries=[];
