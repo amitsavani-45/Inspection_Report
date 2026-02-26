@@ -89,6 +89,8 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
 
         for entry_data in schedule_data:
             entry_data.pop('values', None)
+            entry_data.pop('id', None)
+            entry_data.pop('_isNew', None)
             ScheduleEntry.objects.create(report=report, **entry_data)
 
         return report
