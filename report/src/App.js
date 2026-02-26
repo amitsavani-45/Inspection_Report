@@ -137,12 +137,16 @@ function App() {
         inst:         item.inst         || '',
       }));
 
-      const newScheduleEntries = (formData.schedule_entries || []).map(entry => ({
-        ...entry,
-        sr: 1,
-        slot_index: entry.slot_index ?? 0,
-      }));
+      const newScheduleEntries = (formData.schedule_entries || []).map(entry => {
+        const { _isNew, ...cleanEntry } = entry;  // _isNew nikalo agar ho
+        return {
+          ...cleanEntry,
+          sr: 1,
+          slot_index: cleanEntry.slot_index ?? 0,
+        };
+      });
 
+      // _isNew sirf frontend ka flag hai — backend ko nahi bhejte
       const reportPayload = {
         doc_no:           'KGTL-QCL-01',
         revision_no:      '01',
