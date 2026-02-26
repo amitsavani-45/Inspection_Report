@@ -20,7 +20,7 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
             'value_9',  'value_10', 'value_11', 'value_12',
             'value_13', 'value_14',
             'value_15', 'value_16', 'value_17', 'value_18', 'value_19', 'value_20',
-            'values', 'judgment', 'signature'
+            'values', 'judgment', 'signature', 'filled_at'
         ]
 
     def get_values(self, obj):
@@ -62,7 +62,7 @@ class ScheduleEntryWriteSerializer(serializers.ModelSerializer):
             'value_9',  'value_10', 'value_11', 'value_12',
             'value_13', 'value_14',
             'value_15', 'value_16', 'value_17', 'value_18', 'value_19', 'value_20',
-            'judgment', 'signature',
+            'judgment', 'signature', 'filled_at',
         ]
 
 
@@ -87,10 +87,16 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             InspectionItem.objects.create(report=report, **item_data)
 
+        from django.utils import timezone
+        import pytz
+        ist = pytz.timezone('Asia/Kolkata')
+        now_ist = timezone.now().astimezone(ist)
+
         for entry_data in schedule_data:
             entry_data.pop('values', None)
             entry_data.pop('id', None)
             entry_data.pop('_isNew', None)
+            entry_data['filled_at'] = now_ist
             ScheduleEntry.objects.create(report=report, **entry_data)
 
         return report
@@ -111,9 +117,15 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         if schedule_data is not None:
             # Pehle SARI purani entries delete karo, phir fresh save karo
             instance.schedule_entries.all().delete()
+            from django.utils import timezone
+            import pytz
+            ist = pytz.timezone('Asia/Kolkata')
+            now_ist = timezone.now().astimezone(ist)
+
             for entry_data in schedule_data:
                 entry_data.pop('values', None)
                 entry_data.pop('id', None)
+                entry_data['filled_at'] = now_ist
                 ScheduleEntry.objects.create(report=instance, **entry_data)
 
         return instance
