@@ -53,8 +53,8 @@ function App() {
       setLoading(true);
       const reports = await getAllReports();
       if (reports && reports.length > 0) {
-        const filled = reports.find(r => r.item_count > 0) || reports[0];
-        const full = await getReportById(filled.id);
+        // reports[0] is already latest (backend: order_by -date,-id)
+        const full = await getReportById(reports[0].id);
         applyReport(full);
       } else {
         setCurrentReport(null);
@@ -74,8 +74,8 @@ function App() {
       const response = await fetch(`http://localhost:8000/api/reports/?date=${date}`);
       const reports  = await response.json();
       if (reports && reports.length > 0) {
-        const filled = reports.find(r => r.item_count > 0) || reports[0];
-        const full = await getReportById(filled.id);
+        const sorted2 = [...reports].sort((a,b) => b.id - a.id);
+        const full = await getReportById(sorted2[0].id);
         applyReport(full);
       } else {
         setCurrentReport({
@@ -108,8 +108,8 @@ function App() {
       const reports  = await response.json();
 
       if (reports && reports.length > 0) {
-        const filled = reports.find(r => r.item_count > 0) || reports[0];
-        const full = await getReportById(filled.id);
+        const sorted3 = [...reports].sort((a,b) => b.id - a.id);
+        const full = await getReportById(sorted3[0].id);
         applyReport(full);
       } else {
         alert('No report found for selected filters.');

@@ -43,60 +43,67 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
 
   // ── Build schedule rows for report ──
   const buildScheduleRows = () => {
-    if (scheduleEntries.length === 0) {
-      return [{
-        sr:1, date:'', operator:'', mcNo:'',
-        slots:[
-          {time:'SETUP',row_order:0,values:Array(20).fill('')},
-          {time:'SETUP',row_order:1,values:Array(20).fill('')},
-          {time:'4HRS', row_order:0,values:Array(20).fill('')},
-          {time:'4HRS', row_order:1,values:Array(20).fill('')},
-          {time:'LAST', row_order:0,values:Array(20).fill('')},
-          {time:'LAST', row_order:1,values:Array(20).fill('')},
-        ]
-      }];
-    }
+    const empty20 = () => Array(20).fill('');
 
+    // Group entries by sr number
     const grouped = {};
     scheduleEntries.forEach(entry => {
       const sr = entry.sr || 1;
       if (!grouped[sr]) {
-        grouped[sr] = { sr, date:formatDisplay(entry.date)||'', operator:entry.operator||'', mcNo:entry.machine_no||'', rawEntries:[] };
+        grouped[sr] = {
+          sr,
+          date: formatDisplay(entry.date) || '',
+          operator: entry.operator || '',
+          mcNo: entry.machine_no || '',
+          rawEntries: []
+        };
       }
       grouped[sr].rawEntries.push(entry);
     });
 
+    // Agar koi bhi entry nahi hai toh default empty row show karo
+    if (Object.keys(grouped).length === 0) {
+      return [{
+        sr:1, date:'', operator:'', mcNo:'',
+        slots:[
+          {time:'SETUP', row_order:0, values:empty20()},
+          {time:'4HRS',  row_order:0, values:empty20()},
+          {time:'LAST',  row_order:0, values:empty20()},
+        ]
+      }];
+    }
+
     return Object.values(grouped).map(grp => {
-      const sorted = [...grp.rawEntries].sort((a,b)=>{
-        const si = (a.slot_index??0)-(b.slot_index??0);
+      // slot_index aur row_order se sort karo
+      const sorted = [...grp.rawEntries].sort((a,b) => {
+        const si = (a.slot_index??0) - (b.slot_index??0);
         if (si!==0) return si;
-        return (a.row_order??0)-(b.row_order??0);
+        return (a.row_order??0) - (b.row_order??0);
       });
 
+      // slotMap: slot_index → {time_type, up, down}
       const slotMap = {};
-      sorted.forEach(e=>{
-        const si = e.slot_index??0;
-        if (!slotMap[si]) slotMap[si]={ time_type:e.time_type, up:null, down:null };
-        const vals = Array(20).fill('');
-        for(let i=0;i<20;i++) vals[i]=e[`value_${i+1}`]||'';
-        if (e.row_order===0) slotMap[si].up=vals;
-        else                  slotMap[si].down=vals;
+      sorted.forEach(e => {
+        const si = e.slot_index ?? 0;
+        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type, up: null, down: null };
+        const vals = empty20();
+        for(let i=0; i<20; i++) vals[i] = e[`value_${i+1}`] || '';
+        if (e.row_order === 0) slotMap[si].up   = vals;
+        else                   slotMap[si].down  = vals;
       });
 
-      const TIME_ORDER = {SETUP:0, '2HRS':1, '4HRS':2, LAST:3};
+      // slot_index order se slots banao
       const slots = Object.entries(slotMap)
-        .sort((a,b) => {
-          // slot_index se sort karo (key is slot_index)
-          return Number(a[0]) - Number(b[0]);
-        })
-        .flatMap(([,s])=>{
-          const rows = [{time:s.time_type, row_order:0, values:s.up||Array(20).fill('')}];
-          if (s.down!==null && s.down.some(v=>v!==''))
-            rows.push({time:s.time_type, row_order:1, values:s.down});
+        .sort((a,b) => Number(a[0]) - Number(b[0]))
+        .flatMap(([, s]) => {
+          const rows = [{time: s.time_type, row_order:0, values: s.up || empty20()}];
+          // down row sirf tab dikhao jab actual data ho
+          if (s.down !== null && s.down.some(v => v !== ''))
+            rows.push({time: s.time_type, row_order:1, values: s.down});
           return rows;
         });
 
-      return { sr:grp.sr, date:grp.date, operator:grp.operator, mcNo:grp.mcNo, slots };
+      return { sr: grp.sr, date: grp.date, operator: grp.operator, mcNo: grp.mcNo, slots };
     });
   };
 

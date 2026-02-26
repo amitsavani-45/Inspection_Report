@@ -415,16 +415,16 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     ];
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
-      if(slot.singleRow){
-        const e={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
-        slot.upVals.forEach((v,i)=>{e[`value_${i+1}`]=v||'';});
-        scheduleEntries.push(e);
-      } else {
-        ['upVals','downVals'].forEach((key,ri)=>{
-          const e={time_type:slot.type,row_order:ri,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
-          slot[key].forEach((v,i)=>{e[`value_${i+1}`]=v||'';});
-          scheduleEntries.push(e);
-        });
+      // Up row — hamesha save karo (chahe khali ho ya na ho)
+      const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
+      slot.upVals.forEach((v,i)=>{eUp[`value_${i+1}`]=v||'';});
+      scheduleEntries.push(eUp);
+
+      // Down row — sirf tab save karo jab 2 rows ho
+      if(!slot.singleRow){
+        const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
+        slot.downVals.forEach((v,i)=>{eDown[`value_${i+1}`]=v||'';});
+        scheduleEntries.push(eDown);
       }
     });
     onSubmit({partName:header.partName,partNumber:header.partNumber,operationName:header.operationName,customerName:header.customerName,scheduleDate:schedDate,operatorName,mcNo,items:allItems,schedule_entries:scheduleEntries});
