@@ -90,6 +90,7 @@ class ScheduleEntry(models.Model):
 
     judgment  = models.CharField(max_length=50, blank=True)
     signature = models.CharField(max_length=100, blank=True)
+    filled_at = models.DateTimeField(null=True, blank=True)  # IST time jab fill kiya
 
     class Meta:
         db_table = 'schedule_entries'
