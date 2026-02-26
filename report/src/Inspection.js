@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getDropdownOptions } from './services/api';
 import { useNavigate } from 'react-router-dom';
 import './Inspection.css';
 import atomone from './image/atomone.jpg';
 
-const PART_NAMES = ['INLET PIPE','OUTLET PIPE','BRACKET','COVER PLATE','BASE PLATE','FLANGE','HOUSING','SHAFT','GEAR','PULLEY','BUSHING','SPRING','WASHER','GASKET','CONNECTOR'];
-const OPERATIONS = ['BLANKING','TURNING','MILLING','DRILLING','GRINDING','BORING','REAMING','THREADING','BROACHING','HOBBING','STAMPING','FORMING','BENDING','WELDING','ASSEMBLY','HEAT TREATMENT','SURFACE COATING','DEBURRING','POLISHING','FINAL INSPECTION'];
-const CUSTOMER_NAMES = ['FIG','ATOM ONE','TATA MOTORS','MAHINDRA','MARUTI SUZUKI','HONDA','HYUNDAI','BAJAJ','TVS','HERO MOTOCORP','ASHOK LEYLAND','FORCE MOTORS','EICHER','PIAGGIO','YAMAHA'];
 
 const formatDisplay = (dateStr) => {
   if (!dateStr) return '';
@@ -27,6 +25,14 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
   const [filterPart,     setFilterPart]     = useState('');
   const [filterOp,       setFilterOp]       = useState('');
   const [filterCustomer, setFilterCustomer] = useState('');
+
+  // DB se dropdown options
+  const [dbOptions, setDbOptions] = useState({ customers: [], part_names: [], operations: [] });
+  useEffect(() => {
+    getDropdownOptions()
+      .then(data => setDbOptions(data))
+      .catch(err => console.error('Filter options fetch failed:', err));
+  }, []);
 
   const scheduleEntries = currentReport?.schedule_entries || [];
   const productItems    = items.filter(x=>x.sr_no>=1 &&x.sr_no<=10).sort((a,b)=>a.sr_no-b.sr_no);
@@ -146,19 +152,19 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
                   {label:'🔩 Part Name', content:(
                     <select value={filterPart} onChange={e=>setFilterPart(e.target.value)} style={{width:'100%',padding:'7px 10px',border:`1px solid ${filterPart?'#1976d2':'#ccc'}`,borderRadius:'6px',fontSize:'13px'}}>
                       <option value="">All Parts</option>
-                      {PART_NAMES.map(p=><option key={p} value={p}>{p}</option>)}
+                      {dbOptions.part_names.map(p=><option key={p} value={p}>{p}</option>)}
                     </select>
                   )},
                   {label:'⚙️ Operation', content:(
                     <select value={filterOp} onChange={e=>setFilterOp(e.target.value)} style={{width:'100%',padding:'7px 10px',border:`1px solid ${filterOp?'#1976d2':'#ccc'}`,borderRadius:'6px',fontSize:'13px'}}>
                       <option value="">All Operations</option>
-                      {OPERATIONS.map(op=><option key={op} value={op}>{op}</option>)}
+                      {dbOptions.operations.map(op=><option key={op} value={op}>{op}</option>)}
                     </select>
                   )},
                   {label:'🏭 Customer', content:(
                     <select value={filterCustomer} onChange={e=>setFilterCustomer(e.target.value)} style={{width:'100%',padding:'7px 10px',border:`1px solid ${filterCustomer?'#1976d2':'#ccc'}`,borderRadius:'6px',fontSize:'13px'}}>
                       <option value="">All Customers</option>
-                      {CUSTOMER_NAMES.map(c=><option key={c} value={c}>{c}</option>)}
+                      {dbOptions.customers.map(c=><option key={c} value={c}>{c}</option>)}
                     </select>
                   )},
                 ].map(({label,content})=>(
