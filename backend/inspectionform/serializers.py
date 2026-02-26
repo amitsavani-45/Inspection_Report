@@ -19,6 +19,7 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
             'value_5',  'value_6',  'value_7',  'value_8',
             'value_9',  'value_10', 'value_11', 'value_12',
             'value_13', 'value_14',
+            'value_15', 'value_16', 'value_17', 'value_18', 'value_19', 'value_20',
             'values', 'judgment', 'signature'
         ]
 
@@ -27,7 +28,8 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
             obj.value_1,  obj.value_2,  obj.value_3,  obj.value_4,
             obj.value_5,  obj.value_6,  obj.value_7,  obj.value_8,
             obj.value_9,  obj.value_10, obj.value_11, obj.value_12,
-            obj.value_13, obj.value_14
+            obj.value_13, obj.value_14, obj.value_15, obj.value_16,
+            obj.value_17, obj.value_18, obj.value_19, obj.value_20,
         ]
 
 
