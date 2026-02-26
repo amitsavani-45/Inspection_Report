@@ -130,16 +130,28 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
-        data.pop('_isNew', None)  # frontend ka internal flag — ignore karo
-        serializer = InspectionReportCreateSerializer(data=data)
-        if serializer.is_valid():
-            report = serializer.save()
-            return Response(
-                InspectionReportSerializer(report).data,
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            import json
+            # JSON data safely copy karo
+            if hasattr(request.data, 'dict'):
+                data = request.data.dict()
+            else:
+                data = dict(request.data)
+            data.pop('_isNew', None)
+
+            serializer = InspectionReportCreateSerializer(data=data)
+            if serializer.is_valid():
+                report = serializer.save()
+                return Response(
+                    InspectionReportSerializer(report).data,
+                    status=status.HTTP_201_CREATED
+                )
+            print("SERIALIZER ERRORS:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import traceback
+            print("CREATE ERROR:", traceback.format_exc())
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update(self, request, pk=None):
         try:
