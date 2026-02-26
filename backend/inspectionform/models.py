@@ -81,6 +81,12 @@ class ScheduleEntry(models.Model):
     value_12 = models.CharField(max_length=50, blank=True)
     value_13 = models.CharField(max_length=50, blank=True)
     value_14 = models.CharField(max_length=50, blank=True)
+    value_15 = models.CharField(max_length=50, blank=True)
+    value_16 = models.CharField(max_length=50, blank=True)
+    value_17 = models.CharField(max_length=50, blank=True)
+    value_18 = models.CharField(max_length=50, blank=True)
+    value_19 = models.CharField(max_length=50, blank=True)
+    value_20 = models.CharField(max_length=50, blank=True)
 
     judgment  = models.CharField(max_length=50, blank=True)
     signature = models.CharField(max_length=100, blank=True)
