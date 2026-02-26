@@ -17,7 +17,7 @@ const formatDisplay = (dateStr) => {
 const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }) => {
   const navigate = useNavigate();
 
-  if (currentReport?.date && !localStorage.getItem('headerDate')) {
+  if (currentReport?.date) {
     localStorage.setItem('headerDate', currentReport.date);
   }
   const displayDate = formatDisplay(localStorage.getItem('headerDate')) || '';
@@ -175,8 +175,8 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
             </>
           )}
         </div>
-        <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>✏️ Edit</button>
-        <button onClick={()=>{ if(onNewForm) onNewForm(); navigate('/form'); }} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>📋 New Form</button>
+        <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>✏️ Edit</button>
+        <button onClick={()=>{ if(onNewForm) onNewForm(); navigate('/form?mode=new'); }} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>📋 New Form</button>
       </div>
 
       {/* ── Print Report ── */}

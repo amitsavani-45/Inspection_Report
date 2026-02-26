@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import Inspection from './Inspection';
 import Form from './Form';
 import { getAllReports, getReportById, createReport, updateReport } from './services/api';
 
-function FormPageWrapper({ onAddItem, items = [], currentReport = null, isNew = false }) {
+function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isNew = searchParams.get('mode') === 'new';   // ✅ URL se read — hamesha fresh
+
   const handleSubmit = async (formData) => {
     try {
-      await onAddItem(formData);
+      await onAddItem({ ...formData, _isNew: isNew });
       navigate('/');
     } catch (error) {
       console.error('Error adding item:', error);
@@ -16,8 +19,6 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null, isNew = 
     }
   };
 
-  // Edit mode: pass full currentReport including schedule_entries
-  // New mode: pass empty object
   const formInitialData = isNew ? {} : (currentReport || {});
   const formItems = isNew ? [] : items;
 
@@ -125,30 +126,18 @@ function App() {
     try {
       const date = formData.scheduleDate || new Date().toISOString().split('T')[0];
 
+      const isNew = formData._isNew === true;
+
       const isPartChanged =
+        !isNew &&
         currentReport &&
         (currentReport.part_name      !== formData.partName      ||
          currentReport.part_number    !== formData.partNumber    ||
          currentReport.operation_name !== formData.operationName ||
          currentReport.customer_name  !== formData.customerName);
 
-      let reportId = currentReport?.id;
+      let reportId = isNew ? null : currentReport?.id;
 
-      if (!reportId || isPartChanged) {
-        const createdReport = await createReport({
-          doc_no: 'KGTL-QCL-01', revision_no: '01',
-          date,
-          part_name:      formData.partName      || '',
-          part_number:    formData.partNumber    || '',
-          operation_name: formData.operationName || '',
-          customer_name:  formData.customerName  || '',
-          items: [],
-          schedule_entries: [],
-        });
-        reportId = createdReport.id;
-      }
-
-      // ✅ FIX: Form.js se directly formData.items aa raha hai — wahi use karo
       const updatedItems = (formData.items || []).map(item => ({
         sr_no:        item.sr_no,
         item:         item.item || '',
@@ -158,18 +147,13 @@ function App() {
         inst:         item.inst         || '',
       }));
 
-      // ✅ Sirf current form ki entries save karo — koi purani entries merge mat karo
-      // IMPORTANT: entry.slot_index Form.js se sahi aa raha hai — overwrite mat karo
-      const incomingEntries = formData.schedule_entries || [];
-
-      const newScheduleEntries = incomingEntries.map(entry => ({
+      const newScheduleEntries = (formData.schedule_entries || []).map(entry => ({
         ...entry,
         sr: 1,
-        // slot_index Form.js se preserve karo — App.js mein overwrite karna galat tha
         slot_index: entry.slot_index ?? 0,
       }));
 
-      await updateReport(reportId, {
+      const reportPayload = {
         doc_no:           'KGTL-QCL-01',
         revision_no:      '01',
         date,
@@ -179,7 +163,16 @@ function App() {
         customer_name:    formData.customerName  || '',
         items:            updatedItems,
         schedule_entries: newScheduleEntries,
-      });
+      };
+
+      if (!reportId || isPartChanged) {
+        // New report: create with full data directly (no separate PUT needed)
+        const createdReport = await createReport(reportPayload);
+        reportId = createdReport.id;
+      } else {
+        // Existing report: update
+        await updateReport(reportId, reportPayload);
+      }
 
       alert('✅ Data successfully saved to Database!');
 
@@ -224,8 +217,8 @@ function App() {
             }}
             onDateChange={handleDateChange}
             onFilter={handleFilter}
-            onNewForm={() => { setIsNewForm(true);  setFormKey(k => k + 1); }}
-            onEditForm={() => { setIsNewForm(false); setFormKey(k => k + 1); }}
+            onNewForm={() => { setFormKey(k => k + 1); }}
+            onEditForm={() => { setFormKey(k => k + 1); }}
           />
         } />
         <Route path="/form" element={
@@ -234,7 +227,6 @@ function App() {
             onAddItem={handleAddItem}
             items={formItems}
             currentReport={currentReport}
-            isNew={isNewForm}
           />
         } />
       </Routes>

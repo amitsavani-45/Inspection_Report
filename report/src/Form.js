@@ -1,19 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import './Form.css';
+import { getDropdownOptions } from './services/api';
 
-/* ── Constants ── */
-const PART_NAMES     = ['INLET PIPE','OUTLET PIPE','BRACKET','COVER PLATE','BASE PLATE','FLANGE','HOUSING','SHAFT','GEAR','PULLEY','BUSHING','SPRING','WASHER','GASKET','CONNECTOR'];
-const PART_NUMBERS   = ['68P00-S310050','68P00-S310051','68P00-S310052','68P01-S310050','68P01-S310051','72A00-S410010','72A00-S410011','85B00-S210030','85B00-S210031','91C00-S110020'];
-const OPERATIONS     = ['BLANKING','TURNING','MILLING','DRILLING','GRINDING','BORING','REAMING','THREADING','BROACHING','HOBBING','STAMPING','FORMING','BENDING','WELDING','ASSEMBLY','HEAT TREATMENT','SURFACE COATING','DEBURRING','POLISHING','FINAL INSPECTION'];
-const CUSTOMER_NAMES = ['FIG','ATOM ONE','TATA MOTORS','MAHINDRA','MARUTI SUZUKI','HONDA','HYUNDAI','BAJAJ','TVS','HERO MOTOCORP','ASHOK LEYLAND','FORCE MOTORS','EICHER','PIAGGIO','YAMAHA'];
+const parseSpecTol = (raw = '') => {
+  if (!raw) return { spec: '', tol: '' };
+  // number +0.5/-1.0 MM
+  let m = raw.match(/^([\d.]+)\s*(\+[\d.]+\s*\/\s*-[\d.]+\s*MM)\s*$/i);
+  if (m) return { spec: m[1].trim(), tol: m[2].trim() };
+  // number + 0.9 MM
+  m = raw.match(/^([\d.]+)\s*(\+\s*[\d.]+\s*MM)\s*$/i);
+  if (m) return { spec: m[1].trim(), tol: m[2].trim() };
+  // number ± 0.07 MM
+  m = raw.match(/^([\d.]+)\s*(±\s*[\d.]+\s*MM)\s*$/i);
+  if (m) return { spec: m[1].trim(), tol: m[2].trim() };
+  // everything else — full spec, no tolerance
+  return { spec: raw.trim(), tol: '' };
+};
+
+
+/* ── DB se inspection items fetch karo ── */
+const fetchInspectionItems = async (operation) => {
+  try {
+    const response = await fetch(`http://localhost:8000/api/inspection-items/?operation=${encodeURIComponent(operation)}`);
+    return await response.json();
+  } catch (err) {
+    console.error('Inspection items fetch failed:', err);
+    return { product: [], process: [] };
+  }
+};
+
+/* ── Constants (static - DB se nahi aate) ── */
 const OPERATOR_NAMES = ['ALEX','RAHUL SHARMA','SURESH KUMAR','RAMESH PATEL','DINESH VERMA','MAHESH YADAV','PRAKASH SINGH','VIJAY KUMAR','ANIL GUPTA','RAJU MEHTA','SANJAY JOSHI','DEEPAK NAIR','RAKESH TIWARI','MOHAN DAS','GANESH RAO'];
 const PRODUCT_ITEMS  = ['APPEARANCE','WIDTH','LENGTH','THICKNESS','DIMENSIONS A','DIMENSIONS B','RADIUS','BLANK PROFILE','DIAMETER','DEPTH','HEIGHT','FLATNESS','STRAIGHTNESS','ROUNDNESS','CHAMFER','THREAD','HOLE DIAMETER','PITCH','SURFACE FINISH','WEIGHT'];
 const PROCESS_ITEMS  = ['SHUT HEIGHT','BALANCER PRESSURE','CLUTCH PRESSURE','CUSHION PRESSURE','DIE HEIGHT','STROKE LENGTH','FEED RATE','CUTTING SPEED','SPINDLE SPEED','COOLANT PRESSURE','COOLANT FLOW','CLAMPING FORCE','BLANK HOLDER FORCE','DRAWING FORCE','PRESS TONNAGE','TEMPERATURE','CYCLE TIME','AIR PRESSURE','HYDRAULIC PRESSURE','LUBRICATION PRESSURE'];
 const TOLERANCES         = ['0.01','0.02','0.05','0.08','0.1','0.2','0.3','0.5','1.0'];
 const PROCESS_TOLERANCES = ['MIN','MAX','0.01','0.05','0.1','0.2','0.5','1.0'];
 const INSTRUMENTS        = ['VISUAL','VERNIER','MICROMETER','RADIUS GAUGE','TEMPLATE','DIGITAL','GAUGE','CMM','DIAL INDICATOR','HEIGHT GAUGE'];
-const TIME_TYPE_OPTIONS  = ['SETUP','2HRS','4HRS','LAST'];
-const PENDING_SLOT_TYPES = ['2HRS','4HRS','LAST'];
+const TIME_TYPE_OPTIONS  = ['SETUP','4HRS','LAST'];
+const PENDING_SLOT_TYPES = ['4HRS','LAST'];
 const MAX_COLS = 14;
 const emptyRow = () => ({ name:'', spec:'', tolerance:'', inst:'' });
 
@@ -38,21 +62,31 @@ const Field = ({ label, value, onChange, options, placeholder, required }) => (
 );
 
 /* ── Inspection Row ── */
-const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove }) => {
+const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems=[] }) => {
   const [spec, setSpec] = useState(row.spec || '');
   useEffect(() => setSpec(row.spec || ''), [row.spec]);
   const color  = isProduct ? '#1976d2' : '#e65100';
-  const items  = isProduct ? PRODUCT_ITEMS : PROCESS_ITEMS;
+  const staticItems = isProduct ? PRODUCT_ITEMS : PROCESS_ITEMS;
+  // Merge DB items with static list, DB items first, no duplicates
+  const items = [...new Set([...dbItems.map(i=>i.name||i), ...staticItems])];
   const tols   = isProduct
     ? TOLERANCES.map(t => ({ v:t, l:`± ${t}` }))
     : PROCESS_TOLERANCES.map(t => ({ v:t, l: t==='MIN'||t==='MAX' ? t : `± ${t}` }));
-  const filled = !!(row.name && row.spec && row.tolerance && row.inst);
+  const filled = !!(row.name && row.spec && row.inst);
 
   return (
     <div className={`insp-row${filled?' done':''}`} style={{borderLeftColor: filled?'#4CAF50':color}}>
       <div className="insp-sr" style={{background:color}}>{srNum}</div>
       <div className="insp-fields">
-        <select value={row.name} onChange={e=>onUpdate('name',e.target.value)} className="insp-select">
+        <select value={row.name} onChange={e=>{
+          const val=e.target.value;
+          onUpdate('name',val);
+          // DB se spec/inst auto-fill
+          const match=dbItems.find(i=>(i.name||i)===val);
+          if(match&&match.spec) onUpdate('spec',match.spec);
+          if(match&&match.instrument) onUpdate('inst',match.instrument);
+          if(match&&match.tolerance) onUpdate('tolerance',match.tolerance);
+        }} className="insp-select">
           <option value="">{isProduct ? '📦 Product item select karo...' : '⚙️ Process item select karo...'}</option>
           {items.map(i=><option key={i} value={i}>{i}</option>)}
         </select>
@@ -76,142 +110,126 @@ const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove }) => {
   );
 };
 
-/* ── Inspection Preview Table ── */
-const PreviewTable = ({ rows, color, startSr, onRemove }) => (
-  <>
-    {/* Desktop table */}
-    <div className="prev-table-wrap">
+/* ── Combined Inspection Preview Table ── */
+const CombinedTable = ({ productRows, processRows }) => {
+  const allRows = [
+    ...productRows.map((r,i) => ({...r, category:'PRODUCT', catColor:'#1976d2', sr:i+1})),
+    ...processRows.map((r,i) => ({...r, category:'PROCESS', catColor:'#e65100', sr:productRows.length+i+1})),
+  ];
+  if(allRows.length===0) return (
+    <div style={{textAlign:'center',color:'#aaa',padding:'40px 0',fontSize:13}}>
+      Koi items nahi mili. Pehle Step 1 mein Operation select karo.
+    </div>
+  );
+  return (
+    <div style={{overflowX:'auto',marginTop:8}}>
       <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
         <thead>
-          <tr style={{background:'#f5f5f5',borderBottom:'2px solid #e0e0e0'}}>
-            <th className="prev-th" style={{width:40}}>SR</th>
-            <th className="prev-th" style={{textAlign:'left'}}>Item</th>
-            <th className="prev-th">Spec</th>
-            <th className="prev-th">Tolerance</th>
-            <th className="prev-th">Inst</th>
-            <th style={{width:32}}></th>
+          <tr style={{background:'#f0f4ff',borderBottom:'2px solid #c5cae9'}}>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700,color:'#333',width:36}}>SR</th>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700,color:'#333',width:80}}>Category</th>
+            <th style={{padding:'10px 8px',textAlign:'left',fontWeight:700,color:'#333'}}>Item</th>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700,color:'#333'}}>Spec</th>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700,color:'#333'}}>Tolerance</th>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700,color:'#333'}}>Instrument</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((row,i)=>(
-            <tr key={i} style={{borderBottom:'1px solid #f0f0f0',background:i%2===0?'white':'#fafafa'}}>
-              <td className="prev-td" style={{textAlign:'center',fontWeight:700,color}}>{startSr+i}</td>
-              <td className="prev-td" style={{fontWeight:600,color:'#222'}}>{row.name}</td>
-              <td className="prev-td" style={{textAlign:'center',color:'#555'}}>{row.spec}</td>
-              <td className="prev-td" style={{textAlign:'center',color:'#555'}}>± {row.tolerance}</td>
-              <td className="prev-td" style={{textAlign:'center',color:'#555'}}>{row.inst}</td>
-              <td style={{textAlign:'center',padding:'4px'}}>
-                <button onClick={()=>onRemove(i)} style={{background:'none',border:'none',color:'#e53935',cursor:'pointer',fontSize:16,fontWeight:700}}>✕</button>
-              </td>
-            </tr>
-          ))}
+          {allRows.map((row,i)=>{
+            const {spec:s, tol:t} = parseSpecTol(row.spec);
+            const dispSpec = s||row.spec;
+            const dispTol  = row.tolerance ? `± ${row.tolerance}` : (t||'—');
+            const isProduct = row.category==='PRODUCT';
+            return (
+              <tr key={i} style={{borderBottom:'1px solid #eee',background:i%2===0?'#fff':'#fafafa'}}>
+                <td style={{padding:'9px 8px',textAlign:'center',fontWeight:700,color:row.catColor}}>{row.sr}</td>
+                <td style={{padding:'9px 8px',textAlign:'center'}}>
+                  <span style={{
+                    background: isProduct?'#e3f2fd':'#fff3e0',
+                    color: row.catColor,
+                    border:`1px solid ${row.catColor}`,
+                    borderRadius:4,padding:'2px 7px',fontSize:10,fontWeight:700,
+                    whiteSpace:'nowrap'
+                  }}>{row.category}</span>
+                </td>
+                <td style={{padding:'9px 8px',fontWeight:600,color:'#222'}}>{row.name}</td>
+                <td style={{padding:'9px 8px',textAlign:'center',color:'#555'}}>{dispSpec}</td>
+                <td style={{padding:'9px 8px',textAlign:'center',color:'#555'}}>{dispTol}</td>
+                <td style={{padding:'9px 8px',textAlign:'center',color:'#555'}}>{row.inst}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
-    {/* Mobile cards */}
-    <div className="prev-cards-wrap">
-      {rows.map((row,i)=>(
-        <div key={i} className="prev-card">
-          <div className="prev-card-sr" style={{background:color}}>{startSr+i}</div>
-          <div className="prev-card-info">
-            <div className="prev-card-name">{row.name}</div>
-            <div className="prev-card-meta">
-              <span>{row.spec}</span>
-              <span>± {row.tolerance}</span>
-              <span>{row.inst}</span>
-            </div>
-          </div>
-          <button onClick={()=>onRemove(i)} className="insp-preview-del">✕</button>
-        </div>
-      ))}
-    </div>
-  </>
-);
+  );
+};
 
-/* ── Slot Value Entry ── */
+/* ── Slot Value Entry — Direct Table ── */
 const SlotValueEntry = ({ slot, colLabels, setVal }) => {
-  const [selectedIdx, setSelectedIdx] = React.useState('');
   if (colLabels.length===0) return (
     <div style={{padding:'20px',textAlign:'center',color:'#aaa',fontSize:13}}>
       Pehle Step 2 mein inspection items add karo
     </div>
   );
-
-  const filledIdxs = colLabels.filter(({idx})=>slot.upVals[idx]||slot.downVals[idx]).map(c=>c.idx);
-  const unfilledCols = colLabels.filter(({idx})=>!slot.upVals[idx]&&!slot.downVals[idx]);
-  // allFilled tabhi true ho jab koi unfilled column na ho AND selectedIdx bhi empty ho (user still typing scenario cover)
-  const allFilled = unfilledCols.length === 0 && selectedIdx === '';
-  const handleAdd = () => {
-    if (selectedIdx==='') return;
-    const next = colLabels.find(({idx})=>idx!==Number(selectedIdx)&&!slot.upVals[idx]&&!slot.downVals[idx]);
-    setSelectedIdx(next ? String(next.idx) : '');
-  };
-  const upVal = selectedIdx!=='' ? slot.upVals[Number(selectedIdx)]||'' : '';
-  const dnVal = selectedIdx!=='' ? slot.downVals[Number(selectedIdx)]||'' : '';
-
   return (
-    <div style={{padding:'12px'}}>
-      {/* Input area — sirf tab dikhao jab unfilled columns baaki hon */}
-      {!allFilled && <div className="slot-add-row">
-        <div className="slot-add-col" style={{flex:2}}>
-          <div className="slot-add-label" style={{color:'#7b1fa2'}}>Column</div>
-          <select value={selectedIdx} onChange={e=>setSelectedIdx(e.target.value)} className="slot-select">
-            <option value="">Select column...</option>
-            {colLabels.filter(({idx})=>!slot.upVals[idx]&&!slot.downVals[idx]).map(({idx,label})=>(
-              <option key={idx} value={idx}>{label}</option>
-            ))}
-          </select>
-        </div>
-        <div className="slot-add-col">
-          <div className="slot-add-label" style={{color:'#1565c0'}}>⬆ UP</div>
-          <input type="text" value={upVal} placeholder="—" className="slot-input"
-            onChange={e=>selectedIdx!==''&&setVal(slot.id,'up',Number(selectedIdx),e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&handleAdd()} />
-        </div>
-        {!slot.singleRow && (
-          <div className="slot-add-col">
-            <div className="slot-add-label" style={{color:'#e65100'}}>⬇ DOWN</div>
-            <input type="text" value={dnVal} placeholder="—" className="slot-input"
-              onChange={e=>selectedIdx!==''&&setVal(slot.id,'down',Number(selectedIdx),e.target.value)}
-              onKeyDown={e=>e.key==='Enter'&&handleAdd()} />
-          </div>
-        )}
-        <button onClick={handleAdd} className="slot-add-btn">+ Add</button>
-      </div>}
-
-      {/* Filled table */}
-      {filledIdxs.length>0 && (
-        <div className="slot-table-wrap">
-          <table className="slot-table">
-            <thead>
-              <tr>
-                <th style={{textAlign:'left'}}>Column</th>
-                <th style={{color:'#1565c0'}}>⬆ UP</th>
-                {!slot.singleRow && <th style={{color:'#e65100'}}>⬇ DOWN</th>}
-                <th style={{width:28}}></th>
+    <div style={{overflowX:'auto'}}>
+      <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
+        <thead>
+          <tr style={{background:'#f5f5f5'}}>
+            <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
+            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬆ UP</th>
+            {!slot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬇ DOWN</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {colLabels.map(({idx,label})=>{
+            const uv = slot.upVals[idx]||'';
+            const dv = slot.downVals[idx]||'';
+            const isNgUp = uv.toUpperCase()==='NG';
+            const isNgDn = dv.toUpperCase()==='NG';
+            return (
+              <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
+                <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
+                <td style={{padding:'4px 8px',textAlign:'center'}}>
+                  <input
+                    type="text"
+                    value={uv}
+                    placeholder="—"
+                    onChange={e=>setVal(slot.id,'up',idx,e.target.value)}
+                    style={{
+                      width:'80px',textAlign:'center',padding:'5px 8px',
+                      border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#ddd'}`,
+                      borderRadius:6,fontSize:13,fontWeight:uv?700:400,
+                      background:isNgUp?'#ffebee':uv?'#e8f5e9':'#fff',
+                      color:isNgUp?'#e53935':uv?'#2e7d32':'#999',
+                      outline:'none'
+                    }}
+                  />
+                </td>
+                {!slot.singleRow && (
+                  <td style={{padding:'4px 8px',textAlign:'center'}}>
+                    <input
+                      type="text"
+                      value={dv}
+                      placeholder="—"
+                      onChange={e=>setVal(slot.id,'down',idx,e.target.value)}
+                      style={{
+                        width:'80px',textAlign:'center',padding:'5px 8px',
+                        border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#ddd'}`,
+                        borderRadius:6,fontSize:13,fontWeight:dv?700:400,
+                        background:isNgDn?'#ffebee':dv?'#fff3e0':'#fff',
+                        color:isNgDn?'#e53935':dv?'#e65100':'#999',
+                        outline:'none'
+                      }}
+                    />
+                  </td>
+                )}
               </tr>
-            </thead>
-            <tbody>
-              {filledIdxs.map(idx=>{
-                const col=colLabels.find(c=>c.idx===idx);
-                const uv=slot.upVals[idx]||'';
-                const dv=slot.downVals[idx]||'';
-                return (
-                  <tr key={idx}>
-                    <td>{col?.label}</td>
-                    <td className={`sv ${uv==='NG'?'ng':'ok'}`}>{uv||'—'}</td>
-                    {!slot.singleRow && <td className={`sv ${dv==='NG'?'ng':'dn'}`}>{dv||'—'}</td>}
-                    <td style={{textAlign:'center'}}>
-                      <button onClick={()=>{setVal(slot.id,'up',idx,'');setVal(slot.id,'down',idx,'');}}
-                        style={{background:'none',border:'none',color:'#e53935',cursor:'pointer',fontSize:13,fontWeight:700}}>✕</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -221,6 +239,27 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
 ══════════════════════════════════════ */
 const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [step, setStep] = useState(1);
+
+  /* ── DB se dropdown options ── */
+  const [dbOptions, setDbOptions] = useState({
+    customers: [],
+    part_names: [],
+    part_numbers: [],
+    operations: [],
+  });
+  const [optionsLoading, setOptionsLoading] = useState(true);
+
+  useEffect(() => {
+    getDropdownOptions()
+      .then(data => {
+        setDbOptions(data);
+        setOptionsLoading(false);
+      })
+      .catch(err => {
+        console.error('Dropdown options fetch failed:', err);
+        setOptionsLoading(false);
+      });
+  }, []);
 
   /* Step 1 */
   const [header, setHeader] = useState({
@@ -246,6 +285,43 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       ? existingProcesses.map(r=>({name:r.item||'',spec:r.spec||'',tolerance:r.tolerance||'',inst:r.inst||''}))
       : [emptyRow()]
   );
+
+  const [inspType, setInspType] = useState(''); // 'product' | 'process'
+
+  /* ── Operation select hone par DB se items auto-load karo ── */
+  useEffect(() => {
+    if (!header.operationName) return;
+    fetchInspectionItems(header.operationName).then(data => {
+      if (data.product && data.product.length > 0) {
+        setProductRows([
+          ...data.product.map(item => ({
+            name: item.name || '',
+            spec: item.spec || '',
+            tolerance: item.tolerance || '',
+            inst: item.instrument || '',
+          })),
+          emptyRow()
+        ]);
+        setInspType('product');
+      } else {
+        setProductRows([emptyRow()]);
+      }
+      if (data.process && data.process.length > 0) {
+        setProcessRows([
+          ...data.process.map(item => ({
+            name: item.name || '',
+            spec: item.spec || '',
+            tolerance: item.tolerance || '',
+            inst: item.instrument || '',
+          })),
+          emptyRow()
+        ]);
+        if (data.product && data.product.length === 0) setInspType('process');
+      } else {
+        setProcessRows([emptyRow()]);
+      }
+    });
+  }, [header.operationName]);
   const updateRow = (setter, rows, i, field, val) => {
     setter(prev => {
       const updated = prev.map((r,j)=>j===i?{...r,[field]:val}:r);
@@ -260,10 +336,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     const updated = rows.filter((_,j)=>j!==i);
     setter(updated.length ? updated : [emptyRow()]);
   };
-  const filledProducts  = productRows.filter(r=>r.name&&r.spec&&r.tolerance&&r.inst);
-  const filledProcesses = processRows.filter(r=>r.name&&r.spec&&r.tolerance&&r.inst);
+  const filledProducts  = productRows.filter(r=>r.name&&r.spec&&r.inst);
+  const filledProcesses = processRows.filter(r=>r.name&&r.spec&&r.inst);
   const step2Done = filledProducts.length>0 || filledProcesses.length>0;
-  const [inspType, setInspType] = useState(''); // 'product' | 'process'
 
   /* Step 3 */
   const [schedDate,    setSchedDate]   = useState(initialData.date||new Date().toISOString().split('T')[0]);
@@ -273,7 +348,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [mcNo,         setMcNo]         = useState(firstEntry.machine_no||'');
   const [schedExpanded, setSchedExpanded] = useState(false);
 
-  const makeSlot = (id,type) => ({id,type,singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
+  const makeSlot = (id,type,subType='') => ({id,type,subType,singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
     if (!existingEntries.length) return [makeSlot(1,'SETUP')];
     const map={};
@@ -293,11 +368,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [nextId,       setNextId]       = useState(initSlots.length+1);
   const [activeSlotId, setActiveSlotId] = useState(initSlots[0]?.id??1);
 
-  const addSlot = (type) => {
-    const s=makeSlot(nextId,type);
+  const addSlot = (type, subType='') => {
+    const s=makeSlot(nextId,type,subType);
     setSlots(prev=>{
-      if(type==='SETUP'){const li=prev.map(x=>x.type).lastIndexOf('SETUP');const at=li>=0?li+1:0;const n=[...prev];n.splice(at,0,s);return n;}
-      return [...prev,s];
+      const li=prev.map(x=>x.type).lastIndexOf(type);
+      const at=li>=0?li+1:prev.length;
+      const n=[...prev]; n.splice(at,0,s); return n;
     });
     setNextId(p=>p+1); setActiveSlotId(s.id);
   };
@@ -322,8 +398,20 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const handleSubmit = () => {
     if (!step1Done){alert('Step 1 pura karo');return;}
     const allItems=[
-      ...filledProducts.map((r,i) =>({sr_no:i+1, item:r.name,spec:r.spec,tolerance:`± ${r.tolerance}`,inst:r.inst})),
-      ...filledProcesses.map((r,i)=>({sr_no:11+i,item:r.name,spec:r.spec,tolerance:r.tolerance,inst:r.inst})),
+      ...filledProducts.map((r,i) =>{
+        const parsed = parseSpecTol(r.spec); const tol = r.tolerance ? `± ${r.tolerance}` : parsed.tol;
+        return {sr_no:i+1, item:r.name,spec:r.spec,tolerance:tol,inst:r.inst};
+      }),
+      ...filledProcesses.map((r,i)=>{
+        const tol = r.tolerance ? r.tolerance : (()=>{
+          const s=r.spec||'';
+          const pm=s.match(/±\s*([\d.]+)/); if(pm) return `± ${pm[1]}`;
+          const plm=s.match(/\+([\d.]+)\s*\/\s*-([\d.]+)/); if(plm) return `+${plm[1]}/-${plm[2]}`;
+          const pl=s.match(/\+\s*([\d.]+)/); if(pl) return `+${pl[1]}`;
+          return '';
+        })();
+        return {sr_no:11+i,item:r.name,spec:r.spec,tolerance:tol,inst:r.inst};
+      }),
     ];
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
@@ -381,10 +469,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           <div className="wiz-card">
             <div className="wiz-card-title">📋 Report Information</div>
             <div className="wiz-grid-2">
-              <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={CUSTOMER_NAMES} placeholder="Select customer..." required />
-              <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={PART_NAMES} placeholder="Select part..." required />
-              <Field label="Operation" value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={OPERATIONS} placeholder="Select operation..." required />
-              <Field label="Part Number" value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={PART_NUMBERS} placeholder="Select number..." required /> 
+              <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={dbOptions.customers} placeholder={optionsLoading ? 'Loading...' : 'Select customer...'} required />
+              <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={dbOptions.part_names} placeholder={optionsLoading ? 'Loading...' : 'Select part...'} required />
+              <Field label="Operation" value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={dbOptions.operations} placeholder={optionsLoading ? 'Loading...' : 'Select operation...'} required />
+              <Field label="Part Number" value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={dbOptions.part_numbers} placeholder={optionsLoading ? 'Loading...' : 'Select number...'} required /> 
             </div>
           </div>
         )}
@@ -393,71 +481,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
         {step===2 && (
           <div className="wiz-card">
             <div className="wiz-card-title">🔍 Inspection Items</div>
-
-            {/* Type dropdown */}
-            <div className="wiz-field" style={{marginBottom:16}}>
-              <label className="wiz-label">Item Type select karo</label>
-              <select value={inspType} onChange={e=>setInspType(e.target.value)}
-                className={`wiz-select${inspType?' filled':''}`}>
-                <option value="">-- Select Type --</option>
-                <option value="product">📦 Product Items{filledProducts.length>0?` (${filledProducts.length} added)`:''}</option>
-                <option value="process">⚙️ Process Items{filledProcesses.length>0?` (${filledProcesses.length} added)`:''}</option>
-              </select>
-            </div>
-
-            {/* Product section */}
-            {inspType==='product' && (
-              <div>
-                {/* New entry row */}
-                {filledProducts.length < 10 && (()=>{
-                  const lastRow = productRows[productRows.length-1];
-                  const lastIdx = productRows.length-1;
-                  return (
-                    <div style={{marginBottom:14}}>
-                      <div style={{fontSize:11,fontWeight:700,color:'#1976d2',marginBottom:8,textTransform:'uppercase',letterSpacing:'0.5px'}}>+ New Product Item</div>
-                      <InspItem row={lastRow} srNum={filledProducts.length+1} isProduct={true}
-                        onUpdate={(f,v)=>updateRow(setProductRows,productRows,lastIdx,f,v)}
-                        onRemove={null} />
-                    </div>
-                  );
-                })()}
-
-                {/* Preview table */}
-                {filledProducts.length>0 && (
-                  <div className="insp-preview-table">
-                    <PreviewTable rows={filledProducts} color="#1976d2" startSr={1}
-                      onRemove={i=>removeRow(setProductRows,productRows,productRows.findIndex(r=>r===filledProducts[i]))} />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Process section */}
-            {inspType==='process' && (
-              <div>
-                {/* New entry row */}
-                {filledProcesses.length < 10 && (()=>{
-                  const lastRow = processRows[processRows.length-1];
-                  const lastIdx = processRows.length-1;
-                  return (
-                    <div style={{marginBottom:14}}>
-                      <div style={{fontSize:11,fontWeight:700,color:'#e65100',marginBottom:8,textTransform:'uppercase',letterSpacing:'0.5px'}}>+ New Process Item</div>
-                      <InspItem row={lastRow} srNum={filledProducts.length+filledProcesses.length+1} isProduct={false}
-                        onUpdate={(f,v)=>updateRow(setProcessRows,processRows,lastIdx,f,v)}
-                        onRemove={null} />
-                    </div>
-                  );
-                })()}
-
-                {/* Preview table */}
-                {filledProcesses.length>0 && (
-                  <div className="insp-preview-table">
-                    <PreviewTable rows={filledProcesses} color="#e65100" startSr={filledProducts.length+1}
-                      onRemove={i=>removeRow(setProcessRows,processRows,processRows.findIndex(r=>r===filledProcesses[i]))} />
-                  </div>
-                )}
-              </div>
-            )}
+            <CombinedTable
+              productRows={filledProducts}
+              processRows={filledProcesses}
+            />
           </div>
         )}
 
@@ -480,79 +507,98 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
             </div>
 
-            {/* SETUP done banner — UPAR, always visible when done */}
-            {isSetupFilled && (
-              <div className="setup-done-banner" style={{marginBottom:16}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-                  <div style={{display:'flex',alignItems:'center',gap:10}}>
-                    <span style={{fontSize:18}}>✅</span>
-                    <div>
-                      <div style={{fontWeight:700,fontSize:13,color:'#2e7d32'}}>SETUP Complete!</div>
-                      <div style={{fontSize:11,color:'#388e3c',marginTop:2}}>
-                        {addedTypes.map(t=>(
-                          <span key={t} style={{marginRight:8}}>✓ {t}</span>
-                        ))}
-                        {pendingTypes.map(t=>(
-                          <span key={t} style={{color:'#e65100',marginRight:8}}>⏳ {t}</span>
-                        ))}
-                      </div>
-                    </div>
+            {/* ── 3 Fixed Sections: SETUP | 4HRS | LAST ── */}
+            {['SETUP','4HRS','LAST'].map(sectionType => {
+              const sectionSlots = slots.filter(s=>s.type===sectionType);
+              const colors = {SETUP:'#1565c0', '4HRS':'#6a1b9a', LAST:'#b71c1c'};
+              const bg     = {SETUP:'#e3f2fd', '4HRS':'#f3e5f5', LAST:'#ffebee'};
+              const color  = colors[sectionType];
+              const locked = sectionType!=='SETUP' && !isSetupFilled;
+              return (
+                <div key={sectionType} style={{marginBottom:16,border:`1px solid ${color}30`,borderRadius:10,overflow:'hidden'}}>
+                  {/* Section Header */}
+                  {(()=>{
+                    const isFilled = sectionSlots.some(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim()));
+                    const statusBadge = isFilled
+                      ? <span style={{background:'rgba(255,255,255,0.25)',color:'#fff',borderRadius:10,padding:'2px 10px',fontSize:11,fontWeight:700}}>✅ Filled</span>
+                      : isSetupFilled && sectionType!=='SETUP'
+                        ? <span style={{background:'rgba(255,255,0,0.2)',color:'#fff',borderRadius:10,padding:'2px 10px',fontSize:11,fontWeight:700}}>⏳ Pending</span>
+                        : null;
+                    return (
+                  <div style={{background:color,padding:'8px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <span style={{display:'flex',alignItems:'center',gap:8,color:'#fff',fontWeight:700,fontSize:14}}>
+                      {sectionType==='SETUP'?'🔧':sectionType==='4HRS'?'⏱️':'🏁'} {sectionType}
+                      {sectionSlots.length>0&&<span style={{background:'rgba(255,255,255,0.2)',borderRadius:10,padding:'1px 8px',fontSize:11}}>{sectionSlots.length} slot{sectionSlots.length>1?'s':''}</span>}
+                      {statusBadge}
+                    </span>
+                    {!locked && (
+                      sectionType==='4HRS'
+                        ? <div style={{display:'flex',gap:6}}>
+                            <button onClick={()=>addSlot('4HRS','2HRS')}
+                              style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.5)',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                              + 2HRS
+                            </button>
+                            <button onClick={()=>addSlot('4HRS','4HRS')}
+                              style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.5)',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                              + 4HRS
+                            </button>
+                          </div>
+                        : <button onClick={()=>addSlot(sectionType)}
+                            style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.5)',color:'#fff',padding:'4px 12px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                            + Add {sectionType}
+                          </button>
+                    )}
+                    {locked && <span style={{color:'rgba(255,255,255,0.6)',fontSize:12}}>🔒 SETUP pehle complete karo</span>}
                   </div>
-                  <button onClick={()=>setSchedExpanded(p=>!p)} className="slot-toggle-btn"
-                    style={{background: schedExpanded?'#c8e6c9':'#2e7d32',border:'none',color:'white',padding:'8px 16px',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer'}}>
-                    {schedExpanded ? '▲ Close' : '✏️ Edit / Add Slots'}
-                  </button>
-                </div>
-              </div>
-            )}
+                    );
+                  })()}
 
-            {/* Slot section — show always if not setup, else show only when expanded */}
-            {(!isSetupFilled || schedExpanded) && (
-              <div>
-                {/* Slot tabs */}
-                <div style={{marginBottom:8}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Time Slots</div>
-                  <div className="slot-tabs">
-                    {slots.map((slot,i)=>{
+                  {/* Slots list */}
+                  <div style={{background:bg[sectionType],padding:sectionSlots.length?'10px':'0'}}>
+                    {sectionSlots.length===0 && (
+                      <div style={{padding:'12px 14px',color:color,fontSize:12,opacity:0.6,fontStyle:'italic'}}>
+                        Koi slot nahi — upar "+ Add" click karo
+                      </div>
+                    )}
+                    {sectionSlots.map((slot,si)=>{
                       const isActive=slot.id===activeSlotId;
                       const cnt=slot.upVals.filter(v=>v&&v.trim()).length+slot.downVals.filter(v=>v&&v.trim()).length;
+                      const label = slot.subType ? `${slot.subType}` : sectionType;
                       return (
-                        <button key={slot.id} onClick={()=>setActiveSlotId(slot.id)}
-                          className={`slot-tab${isActive?' active':''}${cnt>0&&!isActive?' filled':''}`}>
-                          {slot.type}
-                          {cnt>0&&!isActive&&<span className="slot-tab-cnt">✓{cnt}</span>}
-                          {isActive&&<button onClick={e=>{e.stopPropagation();toggleRows(slot.id);}} className="slot-tab-toggle">
-                            {slot.singleRow?'1L':'2L'}
-                          </button>}
-                          {slots.length>1&&<span onClick={e=>{e.stopPropagation();removeSlot(slot.id);}} className="slot-tab-remove">×</span>}
-                        </button>
+                        <div key={slot.id} style={{marginBottom:8,borderRadius:8,border:`2px solid ${isActive?color:color+'40'}`,background:'#fff',overflow:'hidden'}}>
+                          {/* Slot header row */}
+                          <div style={{display:'flex',alignItems:'center',padding:'7px 12px',background:isActive?color+'15':'#fff',cursor:'pointer',gap:8}}
+                            onClick={()=>setActiveSlotId(isActive?null:slot.id)}>
+                            <span style={{fontWeight:700,fontSize:13,color:color}}>
+                              {sectionType==='4HRS'?`⏱ ${label}`:`${si+1}. ${sectionType}`}
+                            </span>
+                            {cnt>0&&<span style={{background:color,color:'#fff',borderRadius:10,padding:'1px 7px',fontSize:11}}>✓ {cnt} filled</span>}
+                            {/* 1Line / 2Line toggle */}
+                            <button onClick={e=>{e.stopPropagation();toggleRows(slot.id);}}
+                              style={{marginLeft:'auto',background:slot.singleRow?'#fff':color,color:slot.singleRow?color:'#fff',
+                                border:`1px solid ${color}`,borderRadius:6,padding:'3px 10px',fontSize:11,fontWeight:700,cursor:'pointer'}}>
+                              {slot.singleRow?'1 Line':'2 Lines'}
+                            </button>
+                            {/* Remove */}
+                            {sectionSlots.length>1&&(
+                              <button onClick={e=>{e.stopPropagation();removeSlot(slot.id);}}
+                                style={{background:'none',border:'none',color:'#e53935',fontSize:16,cursor:'pointer',fontWeight:700,padding:'0 4px'}}>×</button>
+                            )}
+                            <span style={{color:color,fontSize:13}}>{isActive?'▲':'▼'}</span>
+                          </div>
+                          {/* Slot data entry — sirf active slot ka */}
+                          {isActive&&(
+                            <div style={{borderTop:`1px solid ${color}30`}}>
+                              <SlotValueEntry slot={slot} colLabels={colLabels} setVal={setVal} />
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
-                    <select value="" onChange={e=>{if(!e.target.value)return;addSlot(e.target.value);}} className="slot-add-select">
-                      <option value="">+ Add Slot</option>
-                      {TIME_TYPE_OPTIONS.map(t=>(
-                        <option key={t} value={t} disabled={t!=='SETUP'&&!isSetupFilled}>
-                          {t}{t!=='SETUP'&&!isSetupFilled?' 🔒':''}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                 </div>
-
-                {/* Active slot entry */}
-                {activeSlot && (
-                  <div className="slot-entry-card">
-                    <div className="slot-entry-head">
-                      <span>✏️ {activeSlot.type} — {activeSlot.singleRow?'Single Row':'UP + DOWN'}</span>
-                      <button onClick={()=>toggleRows(activeSlot.id)} className="slot-toggle-btn">
-                        {activeSlot.singleRow?'2 Lines':'1 Line'}
-                      </button>
-                    </div>
-                    <SlotValueEntry slot={activeSlot} colLabels={colLabels} setVal={setVal} />
-                  </div>
-                )}
-              </div>
-            )}
+              );
+            })}
           </div>
         )}
       </div>
