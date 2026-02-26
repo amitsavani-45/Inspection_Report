@@ -128,16 +128,6 @@ function App() {
 
       const isNew = formData._isNew === true;
 
-      const isPartChanged =
-        !isNew &&
-        currentReport &&
-        (currentReport.part_name      !== formData.partName      ||
-         currentReport.part_number    !== formData.partNumber    ||
-         currentReport.operation_name !== formData.operationName ||
-         currentReport.customer_name  !== formData.customerName);
-
-      let reportId = isNew ? null : currentReport?.id;
-
       const updatedItems = (formData.items || []).map(item => ({
         sr_no:        item.sr_no,
         item:         item.item || '',
@@ -165,13 +155,28 @@ function App() {
         schedule_entries: newScheduleEntries,
       };
 
-      if (!reportId || isPartChanged) {
-        // New report: create with full data directly (no separate PUT needed)
-        const createdReport = await createReport(reportPayload);
-        reportId = createdReport.id;
-      } else {
-        // Existing report: update
+      let reportId = null;
+
+      // Step 1: decide karo create karna hai ya update
+      if (!isNew && currentReport?.id) {
+        // DB mein verify karo ye ID exist karti hai
+        try {
+          const check = await fetch(`http://localhost:8000/api/reports/${currentReport.id}/`);
+          if (check.ok) {
+            reportId = currentReport.id; // exists — update karenge
+          }
+          // 404 aaya toh reportId null rehta hai — naya create hoga
+        } catch (_) {
+          // network error — naya create karo
+        }
+      }
+
+      // Step 2: create ya update
+      if (reportId) {
         await updateReport(reportId, reportPayload);
+      } else {
+        const created = await createReport(reportPayload);
+        reportId = created.id;
       }
 
       alert('✅ Data successfully saved to Database!');
