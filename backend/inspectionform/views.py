@@ -130,7 +130,9 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        serializer = InspectionReportCreateSerializer(data=request.data)
+        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        data.pop('_isNew', None)  # frontend ka internal flag — ignore karo
+        serializer = InspectionReportCreateSerializer(data=data)
         if serializer.is_valid():
             report = serializer.save()
             return Response(
