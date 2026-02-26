@@ -33,7 +33,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
   const processItems    = items.filter(x=>x.sr_no>=11&&x.sr_no<=20).sort((a,b)=>a.sr_no-b.sr_no);
   const productCount    = productItems.filter(x=>x.item&&x.item.trim()!=='').length;
   const totalRows       = 10;
-  const totalFilledCols = Math.min(productCount + processItems.filter(x=>x.item&&x.item.trim()!=='').length, 14);
+  const totalFilledCols = Math.min(productCount + processItems.filter(x=>x.item&&x.item.trim()!=='').length, 20);
 
   // ── Build schedule rows for report ──
   const buildScheduleRows = () => {
@@ -72,7 +72,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
         const si = e.slot_index??0;
         if (!slotMap[si]) slotMap[si]={ time_type:e.time_type, up:null, down:null };
         const vals = Array(14).fill('');
-        for(let i=0;i<14;i++) vals[i]=e[`value_${i+1}`]||'';
+        for(let i=0;i<20;i++) vals[i]=e[`value_${i+1}`]||'';
         if (e.row_order===0) slotMap[si].up=vals;
         else                  slotMap[si].down=vals;
       });
