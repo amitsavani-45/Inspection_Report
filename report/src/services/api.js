@@ -2,8 +2,19 @@ const API_BASE_URL = 'http://localhost:8000/api';
 
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'An error occurred' }));
-    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    let errorMsg = `HTTP ${response.status}`;
+    try {
+      const error = await response.json();
+      // DRF validation errors — object ho sakta hai
+      if (typeof error === 'object') {
+        errorMsg = error.detail || JSON.stringify(error);
+      } else {
+        errorMsg = String(error);
+      }
+    } catch (_) {
+      errorMsg = `HTTP error! status: ${response.status}`;
+    }
+    throw new Error(errorMsg);
   }
   return response.json();
 };
