@@ -47,12 +47,12 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
       return [{
         sr:1, date:'', operator:'', mcNo:'',
         slots:[
-          {time:'SETUP',row_order:0,values:Array(14).fill('')},
-          {time:'SETUP',row_order:1,values:Array(14).fill('')},
-          {time:'4HRS', row_order:0,values:Array(14).fill('')},
-          {time:'4HRS', row_order:1,values:Array(14).fill('')},
-          {time:'LAST', row_order:0,values:Array(14).fill('')},
-          {time:'LAST', row_order:1,values:Array(14).fill('')},
+          {time:'SETUP',row_order:0,values:Array(20).fill('')},
+          {time:'SETUP',row_order:1,values:Array(20).fill('')},
+          {time:'4HRS', row_order:0,values:Array(20).fill('')},
+          {time:'4HRS', row_order:1,values:Array(20).fill('')},
+          {time:'LAST', row_order:0,values:Array(20).fill('')},
+          {time:'LAST', row_order:1,values:Array(20).fill('')},
         ]
       }];
     }
@@ -77,18 +77,24 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
       sorted.forEach(e=>{
         const si = e.slot_index??0;
         if (!slotMap[si]) slotMap[si]={ time_type:e.time_type, up:null, down:null };
-        const vals = Array(14).fill('');
+        const vals = Array(20).fill('');
         for(let i=0;i<20;i++) vals[i]=e[`value_${i+1}`]||'';
         if (e.row_order===0) slotMap[si].up=vals;
         else                  slotMap[si].down=vals;
       });
 
-      const slots = Object.values(slotMap).flatMap(s=>{
-        const rows = [{time:s.time_type, row_order:0, values:s.up||Array(14).fill('')}];
-        if (s.down!==null && s.down.some(v=>v!==''))
-          rows.push({time:s.time_type, row_order:1, values:s.down});
-        return rows;
-      });
+      const TIME_ORDER = {SETUP:0, '2HRS':1, '4HRS':2, LAST:3};
+      const slots = Object.entries(slotMap)
+        .sort((a,b) => {
+          // slot_index se sort karo (key is slot_index)
+          return Number(a[0]) - Number(b[0]);
+        })
+        .flatMap(([,s])=>{
+          const rows = [{time:s.time_type, row_order:0, values:s.up||Array(20).fill('')}];
+          if (s.down!==null && s.down.some(v=>v!==''))
+            rows.push({time:s.time_type, row_order:1, values:s.down});
+          return rows;
+        });
 
       return { sr:grp.sr, date:grp.date, operator:grp.operator, mcNo:grp.mcNo, slots };
     });
@@ -207,12 +213,12 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
         <table className="fleet-info-table">
           <tbody>
             <tr>
-              <td className="field-label">PART NAME</td>   <td className="field-input">{currentReport?.part_name||''}</td>
-              <td className="field-label">OPERATION NAME</td><td className="field-input">{currentReport?.operation_name||''}</td>
+              <td className="field-label">CUSTOMER NAME</td>   <td className="field-input">{currentReport?.customer_name||''}</td>
+              <td className="field-label">PART NAME</td><td className="field-input">{currentReport?.part_name||''}</td>
             </tr>
             <tr>
+              <td className="field-label">OPERATION NAME</td>  <td className="field-input">{currentReport?.operation_name||''}</td>
               <td className="field-label">PART NUMBER</td>  <td className="field-input">{currentReport?.part_number||''}</td>
-              <td className="field-label">CUSTOMER NAME</td><td className="field-input">{currentReport?.customer_name||''}</td>
             </tr>
           </tbody>
         </table>

@@ -350,7 +350,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
   const makeSlot = (id,type,subType='') => ({id,type,subType,singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
-    if (!existingEntries.length) return [makeSlot(1,'SETUP')];
+    if (!existingEntries.length) return [makeSlot(1,'SETUP'), makeSlot(2,'4HRS'), makeSlot(3,'LAST')];
     const map={};
     existingEntries.forEach(e=>{
       const k=e.slot_index??0;
@@ -510,85 +510,153 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             {/* ── 3 Fixed Sections: SETUP | 4HRS | LAST ── */}
             {['SETUP','4HRS','LAST'].map(sectionType => {
               const sectionSlots = slots.filter(s=>s.type===sectionType);
-              const colors = {SETUP:'#1565c0', '4HRS':'#6a1b9a', LAST:'#b71c1c'};
-              const bg     = {SETUP:'#e3f2fd', '4HRS':'#f3e5f5', LAST:'#ffebee'};
-              const color  = colors[sectionType];
-              const locked = sectionType!=='SETUP' && !isSetupFilled;
+              const cfg = {
+                SETUP: { color:'#1e40af', accent:'#3b82f6', light:'#eff6ff', border:'#bfdbfe' },
+                '4HRS':{ color:'#6b21a8', accent:'#a855f7', light:'#faf5ff', border:'#e9d5ff' },
+                LAST:  { color:'#b91c1c', accent:'#ef4444', light:'#fff5f5', border:'#fecaca' },
+              }[sectionType];
+              const locked = false; // teeno sections hamesha available
+              const isFilled = sectionSlots.some(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim()));
               return (
-                <div key={sectionType} style={{marginBottom:16,border:`1px solid ${color}30`,borderRadius:10,overflow:'hidden'}}>
-                  {/* Section Header */}
-                  {(()=>{
-                    const isFilled = sectionSlots.some(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim()));
-                    const statusBadge = isFilled
-                      ? <span style={{background:'rgba(255,255,255,0.25)',color:'#fff',borderRadius:10,padding:'2px 10px',fontSize:11,fontWeight:700}}>✅ Filled</span>
-                      : isSetupFilled && sectionType!=='SETUP'
-                        ? <span style={{background:'rgba(255,255,0,0.2)',color:'#fff',borderRadius:10,padding:'2px 10px',fontSize:11,fontWeight:700}}>⏳ Pending</span>
-                        : null;
-                    return (
-                  <div style={{background:color,padding:'8px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                    <span style={{display:'flex',alignItems:'center',gap:8,color:'#fff',fontWeight:700,fontSize:14}}>
-                      {sectionType==='SETUP'?'🔧':sectionType==='4HRS'?'⏱️':'🏁'} {sectionType}
-                      {sectionSlots.length>0&&<span style={{background:'rgba(255,255,255,0.2)',borderRadius:10,padding:'1px 8px',fontSize:11}}>{sectionSlots.length} slot{sectionSlots.length>1?'s':''}</span>}
-                      {statusBadge}
-                    </span>
-                    {!locked && (
-                      sectionType==='4HRS'
-                        ? <div style={{display:'flex',gap:6}}>
-                            <button onClick={()=>addSlot('4HRS','2HRS')}
-                              style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.5)',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
-                              + 2HRS
-                            </button>
-                            <button onClick={()=>addSlot('4HRS','4HRS')}
-                              style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.5)',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
-                              + 4HRS
-                            </button>
-                          </div>
-                        : <button onClick={()=>addSlot(sectionType)}
-                            style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.5)',color:'#fff',padding:'4px 12px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
-                            + Add {sectionType}
-                          </button>
-                    )}
-                    {locked && <span style={{color:'rgba(255,255,255,0.6)',fontSize:12}}>🔒 SETUP pehle complete karo</span>}
-                  </div>
-                    );
-                  })()}
+                <div key={sectionType} style={{
+                  marginBottom:12,
+                  borderRadius:12,
+                  overflow:'hidden',
+                  border:`1px solid ${isFilled ? cfg.border : '#e5e7eb'}`,
+                  background:'#fff',
+                  boxShadow: isFilled ? `0 1px 6px ${cfg.accent}18` : '0 1px 3px rgba(0,0,0,0.06)',
+                }}>
 
-                  {/* Slots list */}
-                  <div style={{background:bg[sectionType],padding:sectionSlots.length?'10px':'0'}}>
+                  {/* Header */}
+                  <div style={{
+                    background: cfg.color,
+                    padding:'10px 16px',
+                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                  }}>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <span style={{
+                        color:'#fff', fontWeight:800, fontSize:14,
+                        letterSpacing:'0.5px', textTransform:'uppercase',
+                      }}>{sectionType}</span>
+
+                      {sectionSlots.length>0 && (
+                        <span style={{
+                          background:'rgba(255,255,255,0.2)', color:'#fff',
+                          borderRadius:20, padding:'1px 9px', fontSize:11, fontWeight:600,
+                        }}>{sectionSlots.length} slot{sectionSlots.length>1?'s':''}</span>
+                      )}
+
+                      {isFilled && (
+                        <span style={{
+                          background:'rgba(255,255,255,0.2)', color:'#fff',
+                          borderRadius:20, padding:'1px 9px', fontSize:11, fontWeight:600,
+                        }}>✓ Filled</span>
+                      )}
+                      {!isFilled && isSetupFilled && sectionType!=='SETUP' && (
+                        <span style={{
+                          background:'rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.8)',
+                          borderRadius:20, padding:'1px 9px', fontSize:11,
+                        }}>Pending</span>
+                      )}
+                    </div>
+
+                    {!locked && (
+                      <div style={{display:'flex',gap:6}}>
+                        {sectionType==='4HRS' ? <>
+                          <button onClick={()=>addSlot('4HRS','2HRS')} style={{
+                            background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.35)',
+                            color:'#fff', padding:'4px 11px', borderRadius:7,
+                            fontSize:12, fontWeight:700, cursor:'pointer',
+                          }}>+ 2HRS</button>
+                          <button onClick={()=>addSlot('4HRS','4HRS')} style={{
+                            background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.35)',
+                            color:'#fff', padding:'4px 11px', borderRadius:7,
+                            fontSize:12, fontWeight:700, cursor:'pointer',
+                          }}>+ 4HRS</button>
+                        </> : (
+                          <button onClick={()=>addSlot(sectionType)} style={{
+                            background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.35)',
+                            color:'#fff', padding:'4px 13px', borderRadius:7,
+                            fontSize:12, fontWeight:700, cursor:'pointer',
+                          }}>+ Add</button>
+                        )}
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* Slots */}
+                  <div style={{background:cfg.light, padding:sectionSlots.length ? '10px 12px' : '0'}}>
                     {sectionSlots.length===0 && (
-                      <div style={{padding:'12px 14px',color:color,fontSize:12,opacity:0.6,fontStyle:'italic'}}>
-                        Koi slot nahi — upar "+ Add" click karo
+                      <div style={{padding:'12px', textAlign:'center', color:cfg.accent, fontSize:12, opacity:0.5}}>
+                        No slots yet — click + Add above
                       </div>
                     )}
                     {sectionSlots.map((slot,si)=>{
-                      const isActive=slot.id===activeSlotId;
-                      const cnt=slot.upVals.filter(v=>v&&v.trim()).length+slot.downVals.filter(v=>v&&v.trim()).length;
-                      const label = slot.subType ? `${slot.subType}` : sectionType;
+                      const isActive = slot.id===activeSlotId;
+                      const cnt = slot.upVals.filter(v=>v&&v.trim()).length + slot.downVals.filter(v=>v&&v.trim()).length;
+                      const slotLabel = slot.subType || sectionType;
                       return (
-                        <div key={slot.id} style={{marginBottom:8,borderRadius:8,border:`2px solid ${isActive?color:color+'40'}`,background:'#fff',overflow:'hidden'}}>
-                          {/* Slot header row */}
-                          <div style={{display:'flex',alignItems:'center',padding:'7px 12px',background:isActive?color+'15':'#fff',cursor:'pointer',gap:8}}
-                            onClick={()=>setActiveSlotId(isActive?null:slot.id)}>
-                            <span style={{fontWeight:700,fontSize:13,color:color}}>
-                              {sectionType==='4HRS'?`⏱ ${label}`:`${si+1}. ${sectionType}`}
+                        <div key={slot.id} style={{
+                          marginBottom:8, borderRadius:9,
+                          border:`1.5px solid ${isActive ? cfg.accent : cfg.border}`,
+                          background:'#fff', overflow:'hidden',
+                          boxShadow: isActive ? `0 2px 8px ${cfg.accent}15` : 'none',
+                        }}>
+                          {/* Slot row */}
+                          <div style={{
+                            display:'flex', alignItems:'center', padding:'8px 12px',
+                            background: isActive ? `${cfg.accent}08` : '#fff',
+                            cursor:'pointer', gap:8,
+                          }} onClick={()=>setActiveSlotId(isActive?null:slot.id)}>
+
+                            <span style={{
+                              width:22, height:22, borderRadius:6,
+                              background: isActive ? cfg.accent : '#f3f4f6',
+                              color: isActive ? '#fff' : '#666',
+                              display:'inline-flex', alignItems:'center', justifyContent:'center',
+                              fontSize:11, fontWeight:800, flexShrink:0,
+                            }}>{si+1}</span>
+
+                            <span style={{fontWeight:700, fontSize:13, color:cfg.color}}>
+                              {slotLabel}
                             </span>
-                            {cnt>0&&<span style={{background:color,color:'#fff',borderRadius:10,padding:'1px 7px',fontSize:11}}>✓ {cnt} filled</span>}
-                            {/* 1Line / 2Line toggle */}
-                            <button onClick={e=>{e.stopPropagation();toggleRows(slot.id);}}
-                              style={{marginLeft:'auto',background:slot.singleRow?'#fff':color,color:slot.singleRow?color:'#fff',
-                                border:`1px solid ${color}`,borderRadius:6,padding:'3px 10px',fontSize:11,fontWeight:700,cursor:'pointer'}}>
-                              {slot.singleRow?'1 Line':'2 Lines'}
-                            </button>
-                            {/* Remove */}
-                            {sectionSlots.length>1&&(
-                              <button onClick={e=>{e.stopPropagation();removeSlot(slot.id);}}
-                                style={{background:'none',border:'none',color:'#e53935',fontSize:16,cursor:'pointer',fontWeight:700,padding:'0 4px'}}>×</button>
+
+                            {cnt>0 && (
+                              <span style={{
+                                background:cfg.accent, color:'#fff',
+                                borderRadius:20, padding:'1px 8px', fontSize:10, fontWeight:700,
+                              }}>✓ {cnt}</span>
                             )}
-                            <span style={{color:color,fontSize:13}}>{isActive?'▲':'▼'}</span>
+
+                            <div style={{marginLeft:'auto', display:'flex', gap:6, alignItems:'center'}}>
+                              <button onClick={e=>{e.stopPropagation();toggleRows(slot.id);}} style={{
+                                padding:'3px 10px', borderRadius:6, fontSize:11, fontWeight:700, cursor:'pointer',
+                                background: slot.singleRow ? '#f3f4f6' : cfg.accent,
+                                color: slot.singleRow ? '#555' : '#fff',
+                                border:'none',
+                              }}>
+                                {slot.singleRow ? '1 Row' : '2 Rows'}
+                              </button>
+
+                              {sectionSlots.length>1 && (
+                                <button onClick={e=>{e.stopPropagation();removeSlot(slot.id);}} style={{
+                                  background:'#fff', border:'1px solid #fca5a5',
+                                  color:'#dc2626', borderRadius:6, padding:'3px 7px',
+                                  fontSize:12, cursor:'pointer', fontWeight:700, lineHeight:1,
+                                }}>✕</button>
+                              )}
+
+                              <span style={{
+                                color: isActive ? cfg.accent : '#9ca3af', fontSize:11,
+                                transition:'transform 0.2s', display:'inline-block',
+                                transform: isActive ? 'rotate(180deg)' : 'none',
+                              }}>▼</span>
+                            </div>
                           </div>
-                          {/* Slot data entry — sirf active slot ka */}
-                          {isActive&&(
-                            <div style={{borderTop:`1px solid ${color}30`}}>
+
+                          {isActive && (
+                            <div style={{borderTop:`1px solid ${cfg.border}`}}>
                               <SlotValueEntry slot={slot} colLabels={colLabels} setVal={setVal} />
                             </div>
                           )}
