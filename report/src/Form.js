@@ -38,7 +38,7 @@ const PROCESS_TOLERANCES = ['MIN','MAX','0.01','0.05','0.1','0.2','0.5','1.0'];
 const INSTRUMENTS        = ['VISUAL','VERNIER','MICROMETER','RADIUS GAUGE','TEMPLATE','DIGITAL','GAUGE','CMM','DIAL INDICATOR','HEIGHT GAUGE'];
 const TIME_TYPE_OPTIONS  = ['SETUP','4HRS','LAST'];
 const PENDING_SLOT_TYPES = ['4HRS','LAST'];
-const MAX_COLS = 14;
+const MAX_COLS = 20;
 const emptyRow = () => ({ name:'', spec:'', tolerance:'', inst:'' });
 
 const STEPS = [
