@@ -35,7 +35,6 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
 
 
 class InspectionReportSerializer(serializers.ModelSerializer):
-    """Read-only serializer — fetching/displaying ke liye"""
     items = InspectionItemSerializer(many=True, read_only=True)
     schedule_entries = ScheduleEntrySerializer(many=True, read_only=True)
     item_count = serializers.SerializerMethodField()
@@ -54,11 +53,9 @@ class InspectionReportSerializer(serializers.ModelSerializer):
 
 
 class ScheduleEntryWriteSerializer(serializers.ModelSerializer):
-    """Write-only serializer — saving ke liye"""
     class Meta:
         model = ScheduleEntry
-        # ✅ FIX: 'id' NAHI hai — agar id hoga toh DRF lookup karega
-        #         aur saari values NULL save hongi
+        # ✅ 'id' nahi hai — DRF ko id milega to NULL save hoga
         fields = [
             'sr', 'row_order', 'slot_index', 'date', 'operator', 'machine_no', 'time_type',
             'value_1',  'value_2',  'value_3',  'value_4',
@@ -103,7 +100,6 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
             entry_data.pop('values', None)
             entry_data.pop('_isNew', None)
             entry_data['filled_at'] = now_ist
-            # ✅ date entry_data mein pehle se hai (slot ka apna date)
             ScheduleEntry.objects.create(report=report, **entry_data)
 
         return report
@@ -112,26 +108,22 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         items_data    = validated_data.pop('items', None)
         schedule_data = validated_data.pop('schedule_entries', None)
 
+        # Report header update
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
+        # Items replace
         if items_data is not None:
             instance.items.all().delete()
             for item_data in items_data:
                 item_data.pop('id', None)
                 InspectionItem.objects.create(report=instance, **item_data)
 
+        # ✅ MAIN FIX — SARI entries DELETE mat karo!
+        # Sirf jo slot_index + row_order aa raha hai usse UPDATE karo
+        # Baaki purani entries INTACT rahein — unka date/values nahi badlega
         if schedule_data is not None:
-            # ✅ FIX: Pehle existing entries ki dates backup karo (slot_index ke basis par)
-            # Taaki SETUP 9/20 ka date preserve ho jab 4HRS 9/27 save karo
-            existing_dates = {}
-            for old_entry in instance.schedule_entries.all():
-                key = (old_entry.slot_index, old_entry.row_order)
-                existing_dates[key] = old_entry.date
-
-            instance.schedule_entries.all().delete()
-
             from django.utils import timezone
             import pytz
             ist = pytz.timezone('Asia/Kolkata')
@@ -141,16 +133,28 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
                 entry_data.pop('id', None)
                 entry_data.pop('values', None)
                 entry_data.pop('_isNew', None)
-                entry_data['filled_at'] = now_ist
 
-                # ✅ FIX: Agar frontend ne date bheja hai toh use karo
-                #         Nahi bheja toh purani date preserve karo
-                #         Dono nahi toh aaj ki date
-                si  = entry_data.get('slot_index', 0)
-                ro  = entry_data.get('row_order', 0)
-                if not entry_data.get('date'):
-                    entry_data['date'] = existing_dates.get((si, ro), None)
+                slot_index = entry_data.get('slot_index', 0)
+                row_order  = entry_data.get('row_order', 0)
 
-                ScheduleEntry.objects.create(report=instance, **entry_data)
+                # Kya yeh slot pehle se DB mein hai?
+                existing = instance.schedule_entries.filter(
+                    slot_index=slot_index,
+                    row_order=row_order
+                ).first()
+
+                if existing:
+                    # ✅ SIRF values update karo — date PRESERVE karo agar naya data empty hai
+                    for field, value in entry_data.items():
+                        # Date sirf tab update karo jab value aaya ho
+                        if field == 'date' and not value:
+                            continue  # purani date rakho
+                        setattr(existing, field, value)
+                    existing.filled_at = now_ist
+                    existing.save()
+                else:
+                    # Naya slot — fresh create karo
+                    entry_data['filled_at'] = now_ist
+                    ScheduleEntry.objects.create(report=instance, **entry_data)
 
         return instance
