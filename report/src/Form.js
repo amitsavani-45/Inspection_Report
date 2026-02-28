@@ -348,13 +348,15 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [mcNo,         setMcNo]         = useState(firstEntry.machine_no||'');
   const [schedExpanded, setSchedExpanded] = useState(false);
 
-  const makeSlot = (id,type,subType='') => ({id,type,subType,singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
+  const today = new Date().toISOString().split('T')[0];
+  // ✅ FIX: har slot ka apna date — taaki SETUP 9/20 ka rahe aur 4HRS 9/27 ka
+  const makeSlot = (id,type,subType='',slotDate='') => ({id,type,subType,singleRow:true,date:slotDate||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
-    if (!existingEntries.length) return [makeSlot(1,'SETUP'), makeSlot(2,'4HRS'), makeSlot(3,'LAST')];
+    if (!existingEntries.length) return [makeSlot(1,'SETUP','',today), makeSlot(2,'4HRS','',today), makeSlot(3,'LAST','',today)];
     const map={};
     existingEntries.forEach(e=>{
       const k=e.slot_index??0;
-      if (!map[k]) map[k]={id:k+1,type:e.time_type||'SETUP',singleRow:true,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+      if (!map[k]) map[k]={id:k+1,type:e.time_type||'SETUP',singleRow:true,date:e.date||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
       const vals=Array(MAX_COLS).fill('');
       for(let i=0;i<MAX_COLS;i++) vals[i]=e[`value_${i+1}`]||'';
       if (e.row_order===0){map[k].upVals=vals;}
@@ -369,7 +371,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [activeSlotId, setActiveSlotId] = useState(initSlots[0]?.id??1);
 
   const addSlot = (type, subType='') => {
-    const s=makeSlot(nextId,type,subType);
+    const s=makeSlot(nextId,type,subType,today);
     setSlots(prev=>{
       const li=prev.map(x=>x.type).lastIndexOf(type);
       const at=li>=0?li+1:prev.length;
@@ -382,6 +384,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
       ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
+  // ✅ FIX: har slot ka apna date set karo
+  const setSlotDate = (slotId, newDate) =>
+    setSlots(p=>p.map(s=>s.id===slotId ? {...s, date: newDate} : s));
 
   const colLabels = [
     ...filledProducts.map((r,i)  =>({idx:i,                     label:`${i+1}. ${r.name}`})),
@@ -416,13 +421,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
       // Up row — hamesha save karo (chahe khali ho ya na ho)
-      const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
+      const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
       slot.upVals.forEach((v,i)=>{eUp[`value_${i+1}`]=v||'';});
       scheduleEntries.push(eUp);
 
       // Down row — sirf tab save karo jab 2 rows ho
       if(!slot.singleRow){
-        const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:schedDate};
+        const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
         slot.downVals.forEach((v,i)=>{eDown[`value_${i+1}`]=v||'';});
         scheduleEntries.push(eDown);
       }
@@ -621,6 +626,18 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             <span style={{fontWeight:700, fontSize:13, color:cfg.color}}>
                               {slotLabel}
                             </span>
+                            {/* ✅ FIX: Per-slot date picker — SETUP/4HRS/LAST ka alag date */}
+                            <div style={{position:'relative',display:'inline-flex',alignItems:'center',
+                              background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.3)',
+                              borderRadius:6,padding:'2px 8px',cursor:'pointer',marginLeft:4}} 
+                              onClick={e=>e.stopPropagation()}>
+                              <span style={{fontSize:11,color:cfg.color,fontWeight:600,marginRight:4}}>
+                                📅 {slot.date ? slot.date.split('-').reverse().join('/') : 'Date'}
+                              </span>
+                              <input type="date" value={slot.date||today}
+                                onChange={e=>{e.stopPropagation();setSlotDate(slot.id,e.target.value);}}
+                                style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/>
+                            </div>
 
                             {cnt>0 && (
                               <span style={{
