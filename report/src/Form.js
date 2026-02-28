@@ -552,49 +552,71 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             {/* ── NEW ADD — inline expand ── */}
             {schedModal==='add' && (
               <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
-                {!modalActiveSlot ? (
+
+                {/* Dropdown always visible */}
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+                  <select
+                    value={modalSlotType}
+                    onChange={e=>{
+                      if(!e.target.value) return;
+                      const t=e.target.value;
+                      setModalSlotType(t);
+                      const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+                      setNextId(p=>p+1);
+                      setModalActiveSlot(newSlot);
+                    }}
+                    style={{flex:1,padding:'10px 14px',borderRadius:8,border:'1px solid #ccc',
+                      background:'#fff',fontWeight:600,fontSize:14,cursor:'pointer',color:'#333',outline:'none'}}>
+                    <option value="">-- Select Slot Type --</option>
+                    <option value="SETUP">SETUP</option>
+                    <option value="4HRS">4HRS</option>
+                    <option value="2HRS">2HRS</option>
+                    <option value="LAST">LAST</option>
+                  </select>
+                  <button onClick={()=>{setSchedModal(null);setModalActiveSlot(null);setModalSlotType('');}}
+                    style={{padding:'10px 16px',borderRadius:8,border:'1px solid #ddd',
+                      background:'#f5f5f5',fontWeight:600,fontSize:13,cursor:'pointer',color:'#888'}}>
+                    ✕ Close
+                  </button>
+                </div>
+
+                {/* Fill table - same page neeche */}
+                {modalActiveSlot && (
                   <>
-                    <div style={{fontWeight:800, fontSize:15, marginBottom:14, color:'#222'}}>Select Slot Type</div>
-                    {slots.length > 0 && (
-                      <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8,padding:'8px 12px',marginBottom:12,fontSize:13,color:'#166534',fontWeight:600}}>
-                        ✅ {slots.length} slot(s) added: {slots.map(s=>s.subType||s.type).join(', ')}
-                      </div>
-                    )}
-                    <select
-                      defaultValue=""
-                      onChange={e=>{
-                        if(!e.target.value) return;
-                        const t=e.target.value;
-                        const newSlot={id:nextId,type:t==='4HRS'?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
-                        setNextId(p=>p+1);
-                        setModalActiveSlot(newSlot);
-                      }}
-                      style={{display:'block',width:'100%',padding:'12px 14px',marginBottom:14,
-                        borderRadius:8,border:'1px solid #ccc',background:'#fff',
-                        fontWeight:600,fontSize:15,cursor:'pointer',color:'#333',outline:'none'}}>
-                      <option value="">-- Select --</option>
-                      <option value="SETUP">SETUP</option>
-                      <option value="4HRS">4HRS</option>
-                      <option value="LAST">LAST</option>
-                    </select>
-                    <button onClick={()=>{setSchedModal(null);}}
-                      style={{display:'block',width:'100%',padding:'11px',
-                        borderRadius:8,border:'1px solid #ddd',background:'#f5f5f5',
-                        fontWeight:600,fontSize:14,cursor:'pointer',color:'#888'}}>
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
-                      <span style={{fontWeight:800,fontSize:16,color:'#1e40af'}}>{modalActiveSlot.subType||modalActiveSlot.type}</span>
+                    {/* Header */}
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,
+                      background: modalActiveSlot.type==='SETUP'?'#1e40af':modalActiveSlot.type==='4HRS'?'#6b21a8':'#b91c1c',
+                      padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
+                      <span style={{fontWeight:800,fontSize:15,color:'#fff'}}>{modalActiveSlot.subType||modalActiveSlot.type}</span>
                       <button onClick={()=>setModalActiveSlot(p=>({...p,singleRow:!p.singleRow}))}
                         style={{padding:'3px 10px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
-                          background:modalActiveSlot.singleRow?'#f3f4f6':'#3b82f6',
-                          color:modalActiveSlot.singleRow?'#555':'#fff',border:'none'}}>
+                          background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)'}}>
                         {modalActiveSlot.singleRow?'1 Row':'2 Rows'}
                       </button>
+                      <div style={{marginLeft:'auto',display:'flex',gap:6}}>
+                        <button onClick={()=>{
+                            setSlots(prev=>[...prev,modalActiveSlot]);
+                            setModalActiveSlot(null);
+                            setModalSlotType('');
+                          }}
+                          style={{padding:'4px 14px',borderRadius:6,border:'none',
+                            background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
+                          ✅ Save
+                        </button>
+                        <button onClick={()=>{
+                            setSlots(prev=>[...prev,modalActiveSlot]);
+                            const t=modalSlotType;
+                            const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+                            setNextId(p=>p+1);
+                            setModalActiveSlot(newSlot);
+                          }}
+                          style={{padding:'4px 14px',borderRadius:6,border:'none',
+                            background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
+                          ➕ Add
+                        </button>
+                      </div>
                     </div>
+
                     <div style={{overflowX:'auto'}}>
                       <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                         <thead>
@@ -639,12 +661,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         </tbody>
                       </table>
                     </div>
-                    <div style={{display:'flex',gap:8,marginTop:16}}>
-                      <button onClick={()=>setModalActiveSlot(null)}
-                        style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid #ddd',background:'#f5f5f5',fontWeight:700,cursor:'pointer'}}>← Back</button>
-                      <button onClick={()=>{setSlots(prev=>[...prev,modalActiveSlot]);setModalActiveSlot(null);}}
-                        style={{flex:2,padding:'10px',borderRadius:8,border:'none',background:'#1e40af',color:'#fff',fontWeight:800,fontSize:14,cursor:'pointer'}}>✅ Save</button>
-                    </div>
+
+
                   </>
                 )}
               </div>
