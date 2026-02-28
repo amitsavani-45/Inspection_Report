@@ -177,8 +177,8 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
         <thead>
           <tr style={{background:'#f5f5f5'}}>
             <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
-            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬆ UP</th>
-            {!slot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬇ DOWN</th>}
+            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
+            {!slot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
           </tr>
         </thead>
         <tbody>
@@ -622,8 +622,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         <thead>
                           <tr style={{background:'#f5f5f5'}}>
                             <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬆ UP</th>
-                            {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬇ DOWN</th>}
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
+                            {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -716,8 +716,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           <thead>
                             <tr style={{background:'#f5f5f5'}}>
                               <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
-                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬆ UP</th>
-                              {!s.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>⬇ DOWN</th>}
+                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
+                              {!s.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -782,8 +782,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           <thead>
                             <tr style={{background:'#f5f5f5'}}>
                               <th style={{padding:'7px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e0e0e0'}}>Column</th>
-                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e0e0e0'}}>⬆ UP</th>
-                              {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e0e0e0'}}>⬇ DOWN</th>}
+                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e0e0e0'}}>Reading 1</th>
+                              {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e0e0e0'}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
