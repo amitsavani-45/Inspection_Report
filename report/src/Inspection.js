@@ -42,20 +42,22 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
   const buildScheduleRows = () => {
     const empty20 = () => Array(20).fill('');
 
-    // Group entries by sr number
+    // Group entries by operator + machine_no + date (sr field reliable nahi hai)
     const grouped = {};
+    let srCounter = 1;
     scheduleEntries.forEach(entry => {
-      const sr = entry.sr || 1;
-      if (!grouped[sr]) {
-        grouped[sr] = {
-          sr,
+      // sr field reliable nahi — operator+mcNo+date se group karo
+      const groupKey = `${entry.operator||''}__${entry.machine_no||''}__${entry.date||''}`;
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = {
+          sr: entry.sr || srCounter++,
           date: formatDisplay(entry.date) || '',
           operator: entry.operator || '',
           mcNo: entry.machine_no || '',
           rawEntries: []
         };
       }
-      grouped[sr].rawEntries.push(entry);
+      grouped[groupKey].rawEntries.push(entry);
     });
 
     // Agar koi bhi entry nahi hai toh default empty row show karo
@@ -89,9 +91,15 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
         else                   slotMap[si].down  = vals;
       });
 
-      // slot_index order se slots banao
+      // time_type order: SETUP → 4HRS → LAST, phir slot_index se
+      const timeOrder = { SETUP: 0, '4HRS': 1, '2HRS': 1, LAST: 2 };
       const slots = Object.entries(slotMap)
-        .sort((a,b) => Number(a[0]) - Number(b[0]))
+        .sort((a,b) => {
+          const ta = timeOrder[a[1].time_type] ?? 9;
+          const tb = timeOrder[b[1].time_type] ?? 9;
+          if (ta !== tb) return ta - tb;
+          return Number(a[0]) - Number(b[0]); // same type mein slot_index se sort
+        })
         .flatMap(([, s]) => {
           const rows = [{time: s.time_type, row_order:0, values: s.up || empty20()}];
           // down row sirf tab dikhao jab actual data ho
