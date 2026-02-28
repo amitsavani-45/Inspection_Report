@@ -349,7 +349,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [schedExpanded, setSchedExpanded] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
-  // ✅ FIX: har slot ka apna date — taaki SETUP 9/20 ka rahe aur 4HRS 9/27 ka
   const makeSlot = (id,type,subType='',slotDate='') => ({id,type,subType,singleRow:true,date:slotDate||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
     if (!existingEntries.length) return [makeSlot(1,'SETUP','',today), makeSlot(2,'4HRS','',today), makeSlot(3,'LAST','',today)];
@@ -384,7 +383,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
       ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
-  // ✅ FIX: har slot ka apna date set karo
+  // ✅ Har slot ka apna date update karo
   const setSlotDate = (slotId, newDate) =>
     setSlots(p=>p.map(s=>s.id===slotId ? {...s, date: newDate} : s));
 
@@ -626,17 +625,24 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             <span style={{fontWeight:700, fontSize:13, color:cfg.color}}>
                               {slotLabel}
                             </span>
-                            {/* ✅ FIX: Per-slot date picker — SETUP/4HRS/LAST ka alag date */}
-                            <div style={{position:'relative',display:'inline-flex',alignItems:'center',
-                              background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.3)',
-                              borderRadius:6,padding:'2px 8px',cursor:'pointer',marginLeft:4}} 
-                              onClick={e=>e.stopPropagation()}>
-                              <span style={{fontSize:11,color:cfg.color,fontWeight:600,marginRight:4}}>
+                            {/* ✅ Har slot ka apna date picker */}
+                            <div
+                              onClick={e=>e.stopPropagation()}
+                              style={{
+                                position:'relative',display:'inline-flex',alignItems:'center',
+                                background:'rgba(255,255,255,0.15)',
+                                border:'1px solid rgba(255,255,255,0.4)',
+                                borderRadius:6,padding:'2px 8px',cursor:'pointer',marginLeft:6,
+                              }}>
+                              <span style={{fontSize:11,color:'#fff',fontWeight:600}}>
                                 📅 {slot.date ? slot.date.split('-').reverse().join('/') : 'Date'}
                               </span>
-                              <input type="date" value={slot.date||today}
+                              <input
+                                type="date"
+                                value={slot.date||today}
                                 onChange={e=>{e.stopPropagation();setSlotDate(slot.id,e.target.value);}}
-                                style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/>
+                                style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}
+                              />
                             </div>
 
                             {cnt>0 && (
