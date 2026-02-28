@@ -17,7 +17,6 @@ const parseSpecTol = (raw = '') => {
   return { spec: raw.trim(), tol: '' };
 };
 
-
 /* ── DB se inspection items fetch karo ── */
 const fetchInspectionItems = async (operation) => {
   try {
@@ -66,7 +65,6 @@ const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems=[] }) => 
   useEffect(() => setSpec(row.spec || ''), [row.spec]);
   const color  = isProduct ? '#1976d2' : '#e65100';
   const staticItems = isProduct ? PRODUCT_ITEMS : PROCESS_ITEMS;
-  // Merge DB items with static list, DB items first, no duplicates
   const items = [...new Set([...dbItems.map(i=>i.name||i), ...staticItems])];
   const tols   = isProduct
     ? TOLERANCES.map(t => ({ v:t, l:`± ${t}` }))
@@ -80,7 +78,6 @@ const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems=[] }) => 
         <select value={row.name} onChange={e=>{
           const val=e.target.value;
           onUpdate('name',val);
-          // DB se spec/inst auto-fill
           const match=dbItems.find(i=>(i.name||i)===val);
           if(match&&match.spec) onUpdate('spec',match.spec);
           if(match&&match.instrument) onUpdate('inst',match.instrument);
@@ -323,20 +320,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     });
   }, [header.operationName]);
 
-  const updateRow = (setter, rows, i, field, val) => {
-    setter(prev => {
-      const updated = prev.map((r,j)=>j===i?{...r,[field]:val}:r);
-      const isLast = i===updated.length-1;
-      const cur = updated[i];
-      if (isLast&&cur.name&&cur.spec&&cur.tolerance&&cur.inst&&updated.length<10)
-        return [...updated,emptyRow()];
-      return updated;
-    });
-  };
-  const removeRow = (setter, rows, i) => {
-    const updated = rows.filter((_,j)=>j!==i);
-    setter(updated.length ? updated : [emptyRow()]);
-  };
   const filledProducts  = productRows.filter(r=>r.name&&r.spec&&r.inst);
   const filledProcesses = processRows.filter(r=>r.name&&r.spec&&r.inst);
   const step2Done = filledProducts.length>0 || filledProcesses.length>0;
@@ -352,7 +335,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const today = new Date().toISOString().split('T')[0];
   const makeSlot = (id,type,subType='',slotDate='') => ({id,type,subType,singleRow:true,date:slotDate||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
-    // Naye form mein koi default slot nahi — user khud add karega
     if (!existingEntries.length) return [];
     const map={};
     existingEntries.forEach(e=>{
@@ -376,63 +358,33 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [modalSubType,   setModalSubType]   = useState('');
   const [updateSlotId,   setUpdateSlotId]   = useState(null);
 
-  const addSlot = (type, subType='') => {
-    const s=makeSlot(nextId,type,subType,today);
-    setSlots(prev=>{
-      const li=prev.map(x=>x.type).lastIndexOf(type);
-      const at=li>=0?li+1:prev.length;
-      const n=[...prev]; n.splice(at,0,s); return n;
-    });
-    setNextId(p=>p+1); setActiveSlotId(s.id);
-  };
-  const removeSlot = (id) => {setSlots(p=>p.filter(s=>s.id!==id));if(activeSlotId===id)setActiveSlotId(null);};
   const toggleRows  = (id) => setSlots(p=>p.map(s=>s.id===id?{...s,singleRow:!s.singleRow}:s));
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
       ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
-  const setSlotDate = (slotId, newDate) =>
-    setSlots(p=>p.map(s=>s.id===slotId ? {...s, date: newDate} : s));
 
   const colLabels = [
     ...filledProducts.map((r,i) => {
       const {spec:s, tol:t} = parseSpecTol(r.spec);
-      return {
-        idx: i,
-        label: `${i+1}. ${r.name}`,
-        spec: s || r.spec || '—',
-        tolerance: r.tolerance ? `± ${r.tolerance}` : (t || '—'),
-        inst: r.inst || '—',
-      };
+      return { idx: i, label: `${i+1}. ${r.name}`, spec: s || r.spec || '—', tolerance: r.tolerance ? `± ${r.tolerance}` : (t || '—'), inst: r.inst || '—' };
     }),
     ...filledProcesses.map((r,i) => {
       const {spec:s, tol:t} = parseSpecTol(r.spec);
-      return {
-        idx: filledProducts.length+i,
-        label: `${filledProducts.length+i+1}. ${r.name}`,
-        spec: s || r.spec || '—',
-        tolerance: r.tolerance ? r.tolerance : (t || '—'),
-        inst: r.inst || '—',
-      };
+      return { idx: filledProducts.length+i, label: `${filledProducts.length+i+1}. ${r.name}`, spec: s || r.spec || '—', tolerance: r.tolerance ? r.tolerance : (t || '—'), inst: r.inst || '—' };
     }),
   ].slice(0,MAX_COLS);
 
-  const activeSlot    = slots.find(s=>s.id===activeSlotId)||null;
-  const setupSlot     = slots.find(s=>s.type==='SETUP');
   const isSetupFilled = slots.length > 0 && slots.some(s =>
     s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())
   );
-  const slotTypes     = slots.map(s=>s.type);
-  const pendingTypes  = PENDING_SLOT_TYPES.filter(t=>!slotTypes.includes(t));
-  const addedTypes    = PENDING_SLOT_TYPES.filter(t=>slotTypes.includes(t));
 
-  // ✅ FIX: Update dropdown ke liye type-wise sorted slots
   const TYPE_ORDER = ['SETUP', '4HRS', 'LAST'];
   const getSortedSlotsForDropdown = () => {
     return [...slots].sort((a, b) => {
       const ai = TYPE_ORDER.indexOf(a.type);
       const bi = TYPE_ORDER.indexOf(b.type);
       if (ai !== bi) return ai - bi;
-      return a.id - b.id; // same type mein original order maintain karo
+      return a.id - b.id; 
     });
   };
 
@@ -552,56 +504,110 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
             </div>
 
-            {/* ── 3 Buttons ── */}
-            <div style={{display:'flex', gap:12, marginBottom:20, flexWrap:'wrap'}}>
+            {/* ── 3 PREMIUM UI BUTTONS ── */}
+            <div style={{display:'flex', gap:14, marginBottom:24, flexWrap:'wrap'}}>
               <button onClick={()=>setSchedModal(schedModal==='add'?null:'add')}
-                style={{flex:1, minWidth:120, padding:'14px 10px', borderRadius:10, border:'none',
-                  background: schedModal==='add'?'#1e3a8a':'#1e40af', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer',
-                  boxShadow:'0 2px 8px #1e40af33'}}>
-                ➕ New Add
+                style={{
+                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:12, 
+                  border:schedModal==='add'?'2px solid #2563eb':'1px solid #cbd5e1',
+                  background: schedModal==='add'?'#eff6ff':'#fff', 
+                  color: schedModal==='add'?'#1d4ed8':'#475569',
+                  fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+                  boxShadow: schedModal==='add'?'0 4px 12px rgba(37,99,235,0.2)':'0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.2s ease', transform: schedModal==='add' ? 'translateY(-2px)' : 'none'
+                }}>
+                <span style={{fontSize:20}}>➕</span> New Add
               </button>
+              
               <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }}
-                style={{flex:1, minWidth:120, padding:'14px 10px', borderRadius:10, border:'none',
-                  background: schedModal==='update'?'#581c87':'#6b21a8', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer',
-                  boxShadow:'0 2px 8px #6b21a833'}}>
-                ✏️ Update
+                style={{
+                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:12, 
+                  border:schedModal==='update'?'2px solid #7c3aed':'1px solid #cbd5e1',
+                  background: schedModal==='update'?'#f5f3ff':'#fff', 
+                  color: schedModal==='update'?'#6d28d9':'#475569',
+                  fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+                  boxShadow: schedModal==='update'?'0 4px 12px rgba(124,58,237,0.2)':'0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.2s ease', transform: schedModal==='update' ? 'translateY(-2px)' : 'none'
+                }}>
+                <span style={{fontSize:20}}>✏️</span> Update
               </button>
+              
               <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }}
-                style={{flex:1, minWidth:120, padding:'14px 10px', borderRadius:10, border:'none',
-                  background: schedModal==='view'?'#064e3b':'#065f46', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer',
-                  boxShadow:'0 2px 8px #065f4633'}}>
-                👁️ View
+                style={{
+                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:12, 
+                  border:schedModal==='view'?'2px solid #059669':'1px solid #cbd5e1',
+                  background: schedModal==='view'?'#ecfdf5':'#fff', 
+                  color: schedModal==='view'?'#047857':'#475569',
+                  fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+                  boxShadow: schedModal==='view'?'0 4px 12px rgba(5,150,105,0.2)':'0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.2s ease', transform: schedModal==='view' ? 'translateY(-2px)' : 'none'
+                }}>
+                <span style={{fontSize:20}}>👁️</span> View
               </button>
             </div>
 
             {/* ── NEW ADD — inline expand ── */}
             {schedModal==='add' && (
-              <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
+              <div style={{position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:16, padding:'24px', marginBottom:16, boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
 
-                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-                  <select
-                    value={modalSlotType}
-                    onChange={e=>{
-                      if(!e.target.value) return;
-                      const t=e.target.value;
-                      setModalSlotType(t);
-                      const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
-                      setNextId(p=>p+1);
-                      setModalActiveSlot(newSlot);
-                    }}
-                    style={{flex:1,padding:'10px 14px',borderRadius:8,border:'1px solid #ccc',
-                      background:'#fff',fontWeight:600,fontSize:14,cursor:'pointer',color:'#333',outline:'none'}}>
-                    <option value="">-- Select Slot Type --</option>
-                    <option value="SETUP">SETUP</option>
-                    <option value="4HRS">4HRS</option>
-                    <option value="2HRS">2HRS</option>
-                    <option value="LAST">LAST</option>
-                  </select>
-                  <button onClick={()=>{setSchedModal(null);setModalActiveSlot(null);setModalSlotType('');}}
-                    style={{padding:'10px 16px',borderRadius:8,border:'1px solid #ddd',
-                      background:'#f5f5f5',fontWeight:600,fontSize:13,cursor:'pointer',color:'#888'}}>
-                    ✕ Close
-                  </button>
+                {/* Sleek Top-Right Close Icon */}
+                <button onClick={()=>{setSchedModal(null);setModalActiveSlot(null);setModalSlotType('');}}
+                  style={{position:'absolute', top:12, right:12, background:'transparent', border:'none', fontSize:20, color:'#94a3b8', cursor:'pointer', width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s ease'}}
+                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9'; e.currentTarget.style.color='#334155';}}
+                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#94a3b8';}}>
+                  ✕
+                </button>
+
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14, paddingRight:30}}>
+                  {/* ── 3 Big Square Buttons ── */}
+                  <div style={{display:'flex',gap:12,width:'100%',flexWrap:'wrap'}}>
+                    {[
+                      {label:'SETUP', sub:'SETUP', color:'#1e40af', light:'#eff6ff', border:'#93c5fd', icon:'🔧'},
+                      {label:'4HRS',  sub:'4HRS',  color:'#6b21a8', light:'#faf5ff', border:'#c084fc', icon:'⏱️'},
+                      {label:'LAST',  sub:'LAST',  color:'#b91c1c', light:'#fff1f2', border:'#fca5a5', icon:'🏁'},
+                    ].map(btn => {
+                      const isActive = modalSlotType === btn.sub;
+                      return (
+                        <button
+                          key={btn.sub}
+                          onClick={()=>{
+                            setModalSlotType(btn.sub);
+                            const newSlot={
+                              id:nextId,
+                              type: btn.sub==='4HRS'?'4HRS':btn.sub,
+                              subType:btn.sub,
+                              singleRow:true,
+                              date:today,
+                              upVals:Array(MAX_COLS).fill(''),
+                              downVals:Array(MAX_COLS).fill('')
+                            };
+                            setNextId(p=>p+1);
+                            setModalActiveSlot(newSlot);
+                          }}
+                          style={{
+                            flex:1, minWidth:90,
+                            padding:'18px 10px',
+                            borderRadius:14,
+                            border: isActive ? `2.5px solid ${btn.color}` : `2px solid ${btn.border}`,
+                            background: isActive ? btn.color : btn.light,
+                            color: isActive ? '#fff' : btn.color,
+                            fontWeight:800,
+                            fontSize:15,
+                            cursor:'pointer',
+                            display:'flex',
+                            flexDirection:'column',
+                            alignItems:'center',
+                            gap:6,
+                            boxShadow: isActive ? `0 4px 18px ${btn.color}55` : '0 1px 4px #0001',
+                            transform: isActive ? 'scale(1.04)' : 'scale(1)',
+                            transition:'all 0.15s ease',
+                          }}>
+                          <span style={{fontSize:24}}>{btn.icon}</span>
+                          <span>{btn.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {modalActiveSlot && (
@@ -617,7 +623,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       </button>
                       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                         <button onClick={()=>{
-                            // Type-wise order mein insert karo
                             setSlots(prev=>{
                               const newSlot = modalActiveSlot;
                               const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
@@ -626,13 +631,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             });
                             setModalActiveSlot(null);
                             setModalSlotType('');
+                            setSchedModal(null);
                           }}
                           style={{padding:'4px 14px',borderRadius:6,border:'none',
                             background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
                           ✅ Save
                         </button>
                         <button onClick={()=>{
-                            // Type-wise order mein insert karo
                             setSlots(prev=>{
                               const newSlot = modalActiveSlot;
                               const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
@@ -654,13 +659,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                     <div style={{overflowX:'auto'}}>
                       <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                         <thead>
-                          <tr style={{background:'#f5f5f5'}}>
-                            <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Spec</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Tolerance</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Instrument</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
-                            {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
+                          <tr style={{background:'#f8fafc'}}>
+                            <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Spec</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Tolerance</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Instrument</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 1</th>
+                            {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 2</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -670,7 +675,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             const isNgUp=uv.toUpperCase()==='NG';
                             const isNgDn=dv.toUpperCase()==='NG';
                             return (
-                              <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
+                              <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
                                 <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
                                 <td style={{padding:'6px 8px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
                                 <td style={{padding:'6px 8px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
@@ -679,20 +684,20 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                                   <input type="text" value={uv} placeholder="—"
                                     onChange={e=>setModalActiveSlot(p=>({...p,upVals:p.upVals.map((v,i)=>i===idx?e.target.value:v)}))}
                                     style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                      border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#ddd'}`,
+                                      border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#cbd5e1'}`,
                                       borderRadius:6,fontSize:13,fontWeight:uv?700:400,
                                       background:isNgUp?'#ffebee':uv?'#e8f5e9':'#fff',
-                                      color:isNgUp?'#e53935':uv?'#2e7d32':'#999',outline:'none'}}/>
+                                      color:isNgUp?'#e53935':uv?'#2e7d32':'#333',outline:'none'}}/>
                                 </td>
                                 {!modalActiveSlot.singleRow && (
                                   <td style={{padding:'4px 8px',textAlign:'center'}}>
                                     <input type="text" value={dv} placeholder="—"
                                       onChange={e=>setModalActiveSlot(p=>({...p,downVals:p.downVals.map((v,i)=>i===idx?e.target.value:v)}))}
                                       style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                        border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#ddd'}`,
+                                        border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#cbd5e1'}`,
                                         borderRadius:6,fontSize:13,fontWeight:dv?700:400,
                                         background:isNgDn?'#ffebee':dv?'#fff3e0':'#fff',
-                                        color:isNgDn?'#e53935':dv?'#e65100':'#999',outline:'none'}}/>
+                                        color:isNgDn?'#e53935':dv?'#e65100':'#333',outline:'none'}}/>
                                   </td>
                                 )}
                               </tr>
@@ -708,20 +713,26 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
             {/* ── UPDATE — inline expand ── */}
             {schedModal==='update' && (
-              <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
+              <div style={{position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:16, padding:'24px', marginBottom:16, boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
 
-                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+                <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
+                  style={{position:'absolute', top:12, right:12, background:'transparent', border:'none', fontSize:20, color:'#94a3b8', cursor:'pointer', width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s ease'}}
+                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9'; e.currentTarget.style.color='#334155';}}
+                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#94a3b8';}}>
+                  ✕
+                </button>
+
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14, paddingRight:30}}>
                   <select
                     value={updateSlotId ? String(updateSlotId) : ''}
                     onChange={e=>{
                       if(!e.target.value){setUpdateSlotId(null);return;}
                       setUpdateSlotId(Number(e.target.value));
                     }}
-                    style={{flex:1,padding:'10px 14px',borderRadius:8,border:'1px solid #ccc',
-                      background:'#fff',fontWeight:600,fontSize:14,cursor:'pointer',color:'#333',outline:'none'}}>
-                    <option value="">-- Select Slot Type --</option>
+                    style={{flex:1,padding:'12px 14px',borderRadius:8,border:'1px solid #cbd5e1',
+                      background:'#f8fafc',fontWeight:600,fontSize:14,cursor:'pointer',color:'#334155',outline:'none'}}>
+                    <option value="">-- Select Saved Slot to Edit --</option>
                     {(()=>{
-                      // ✅ FIX: Type-wise sort karo — SETUP saath, 4HRS saath, LAST saath
                       const typeCount={};
                       slots.forEach(s=>{typeCount[s.type]=(typeCount[s.type]||0)+1;});
                       const typeIdx={};
@@ -740,11 +751,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       });
                     })()}
                   </select>
-                  <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
-                    style={{padding:'10px 16px',borderRadius:8,border:'1px solid #ddd',
-                      background:'#f5f5f5',fontWeight:600,fontSize:13,cursor:'pointer',color:'#888'}}>
-                    ✕ Close
-                  </button>
                 </div>
 
                 {updateSlotId && (()=>{
@@ -771,13 +777,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       <div style={{overflowX:'auto'}}>
                         <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                           <thead>
-                            <tr style={{background:'#f5f5f5'}}>
-                              <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
-                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Spec</th>
-                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Tolerance</th>
-                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Instrument</th>
-                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
-                              {!s.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
+                            <tr style={{background:'#f8fafc'}}>
+                              <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
+                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Spec</th>
+                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Tolerance</th>
+                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Instrument</th>
+                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 1</th>
+                              {!s.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -787,7 +793,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                               const isNgUp=uv.toUpperCase()==='NG';
                               const isNgDn=dv.toUpperCase()==='NG';
                               return (
-                                <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
+                                <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
                                   <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
                                   <td style={{padding:'6px 8px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
                                   <td style={{padding:'6px 8px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
@@ -796,20 +802,20 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                                     <input type="text" value={uv} placeholder="—"
                                       onChange={e=>setVal(s.id,'up',idx,e.target.value)}
                                       style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                        border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#ddd'}`,
+                                        border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#cbd5e1'}`,
                                         borderRadius:6,fontSize:13,fontWeight:uv?700:400,
                                         background:isNgUp?'#ffebee':uv?'#e8f5e9':'#fff',
-                                        color:isNgUp?'#e53935':uv?'#2e7d32':'#999',outline:'none'}}/>
+                                        color:isNgUp?'#e53935':uv?'#2e7d32':'#333',outline:'none'}}/>
                                   </td>
                                   {!s.singleRow && (
                                     <td style={{padding:'4px 8px',textAlign:'center'}}>
                                       <input type="text" value={dv} placeholder="—"
                                         onChange={e=>setVal(s.id,'down',idx,e.target.value)}
                                         style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                          border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#ddd'}`,
+                                          border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#cbd5e1'}`,
                                           borderRadius:6,fontSize:13,fontWeight:dv?700:400,
                                           background:isNgDn?'#ffebee':dv?'#fff3e0':'#fff',
-                                          color:isNgDn?'#e53935':dv?'#e65100':'#999',outline:'none'}}/>
+                                          color:isNgDn?'#e53935':dv?'#e65100':'#333',outline:'none'}}/>
                                     </td>
                                   )}
                                 </tr>
@@ -826,21 +832,29 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
             {/* ── VIEW — inline expand ── */}
             {schedModal==='view' && (
-              <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
-                <div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#222'}}>All Entries</div>
+              <div style={{position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:16, padding:'24px', marginBottom:16, boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
+                
+                <button onClick={()=>setSchedModal(null)}
+                  style={{position:'absolute', top:12, right:12, background:'transparent', border:'none', fontSize:20, color:'#94a3b8', cursor:'pointer', width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s ease'}}
+                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9'; e.currentTarget.style.color='#334155';}}
+                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#94a3b8';}}>
+                  ✕
+                </button>
+
+                <div style={{fontWeight:800,fontSize:16,marginBottom:14,color:'#334155', paddingRight:30}}>All Completed Entries</div>
                 {slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).map(s=>{
                   const cfg={SETUP:'#1e40af','4HRS':'#6b21a8',LAST:'#b91c1c'};
                   const color=cfg[s.type]||'#333';
                   return (
-                    <div key={s.id} style={{marginBottom:16,border:`1.5px solid ${color}33`,borderRadius:10,overflow:'hidden'}}>
+                    <div key={s.id} style={{marginBottom:16,border:`1px solid ${color}33`,borderRadius:10,overflow:'hidden'}}>
                       <div style={{background:color,padding:'8px 14px',color:'#fff',fontWeight:800,fontSize:14}}>{s.subType||s.type}</div>
                       <div style={{overflowX:'auto'}}>
                         <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                           <thead>
-                            <tr style={{background:'#f5f5f5'}}>
-                              <th style={{padding:'7px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e0e0e0'}}>Column</th>
-                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e0e0e0'}}>Reading 1</th>
-                              {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e0e0e0'}}>Reading 2</th>}
+                            <tr style={{background:'#f8fafc'}}>
+                              <th style={{padding:'7px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
+                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0'}}>Reading 1</th>
+                              {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -848,7 +862,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                               const uv=s.upVals[idx]||'—';
                               const dv=s.downVals[idx]||'—';
                               return (
-                                <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
+                                <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
                                   <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
                                   <td style={{padding:'6px 12px',textAlign:'center',color:uv==='NG'?'#e53935':uv!=='—'?'#2e7d32':'#aaa',fontWeight:uv!=='—'?700:400}}>{uv}</td>
                                   {!s.singleRow && <td style={{padding:'6px 12px',textAlign:'center',color:dv==='NG'?'#e53935':dv!=='—'?'#e65100':'#aaa',fontWeight:dv!=='—'?700:400}}>{dv}</td>}
@@ -861,10 +875,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                     </div>
                   );
                 })}
-                <button onClick={()=>setSchedModal(null)}
-                  style={{width:'100%',padding:'11px',borderRadius:8,border:'1px solid #ddd',background:'#f5f5f5',fontWeight:700,fontSize:14,cursor:'pointer',color:'#555',marginTop:4}}>
-                  ✕ Close
-                </button>
               </div>
             )}
 
