@@ -394,20 +394,26 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     setSlots(p=>p.map(s=>s.id===slotId ? {...s, date: newDate} : s));
 
   const colLabels = [
-    ...filledProducts.map((r,i)  =>({
-      idx:i,
-      label:`${i+1}. ${r.name}`,
-      spec: r.spec || '—',
-      tolerance: r.tolerance ? `± ${r.tolerance}` : '—',
-      inst: r.inst || '—',
-    })),
-    ...filledProcesses.map((r,i) =>({
-      idx:filledProducts.length+i,
-      label:`${filledProducts.length+i+1}. ${r.name}`,
-      spec: r.spec || '—',
-      tolerance: r.tolerance || '—',
-      inst: r.inst || '—',
-    })),
+    ...filledProducts.map((r,i) => {
+      const {spec:s, tol:t} = parseSpecTol(r.spec);
+      return {
+        idx: i,
+        label: `${i+1}. ${r.name}`,
+        spec: s || r.spec || '—',
+        tolerance: r.tolerance ? `± ${r.tolerance}` : (t || '—'),
+        inst: r.inst || '—',
+      };
+    }),
+    ...filledProcesses.map((r,i) => {
+      const {spec:s, tol:t} = parseSpecTol(r.spec);
+      return {
+        idx: filledProducts.length+i,
+        label: `${filledProducts.length+i+1}. ${r.name}`,
+        spec: s || r.spec || '—',
+        tolerance: r.tolerance ? r.tolerance : (t || '—'),
+        inst: r.inst || '—',
+      };
+    }),
   ].slice(0,MAX_COLS);
 
   const activeSlot    = slots.find(s=>s.id===activeSlotId)||null;
