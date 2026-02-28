@@ -15,7 +15,7 @@ const formatDisplay = (dateStr) => {
 const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }) => {
   const navigate = useNavigate();
 
-  const displayDate = '28/02/2026';
+  const displayDate = '01/01/2026';
 
   const [showFilter,     setShowFilter]     = useState(false);
   const [filterDate,     setFilterDate]     = useState('');
@@ -207,7 +207,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
               <table><tbody>
                 <tr><td className="doc-label">DOC NO:</td>    <td className="doc-value">{currentReport?.doc_no||'KGTL-QCL-01'}</td></tr>
                 <tr><td className="doc-label">REVISION NO:</td><td className="doc-value">{currentReport?.revision_no||'01'}</td></tr>
-                <tr><td className="doc-label">DATE:</td>       <td className="doc-value">{displayDate||'01/01/2026'}</td></tr>
+                <tr><td className="doc-label">DATE:</td>       <td className="doc-value">{displayDate||'DD/MM/YYYY'}</td></tr>
               </tbody></table>
             </td>
           </tr></tbody>
