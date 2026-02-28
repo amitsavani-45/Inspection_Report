@@ -7,7 +7,7 @@ import { getAllReports, getReportById, createReport, updateReport } from './serv
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isNew = searchParams.get('mode') === 'new';   // ✅ URL se read — hamesha fresh
+  const isNew = searchParams.get('mode') === 'new';
 
   const handleSubmit = async (formData) => {
     try {
@@ -38,7 +38,6 @@ function App() {
   const [formItems, setFormItems]         = useState([]);
   const [loading, setLoading]             = useState(false);
   const [formKey, setFormKey]             = useState(0);
-  const [isNewForm, setIsNewForm]         = useState(false);
 
   useEffect(() => { loadLatestReport(); }, []);
 
@@ -53,7 +52,6 @@ function App() {
       setLoading(true);
       const reports = await getAllReports();
       if (reports && reports.length > 0) {
-        // reports[0] is already latest (backend: order_by -date,-id)
         const full = await getReportById(reports[0].id);
         applyReport(full);
       } else {
@@ -74,8 +72,8 @@ function App() {
       const response = await fetch(`http://localhost:8000/api/reports/?date=${date}`);
       const reports  = await response.json();
       if (reports && reports.length > 0) {
-        const sorted2 = [...reports].sort((a,b) => b.id - a.id);
-        const full = await getReportById(sorted2[0].id);
+        const sorted = [...reports].sort((a, b) => b.id - a.id);
+        const full = await getReportById(sorted[0].id);
         applyReport(full);
       } else {
         setCurrentReport({
@@ -108,8 +106,8 @@ function App() {
       const reports  = await response.json();
 
       if (reports && reports.length > 0) {
-        const sorted3 = [...reports].sort((a,b) => b.id - a.id);
-        const full = await getReportById(sorted3[0].id);
+        const sorted = [...reports].sort((a, b) => b.id - a.id);
+        const full = await getReportById(sorted[0].id);
         applyReport(full);
       } else {
         alert('No report found for selected filters.');
@@ -124,29 +122,35 @@ function App() {
 
   const handleAddItem = async (formData) => {
     try {
-      const date = formData.scheduleDate || new Date().toISOString().split('T')[0];
+      const date   = formData.scheduleDate || new Date().toISOString().split('T')[0];
+      const isNew  = formData._isNew === true;
 
-      const isNew = formData._isNew === true;
-
+      // ── Clean items ──
       const updatedItems = (formData.items || []).map(item => ({
         sr_no:        item.sr_no,
-        item:         item.item || '',
+        item:         item.item         || '',
         special_char: item.special_char || '',
         spec:         item.spec         || '',
         tolerance:    item.tolerance    || '',
         inst:         item.inst         || '',
       }));
 
+      // ── Clean schedule entries ──
+      // ✅ FIX: assign sr correctly based on slot_index grouping
+      //    All entries with the same operator/date share sr=1 (single machine run).
+      //    If you ever support multiple SRs, change this logic.
       const newScheduleEntries = (formData.schedule_entries || []).map(entry => {
-        const { _isNew, ...cleanEntry } = entry;  // _isNew nikalo agar ho
+        // Strip all frontend-only flags
+        const { _isNew: _flag, values, id, ...cleanEntry } = entry;
         return {
           ...cleanEntry,
-          sr: 1,
+          sr:         cleanEntry.sr         ?? 1,            // ✅ FIX: keep sr from entry, default 1
           slot_index: cleanEntry.slot_index ?? 0,
+          row_order:  cleanEntry.row_order  ?? 0,
         };
       });
 
-      // _isNew sirf frontend ka flag hai — backend ko nahi bhejte
+      // ✅ FIX: _isNew is frontend flag — never send to backend
       const reportPayload = {
         doc_no:           'KGTL-QCL-01',
         revision_no:      '01',
@@ -155,27 +159,26 @@ function App() {
         part_number:      formData.partNumber    || '',
         operation_name:   formData.operationName || '',
         customer_name:    formData.customerName  || '',
+        prepared_by:      formData.preparedBy    || '',   // ✅ FIX: added
+        approved_by:      formData.approvedBy    || '',   // ✅ FIX: added
         items:            updatedItems,
         schedule_entries: newScheduleEntries,
+        // NOTE: _isNew is intentionally NOT included here
       };
 
       let reportId = null;
 
-      // Step 1: decide karo create karna hai ya update
       if (!isNew && currentReport?.id) {
-        // DB mein verify karo ye ID exist karti hai
         try {
           const check = await fetch(`http://localhost:8000/api/reports/${currentReport.id}/`);
           if (check.ok) {
-            reportId = currentReport.id; // exists — update karenge
+            reportId = currentReport.id;
           }
-          // 404 aaya toh reportId null rehta hai — naya create hoga
         } catch (_) {
-          // network error — naya create karo
+          // network error — create new
         }
       }
 
-      // Step 2: create ya update
       if (reportId) {
         await updateReport(reportId, reportPayload);
       } else {

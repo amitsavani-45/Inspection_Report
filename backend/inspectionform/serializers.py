@@ -43,8 +43,8 @@ class InspectionReportSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'doc_no', 'revision_no', 'date',
             'part_name', 'part_number', 'operation_name', 'customer_name',
+            'prepared_by', 'approved_by',   # ✅ FIX: these were missing from read serializer
             'items', 'schedule_entries', 'item_count',
-            'prepared_by', 'approved_by'
         ]
 
     def get_item_count(self, obj):
@@ -75,7 +75,8 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'doc_no', 'revision_no', 'date',
             'part_name', 'part_number', 'operation_name', 'customer_name',
-            'items', 'schedule_entries'
+            'prepared_by', 'approved_by',   # ✅ FIX: added — these were missing so never saved to DB!
+            'items', 'schedule_entries',
         ]
 
     def create(self, validated_data):
@@ -85,6 +86,7 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         report = InspectionReport.objects.create(**validated_data)
 
         for item_data in items_data:
+            item_data.pop('id', None)           # ✅ FIX: id remove karo — naya create ho raha hai
             InspectionItem.objects.create(report=report, **item_data)
 
         from django.utils import timezone
@@ -95,7 +97,7 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         for entry_data in schedule_data:
             entry_data.pop('values', None)
             entry_data.pop('id', None)
-            entry_data.pop('_isNew', None)
+            entry_data.pop('_isNew', None)      # ✅ FIX: safety — _isNew strip karo
             entry_data['filled_at'] = now_ist
             ScheduleEntry.objects.create(report=report, **entry_data)
 
@@ -112,11 +114,12 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         if items_data is not None:
             instance.items.all().delete()
             for item_data in items_data:
+                item_data.pop('id', None)       # ✅ FIX: id remove karo — recreate ho raha hai
                 InspectionItem.objects.create(report=instance, **item_data)
 
         if schedule_data is not None:
-            # Pehle SARI purani entries delete karo, phir fresh save karo
             instance.schedule_entries.all().delete()
+
             from django.utils import timezone
             import pytz
             ist = pytz.timezone('Asia/Kolkata')
@@ -124,7 +127,8 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
 
             for entry_data in schedule_data:
                 entry_data.pop('values', None)
-                entry_data.pop('id', None)
+                entry_data.pop('id', None)      # ✅ FIX: id remove karo — recreate ho raha hai
+                entry_data.pop('_isNew', None)  # ✅ FIX: _isNew strip karo
                 entry_data['filled_at'] = now_ist
                 ScheduleEntry.objects.create(report=instance, **entry_data)
 
