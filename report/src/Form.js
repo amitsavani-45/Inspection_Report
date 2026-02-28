@@ -352,7 +352,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const today = new Date().toISOString().split('T')[0];
   const makeSlot = (id,type,subType='',slotDate='') => ({id,type,subType,singleRow:true,date:slotDate||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
-    if (!existingEntries.length) return [makeSlot(1,'SETUP','',today), makeSlot(2,'4HRS','',today), makeSlot(3,'LAST','',today)];
+    // Naye form mein koi default slot nahi — user khud add karega
+    if (!existingEntries.length) return [];
     const map={};
     existingEntries.forEach(e=>{
       const k=e.slot_index??0;
@@ -363,7 +364,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       else{map[k].downVals=vals;map[k].singleRow=false;}
     });
     const r=Object.values(map).sort((a,b)=>a.id-b.id);
-    return r.length?r:[makeSlot(1,'SETUP')];
+    return r.length?r:[];
   };
   const initSlots = buildInitialSlots();
   const [slots,        setSlots]        = useState(initSlots);
@@ -411,7 +412,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
   const activeSlot    = slots.find(s=>s.id===activeSlotId)||null;
   const setupSlot     = slots.find(s=>s.type==='SETUP');
-  const isSetupFilled = setupSlot ? setupSlot.upVals.filter(v=>v&&v.trim()).length+setupSlot.downVals.filter(v=>v&&v.trim()).length>0 : false;
+  const isSetupFilled = slots.length > 0 && slots.some(s =>
+    s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())
+  );
   const slotTypes     = slots.map(s=>s.type);
   const pendingTypes  = PENDING_SLOT_TYPES.filter(t=>!slotTypes.includes(t));
   const addedTypes    = PENDING_SLOT_TYPES.filter(t=>slotTypes.includes(t));
@@ -608,7 +611,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       </button>
                       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                         <button onClick={()=>{
-                            setSlots(prev=>[...prev,modalActiveSlot]);
+                            // Type-wise order mein insert karo
+                            setSlots(prev=>{
+                              const newSlot = modalActiveSlot;
+                              const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
+                              const at = li>=0 ? li+1 : prev.length;
+                              const n = [...prev]; n.splice(at,0,newSlot); return n;
+                            });
                             setModalActiveSlot(null);
                             setModalSlotType('');
                           }}
@@ -617,7 +626,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           ✅ Save
                         </button>
                         <button onClick={()=>{
-                            setSlots(prev=>[...prev,modalActiveSlot]);
+                            // Type-wise order mein insert karo
+                            setSlots(prev=>{
+                              const newSlot = modalActiveSlot;
+                              const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
+                              const at = li>=0 ? li+1 : prev.length;
+                              const n = [...prev]; n.splice(at,0,newSlot); return n;
+                            });
                             const t=modalSlotType;
                             const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
                             setNextId(p=>p+1);
@@ -635,12 +650,15 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         <thead>
                           <tr style={{background:'#f5f5f5'}}>
                             <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Spec</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Tolerance</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Instrument</th>
                             <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
                             {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
                           </tr>
                         </thead>
                         <tbody>
-                          {colLabels.map(({idx,label})=>{
+                          {colLabels.map(({idx,label,spec,tolerance,inst})=>{
                             const uv=modalActiveSlot.upVals[idx]||'';
                             const dv=modalActiveSlot.downVals[idx]||'';
                             const isNgUp=uv.toUpperCase()==='NG';
@@ -648,6 +666,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             return (
                               <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
                                 <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
+                                <td style={{padding:'6px 8px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
+                                <td style={{padding:'6px 8px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
+                                <td style={{padding:'6px 8px',textAlign:'center',color:'#1565c0',fontSize:12}}>{inst||'—'}</td>
                                 <td style={{padding:'4px 8px',textAlign:'center'}}>
                                   <input type="text" value={uv} placeholder="—"
                                     onChange={e=>setModalActiveSlot(p=>({...p,upVals:p.upVals.map((v,i)=>i===idx?e.target.value:v)}))}
