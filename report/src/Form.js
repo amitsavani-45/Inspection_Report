@@ -253,6 +253,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       .then(data => {
         setDbOptions(data);
         setOptionsLoading(false);
+        if (data.part_numbers && data.part_numbers.length === 1) {
+          setHeader(p => ({...p, partNumber: data.part_numbers[0]}));
+        }
       })
       .catch(err => {
         console.error('Dropdown options fetch failed:', err);
@@ -476,7 +479,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={dbOptions.customers} placeholder={optionsLoading ? 'Loading...' : 'Select customer...'} required />
               <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={dbOptions.part_names} placeholder={optionsLoading ? 'Loading...' : 'Select part...'} required />
               <Field label="Operation" value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={dbOptions.operations} placeholder={optionsLoading ? 'Loading...' : 'Select operation...'} required />
-              <Field label="Part Number" value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={dbOptions.part_numbers} placeholder={optionsLoading ? 'Loading...' : 'Select number...'} required /> 
+              {dbOptions.part_numbers.length === 1
+                ? <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                    <label className="wiz-label">Part Number <span style={{color:'#e53935'}}>*</span></label>
+                    <div style={{padding:'10px 14px',border:'1px solid #ccc',borderRadius:6,background:'#f5f5f5',fontWeight:600,color:'#333'}}>{header.partNumber}</div>
+                  </div>
+                : <Field label="Part Number" value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={dbOptions.part_numbers} placeholder={optionsLoading ? 'Loading...' : 'Select number...'} required />
+              }
             </div>
           </div>
           {step1Done && (
