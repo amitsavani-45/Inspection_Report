@@ -5,7 +5,7 @@ from .models import InspectionReport, InspectionItem, ScheduleEntry
 # ✅ InspectionItems — Report ke andar inline dikhenge
 class InspectionItemInline(admin.TabularInline):
     model = InspectionItem
-    extra = 0  # Extra blank rows nahi chahiye
+    extra = 0
     fields = ['sr_no', 'item', 'special_char', 'spec', 'tolerance', 'inst']
     ordering = ['sr_no']
 
@@ -15,18 +15,18 @@ class ScheduleEntryInline(admin.TabularInline):
     model = ScheduleEntry
     extra = 0
     fields = [
-        'sr', 'date', 'operator', 'machine_no', 'time_type',
-        'value_1', 'value_2', 'value_3', 'value_4', 'value_5',
-        'value_6', 'value_7', 'value_8', 'value_9', 'value_10',
+        'sr', 'slot_index', 'row_order', 'date', 'operator', 'machine_no', 'time_type',
+        'value_1',  'value_2',  'value_3',  'value_4',  'value_5',
+        'value_6',  'value_7',  'value_8',  'value_9',  'value_10',
         'value_11', 'value_12', 'value_13', 'value_14',
-        'judgment', 'signature'
+        'value_15', 'value_16', 'value_17', 'value_18', 'value_19', 'value_20',  # ✅ FIXED
+        'judgment', 'signature', 'filled_at'  # ✅ FIXED
     ]
-    ordering = ['sr', 'time_type']
+    ordering = ['sr', 'slot_index', 'row_order']
 
 
 @admin.register(InspectionReport)
 class InspectionReportAdmin(admin.ModelAdmin):
-    # ✅ List page pe yeh columns dikhenge
     list_display = [
         'id',
         'doc_no',
@@ -36,25 +36,13 @@ class InspectionReportAdmin(admin.ModelAdmin):
         'part_number',
         'operation_name',
         'customer_name',
-        'total_items',  # Custom method — kitne items hain
+        'total_items',
     ]
-
-    # ✅ Filter sidebar
     list_filter = ['date', 'doc_no', 'part_name', 'customer_name']
-
-    # ✅ Search bar
     search_fields = ['doc_no', 'part_name', 'part_number', 'customer_name', 'operation_name']
-
-    # ✅ Date navigation
     date_hierarchy = 'date'
-
-    # ✅ Default ordering — latest pehle
     ordering = ['-date', '-id']
-
-    # ✅ Report detail page pe Items aur Schedule bhi dikhega
     inlines = [InspectionItemInline, ScheduleEntryInline]
-
-    # ✅ Report detail page fields grouping
     fieldsets = (
         ('Report Information', {
             'fields': ('doc_no', 'revision_no', 'date')
@@ -64,7 +52,6 @@ class InspectionReportAdmin(admin.ModelAdmin):
         }),
     )
 
-    # ✅ Custom column — kitne inspection items hain
     @admin.display(description='Total Items')
     def total_items(self, obj):
         return obj.items.count()
@@ -85,7 +72,6 @@ class InspectionItemAdmin(admin.ModelAdmin):
     list_filter = ['item', 'inst', 'report']
     search_fields = ['item', 'spec', 'inst', 'report__part_name', 'report__doc_no']
     ordering = ['report', 'sr_no']
-
     fieldsets = (
         ('Report', {
             'fields': ('report',)
@@ -102,32 +88,40 @@ class ScheduleEntryAdmin(admin.ModelAdmin):
         'id',
         'report',
         'sr',
+        'slot_index',
+        'row_order',
         'date',
         'operator',
         'machine_no',
         'time_type',
-        'judgment'
+        'judgment',
+        'filled_at',  # ✅ FIXED
     ]
     list_filter = ['time_type', 'date', 'report']
     search_fields = ['operator', 'machine_no', 'report__part_name']
-    ordering = ['report', 'sr', 'time_type']
-
+    ordering = ['report', 'sr', 'slot_index', 'row_order']
     fieldsets = (
         ('Report', {
             'fields': ('report',)
         }),
         ('Schedule Info', {
-            'fields': ('sr', 'date', 'operator', 'machine_no', 'time_type')
+            'fields': ('sr', 'slot_index', 'row_order', 'date', 'operator', 'machine_no', 'time_type')  # ✅ FIXED
         }),
-        ('Measured Values (1-14)', {
+        ('Measured Values (1–10)', {
             'fields': (
-                'value_1', 'value_2', 'value_3', 'value_4', 'value_5',
-                'value_6', 'value_7', 'value_8', 'value_9', 'value_10',
-                'value_11', 'value_12', 'value_13', 'value_14'
+                'value_1',  'value_2',  'value_3',  'value_4',  'value_5',
+                'value_6',  'value_7',  'value_8',  'value_9',  'value_10',
             ),
-            'classes': ('collapse',)  # Collapsed by default
+            'classes': ('collapse',)
+        }),
+        ('Measured Values (11–20)', {  # ✅ FIXED — split into two groups for clarity
+            'fields': (
+                'value_11', 'value_12', 'value_13', 'value_14',
+                'value_15', 'value_16', 'value_17', 'value_18', 'value_19', 'value_20',  # ✅ FIXED
+            ),
+            'classes': ('collapse',)
         }),
         ('Results', {
-            'fields': ('judgment', 'signature')
+            'fields': ('judgment', 'signature', 'filled_at')  # ✅ FIXED
         }),
     )
