@@ -269,8 +269,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     partName:      initialData.part_name      || '',
     operationName: initialData.operation_name || '',
     partNumber:    initialData.part_number    || '',
-   
-   
   });
   const step1Done = !!(header.customerName && header.partName && header.operationName && header.partNumber);
 
@@ -288,7 +286,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       : [emptyRow()]
   );
 
-  const [inspType, setInspType] = useState(''); // 'product' | 'process'
+  const [inspType, setInspType] = useState('');
 
   /* ── Operation select hone par DB se items auto-load karo ── */
   useEffect(() => {
@@ -324,6 +322,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       }
     });
   }, [header.operationName]);
+
   const updateRow = (setter, rows, i, field, val) => {
     setter(prev => {
       const updated = prev.map((r,j)=>j===i?{...r,[field]:val}:r);
@@ -370,7 +369,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [slots,        setSlots]        = useState(initSlots);
   const [nextId,       setNextId]       = useState(initSlots.length+1);
   const [activeSlotId, setActiveSlotId] = useState(initSlots[0]?.id??1);
-  const [schedModal,     setSchedModal]     = useState(null); // 'add' | 'update' | 'view' | null
+  const [schedModal,     setSchedModal]     = useState(null);
   const [modalActiveSlot, setModalActiveSlot] = useState(null);
   const [modalSlotType,  setModalSlotType]  = useState('');
   const [modalSubType,   setModalSubType]   = useState('');
@@ -390,7 +389,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
       ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
-  // ✅ Har slot ka apna date update karo
   const setSlotDate = (slotId, newDate) =>
     setSlots(p=>p.map(s=>s.id===slotId ? {...s, date: newDate} : s));
 
@@ -406,18 +404,27 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const pendingTypes  = PENDING_SLOT_TYPES.filter(t=>!slotTypes.includes(t));
   const addedTypes    = PENDING_SLOT_TYPES.filter(t=>slotTypes.includes(t));
 
+  // ✅ FIX: Update dropdown ke liye type-wise sorted slots
+  const TYPE_ORDER = ['SETUP', '4HRS', 'LAST'];
+  const getSortedSlotsForDropdown = () => {
+    return [...slots].sort((a, b) => {
+      const ai = TYPE_ORDER.indexOf(a.type);
+      const bi = TYPE_ORDER.indexOf(b.type);
+      if (ai !== bi) return ai - bi;
+      return a.id - b.id; // same type mein original order maintain karo
+    });
+  };
+
   const handleSubmit = () => {
     if (!step1Done){alert('Step 1 pura karo');return;}
     const allItems=[
       ...filledProducts.map((r,i) =>{
-        // spec aur tolerance alag-alag save karo — combine mat karo
         const parsed = parseSpecTol(r.spec);
-        const cleanSpec = parsed.spec || r.spec;          // sirf number/text part
+        const cleanSpec = parsed.spec || r.spec;
         const tol = r.tolerance ? `± ${r.tolerance}` : parsed.tol;
         return {sr_no:i+1, item:r.name, spec:cleanSpec, tolerance:tol, inst:r.inst};
       }),
       ...filledProcesses.map((r,i)=>{
-        // spec aur tolerance alag-alag save karo
         const parsed = parseSpecTol(r.spec);
         const cleanSpec = parsed.spec || r.spec;
         const tol = r.tolerance ? r.tolerance : parsed.tol;
@@ -426,12 +433,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     ];
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
-      // Up row — hamesha save karo (chahe khali ho ya na ho)
       const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
       slot.upVals.forEach((v,i)=>{eUp[`value_${i+1}`]=v||'';});
       scheduleEntries.push(eUp);
-
-      // Down row — sirf tab save karo jab 2 rows ho
       if(!slot.singleRow){
         const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
         slot.downVals.forEach((v,i)=>{eDown[`value_${i+1}`]=v||'';});
@@ -553,7 +557,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             {schedModal==='add' && (
               <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
 
-                {/* Dropdown always visible */}
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
                   <select
                     value={modalSlotType}
@@ -580,10 +583,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                   </button>
                 </div>
 
-                {/* Fill table - same page neeche */}
                 {modalActiveSlot && (
                   <>
-                    {/* Header */}
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,
                       background: modalActiveSlot.type==='SETUP'?'#1e40af':modalActiveSlot.type==='4HRS'?'#6b21a8':'#b91c1c',
                       padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
@@ -661,8 +662,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         </tbody>
                       </table>
                     </div>
-
-
                   </>
                 )}
               </div>
@@ -672,28 +671,33 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             {schedModal==='update' && (
               <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
 
-                {/* Dropdown — same as New Add */}
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
                   <select
-                    value={updateSlotId ? (slots.find(s=>s.id===updateSlotId)?.subType || slots.find(s=>s.id===updateSlotId)?.type || '') : ''}
+                    value={updateSlotId ? String(updateSlotId) : ''}
                     onChange={e=>{
                       if(!e.target.value){setUpdateSlotId(null);return;}
-                      const t=e.target.value;
-                      const match=slots.find(s=>s.subType===t||(!s.subType&&s.type===t));
-                      if(match) setUpdateSlotId(match.id);
+                      setUpdateSlotId(Number(e.target.value));
                     }}
                     style={{flex:1,padding:'10px 14px',borderRadius:8,border:'1px solid #ccc',
                       background:'#fff',fontWeight:600,fontSize:14,cursor:'pointer',color:'#333',outline:'none'}}>
                     <option value="">-- Select Slot Type --</option>
                     {(()=>{
+                      // ✅ FIX: Type-wise sort karo — SETUP saath, 4HRS saath, LAST saath
                       const typeCount={};
                       slots.forEach(s=>{typeCount[s.type]=(typeCount[s.type]||0)+1;});
                       const typeIdx={};
-                      return slots.map(s=>{
+                      const sortedSlots = getSortedSlotsForDropdown();
+                      return sortedSlots.map(s=>{
                         typeIdx[s.type]=(typeIdx[s.type]||0)+1;
-                        const label=typeCount[s.type]>1?`${s.subType||s.type} #${typeIdx[s.type]}`:(s.subType||s.type);
+                        const label=typeCount[s.type]>1
+                          ? `${s.subType||s.type} #${typeIdx[s.type]}`
+                          : (s.subType||s.type);
                         const cnt=s.upVals.filter(v=>v&&v.trim()).length+s.downVals.filter(v=>v&&v.trim()).length;
-                        return <option key={s.id} value={s.subType||s.type}>{label}{cnt>0?` ✓ ${cnt} filled`:' (Empty)'}</option>;
+                        return (
+                          <option key={s.id} value={String(s.id)}>
+                            {label}{cnt>0?` ✓ ${cnt} filled`:' (Empty)'}
+                          </option>
+                        );
                       });
                     })()}
                   </select>
@@ -704,7 +708,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                   </button>
                 </div>
 
-                {/* Fill table — neeche expand hoti hai */}
                 {updateSlotId && (()=>{
                   const s=slots.find(x=>x.id===updateSlotId);
                   if(!s) return null;
