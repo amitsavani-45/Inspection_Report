@@ -504,7 +504,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
             </div>
 
-            {/* ── 3 PREMIUM UI BUTTONS ── */}
+            {/* ── 3 MODERN UI BUTTONS ── */}
             <div style={{display:'flex', gap:14, marginBottom:24, flexWrap:'wrap'}}>
               <button onClick={()=>setSchedModal(schedModal==='add'?null:'add')}
                 style={{
@@ -559,12 +559,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                 </button>
 
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14, paddingRight:30}}>
-                  {/* ── 3 Big Square Buttons ── */}
+                  {/* ── 3 PREMIUM SLEEK BUTTONS (Without Icons) ── */}
                   <div style={{display:'flex',gap:12,width:'100%',flexWrap:'wrap'}}>
                     {[
-                      {label:'SETUP', sub:'SETUP', color:'#1e40af', light:'#eff6ff', border:'#93c5fd', icon:'🔧'},
-                      {label:'4HRS',  sub:'4HRS',  color:'#6b21a8', light:'#faf5ff', border:'#c084fc', icon:'⏱️'},
-                      {label:'LAST',  sub:'LAST',  color:'#b91c1c', light:'#fff1f2', border:'#fca5a5', icon:'🏁'},
+                      {label:'SETUP', sub:'SETUP', activeBg:'#2563eb', inactiveBg:'#f8fafc'},
+                      {label:'4HRS',  sub:'4HRS',  activeBg:'#7c3aed', inactiveBg:'#f8fafc'},
+                      {label:'LAST',  sub:'LAST',  activeBg:'#e11d48', inactiveBg:'#f8fafc'},
                     ].map(btn => {
                       const isActive = modalSlotType === btn.sub;
                       return (
@@ -585,25 +585,21 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             setModalActiveSlot(newSlot);
                           }}
                           style={{
-                            flex:1, minWidth:90,
-                            padding:'18px 10px',
-                            borderRadius:14,
-                            border: isActive ? `2.5px solid ${btn.color}` : `2px solid ${btn.border}`,
-                            background: isActive ? btn.color : btn.light,
-                            color: isActive ? '#fff' : btn.color,
-                            fontWeight:800,
-                            fontSize:15,
+                            flex:1, minWidth:100,
+                            padding:'16px 12px',
+                            borderRadius:'12px',
+                            border: isActive ? `2px solid ${btn.activeBg}` : `1px solid #cbd5e1`,
+                            background: isActive ? btn.activeBg : btn.inactiveBg,
+                            color: isActive ? '#fff' : '#475569',
+                            fontWeight:700,
+                            fontSize:'15px',
+                            letterSpacing: '0.5px',
                             cursor:'pointer',
-                            display:'flex',
-                            flexDirection:'column',
-                            alignItems:'center',
-                            gap:6,
-                            boxShadow: isActive ? `0 4px 18px ${btn.color}55` : '0 1px 4px #0001',
-                            transform: isActive ? 'scale(1.04)' : 'scale(1)',
-                            transition:'all 0.15s ease',
+                            boxShadow: isActive ? `0 6px 16px ${btn.activeBg}40` : '0 2px 4px rgba(0,0,0,0.02)',
+                            transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
+                            transition:'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                           }}>
-                          <span style={{fontSize:24}}>{btn.icon}</span>
-                          <span>{btn.label}</span>
+                          {btn.label}
                         </button>
                       );
                     })}
@@ -613,7 +609,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                 {modalActiveSlot && (
                   <>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,
-                      background: modalActiveSlot.type==='SETUP'?'#1e40af':modalActiveSlot.type==='4HRS'?'#6b21a8':'#b91c1c',
+                      background: modalActiveSlot.type==='SETUP'?'#2563eb':modalActiveSlot.type==='4HRS'?'#7c3aed':'#e11d48',
                       padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
                       <span style={{fontWeight:800,fontSize:15,color:'#fff'}}>{modalActiveSlot.subType||modalActiveSlot.type}</span>
                       <button onClick={()=>setModalActiveSlot(p=>({...p,singleRow:!p.singleRow}))}
@@ -756,7 +752,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                 {updateSlotId && (()=>{
                   const s=slots.find(x=>x.id===updateSlotId);
                   if(!s) return null;
-                  const cfg={SETUP:'#1e40af','4HRS':'#6b21a8',LAST:'#b91c1c'};
+                  const cfg={SETUP:'#2563eb','4HRS':'#7c3aed',LAST:'#e11d48'};
                   const color=cfg[s.type]||'#333';
                   return (
                     <>
@@ -843,7 +839,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
                 <div style={{fontWeight:800,fontSize:16,marginBottom:14,color:'#334155', paddingRight:30}}>All Completed Entries</div>
                 {slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).map(s=>{
-                  const cfg={SETUP:'#1e40af','4HRS':'#6b21a8',LAST:'#b91c1c'};
+                  const cfg={SETUP:'#2563eb','4HRS':'#7c3aed',LAST:'#e11d48'};
                   const color=cfg[s.type]||'#333';
                   return (
                     <div key={s.id} style={{marginBottom:16,border:`1px solid ${color}33`,borderRadius:10,overflow:'hidden'}}>
