@@ -363,12 +363,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       if (e.row_order===0){map[k].upVals=vals;}
       else{map[k].downVals=vals;map[k].singleRow=false;}
     });
-    const timeOrder={'SETUP':0,'4HRS':1,'2HRS':1,'LAST':2};
-    const r=Object.values(map).sort((a,b)=>{
-      const ta=timeOrder[a.type]??9, tb=timeOrder[b.type]??9;
-      if(ta!==tb) return ta-tb;
-      return a.id-b.id;
-    });
+    const r=Object.values(map).sort((a,b)=>a.id-b.id);
     return r.length?r:[makeSlot(1,'SETUP')];
   };
   const initSlots = buildInitialSlots();
@@ -392,12 +387,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   };
   const removeSlot = (id) => {setSlots(p=>p.filter(s=>s.id!==id));if(activeSlotId===id)setActiveSlotId(null);};
   const toggleRows  = (id) => setSlots(p=>p.map(s=>s.id===id?{...s,singleRow:!s.singleRow}:s));
-  const timeOrder = {'SETUP':0,'4HRS':1,'2HRS':1,'LAST':2};
-  const sortSlots = (arr) => [...arr].sort((a,b)=>{
-    const ta=timeOrder[a.type]??9, tb=timeOrder[b.type]??9;
-    if(ta!==tb) return ta-tb;
-    return a.id-b.id;
-  });
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
       ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
@@ -405,18 +394,14 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const setSlotDate = (slotId, newDate) =>
     setSlots(p=>p.map(s=>s.id===slotId ? {...s, date: newDate} : s));
 
-  const itemColLabels = [
-    ...filledProducts.map((r,i)  =>{ const p=parseSpecTol(r.spec); const spec=p.spec||r.spec||''; const tol=r.tolerance?(r.tolerance.includes('\xb1')||r.tolerance.includes('+')||r.tolerance.includes('MIN')||r.tolerance.includes('MAX')?r.tolerance:`\u00b1 ${r.tolerance}`):(p.tol||''); return {idx:i, label:`${i+1}. ${r.name}`, spec, tolerance:tol, inst:r.inst||''}; }),
-    ...filledProcesses.map((r,i) =>{ const p=parseSpecTol(r.spec); const spec=p.spec||r.spec||''; const tol=r.tolerance?r.tolerance:(p.tol||''); return {idx:filledProducts.length+i, label:`${filledProducts.length+i+1}. ${r.name}`, spec, tolerance:tol, inst:r.inst||''}; }),
+  const colLabels = [
+    ...filledProducts.map((r,i)  =>({idx:i,                     label:`${i+1}. ${r.name}`})),
+    ...filledProcesses.map((r,i) =>({idx:filledProducts.length+i,label:`${filledProducts.length+i+1}. ${r.name}`})),
   ].slice(0,MAX_COLS);
-  const totalItemCols = itemColLabels.length || 9;
-  const colLabels = itemColLabels.length > 0
-    ? itemColLabels
-    : Array.from({length: totalItemCols}, (_,i) => ({idx:i, label:`${i+1}`, spec:'', tolerance:'', inst:''}));
 
   const activeSlot    = slots.find(s=>s.id===activeSlotId)||null;
   const setupSlot     = slots.find(s=>s.type==='SETUP');
-  const isSetupFilled = slots.some(s => s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim()));
+  const isSetupFilled = setupSlot ? setupSlot.upVals.filter(v=>v&&v.trim()).length+setupSlot.downVals.filter(v=>v&&v.trim()).length>0 : false;
   const slotTypes     = slots.map(s=>s.type);
   const pendingTypes  = PENDING_SLOT_TYPES.filter(t=>!slotTypes.includes(t));
   const addedTypes    = PENDING_SLOT_TYPES.filter(t=>slotTypes.includes(t));
@@ -441,13 +426,15 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     ];
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
-      // Hamesha save karo — blank bhi (taaki SETUP/4HRS/LAST rows report mein dikhe)
+      // Up row — hamesha save karo (chahe khali ho ya na ho)
       const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
-      slot.upVals.forEach((v,i)=>{eUp['value_'+(i+1)]=v||'';});
+      slot.upVals.forEach((v,i)=>{eUp[`value_${i+1}`]=v||'';});
       scheduleEntries.push(eUp);
+
+      // Down row — sirf tab save karo jab 2 rows ho
       if(!slot.singleRow){
         const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
-        slot.downVals.forEach((v,i)=>{eDown['value_'+(i+1)]=v||'';});
+        slot.downVals.forEach((v,i)=>{eDown[`value_${i+1}`]=v||'';});
         scheduleEntries.push(eDown);
       }
     });
@@ -548,11 +535,11 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                   boxShadow:'0 2px 8px #1e40af33'}}>
                 ➕ New Add
               </button>
-              <button onClick={()=>{ setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }}
+              <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }}
                 style={{flex:1, minWidth:120, padding:'14px 10px', borderRadius:10, border:'none',
                   background: schedModal==='update'?'#581c87':'#6b21a8', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer',
                   boxShadow:'0 2px 8px #6b21a833'}}>
-                ✏️ Fill / Update
+                ✏️ Update
               </button>
               <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }}
                 style={{flex:1, minWidth:120, padding:'14px 10px', borderRadius:10, border:'none',
@@ -573,24 +560,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                     onChange={e=>{
                       if(!e.target.value) return;
                       const t=e.target.value;
-                      const existingCount = slots.filter(s=>
-                        (s.subType===t||(!s.subType&&s.type===t)) &&
-                        (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim()))
-                      ).length;
-                      if(existingCount>0 && !window.confirm(`"${t}" mein pehle se data hai (${existingCount} entry). Phir bhi naya add karna hai?`)) return;
                       setModalSlotType(t);
-                      // Agar is type ka empty slot already hai toh wahi use karo — naya mat banao
-                      const existingEmptySlot = slots.find(s=>
-                        (s.subType===t||(!s.subType&&s.type===t)) &&
-                        !s.upVals.some(v=>v&&v.trim()) && !s.downVals.some(v=>v&&v.trim())
-                      );
-                      if(existingEmptySlot){
-                        setModalActiveSlot({...existingEmptySlot, date:schedDate});
-                      } else {
-                        const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:schedDate,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
-                        setNextId(p=>p+1);
-                        setModalActiveSlot(newSlot);
-                      }
+                      const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+                      setNextId(p=>p+1);
+                      setModalActiveSlot(newSlot);
                     }}
                     style={{flex:1,padding:'10px 14px',borderRadius:8,border:'1px solid #ccc',
                       background:'#fff',fontWeight:600,fontSize:14,cursor:'pointer',color:'#333',outline:'none'}}>
@@ -622,12 +595,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       </button>
                       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                         <button onClick={()=>{
-                            // Agar existing slot hai toh update karo, naya mat add karo
-                            setSlots(prev => {
-                              const exists = prev.find(s=>s.id===modalActiveSlot.id);
-                              const updated = exists ? prev.map(s=>s.id===modalActiveSlot.id?modalActiveSlot:s) : [...prev, modalActiveSlot];
-                              return sortSlots(updated);
-                            });
+                            setSlots(prev=>[...prev,modalActiveSlot]);
                             setModalActiveSlot(null);
                             setModalSlotType('');
                           }}
@@ -636,13 +604,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           ✅ Save
                         </button>
                         <button onClick={()=>{
-                            setSlots(prev => {
-                              const exists = prev.find(s=>s.id===modalActiveSlot.id);
-                              const updated = exists ? prev.map(s=>s.id===modalActiveSlot.id?modalActiveSlot:s) : [...prev, modalActiveSlot];
-                              return sortSlots(updated);
-                            });
+                            setSlots(prev=>[...prev,modalActiveSlot]);
                             const t=modalSlotType;
-                            const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:schedDate,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+                            const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
                             setNextId(p=>p+1);
                             setModalActiveSlot(newSlot);
                           }}
@@ -658,15 +622,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         <thead>
                           <tr style={{background:'#f5f5f5'}}>
                             <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'2px solid #e0e0e0'}}>Column</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Spec</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Tolerance</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'2px solid #e0e0e0',minWidth:80}}>Instrument</th>
                             <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 1</th>
                             {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'2px solid #e0e0e0',minWidth:90}}>Reading 2</th>}
                           </tr>
                         </thead>
                         <tbody>
-                          {colLabels.map(({idx,label,spec,tolerance,inst})=>{
+                          {colLabels.map(({idx,label})=>{
                             const uv=modalActiveSlot.upVals[idx]||'';
                             const dv=modalActiveSlot.downVals[idx]||'';
                             const isNgUp=uv.toUpperCase()==='NG';
@@ -674,9 +635,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             return (
                               <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
                                 <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
-                                <td style={{padding:'6px 8px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
-                                <td style={{padding:'6px 8px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
-                                <td style={{padding:'6px 8px',textAlign:'center',color:'#1565c0',fontSize:12}}>{inst||'—'}</td>
                                 <td style={{padding:'4px 8px',textAlign:'center'}}>
                                   <input type="text" value={uv} placeholder="—"
                                     onChange={e=>setModalActiveSlot(p=>({...p,upVals:p.upVals.map((v,i)=>i===idx?e.target.value:v)}))}
@@ -713,57 +671,59 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             {/* ── UPDATE — inline expand ── */}
             {schedModal==='update' && (
               <div style={{background:'#fff', border:'1px solid #e0e0e0', borderRadius:12, padding:'20px', marginBottom:16, boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
-                {!updateSlotId ? (
-                  <>
-                    <div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#222'}}>Kaun sa fill/update karna hai?</div>
+
+                {/* Dropdown — same as New Add */}
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+                  <select
+                    value={updateSlotId ? (slots.find(s=>s.id===updateSlotId)?.subType || slots.find(s=>s.id===updateSlotId)?.type || '') : ''}
+                    onChange={e=>{
+                      if(!e.target.value){setUpdateSlotId(null);return;}
+                      const t=e.target.value;
+                      const match=slots.find(s=>s.subType===t||(!s.subType&&s.type===t));
+                      if(match) setUpdateSlotId(match.id);
+                    }}
+                    style={{flex:1,padding:'10px 14px',borderRadius:8,border:'1px solid #ccc',
+                      background:'#fff',fontWeight:600,fontSize:14,cursor:'pointer',color:'#333',outline:'none'}}>
+                    <option value="">-- Select Slot Type --</option>
                     {(()=>{
-                      // Sab slots dikhao — filled aur empty dono
-                      const allSlots = slots;
-                      const typeCount = {};
-                      allSlots.forEach(s => { typeCount[s.type] = (typeCount[s.type]||0)+1; });
-                      const typeIdx = {};
-                      return allSlots.map(s=>{
-                        const cfg={SETUP:'#1e40af','4HRS':'#6b21a8',LAST:'#b91c1c'};
-                        const color=cfg[s.type]||'#333';
+                      const typeCount={};
+                      slots.forEach(s=>{typeCount[s.type]=(typeCount[s.type]||0)+1;});
+                      const typeIdx={};
+                      return slots.map(s=>{
+                        typeIdx[s.type]=(typeIdx[s.type]||0)+1;
+                        const label=typeCount[s.type]>1?`${s.subType||s.type} #${typeIdx[s.type]}`:(s.subType||s.type);
                         const cnt=s.upVals.filter(v=>v&&v.trim()).length+s.downVals.filter(v=>v&&v.trim()).length;
-                        typeIdx[s.type] = (typeIdx[s.type]||0)+1;
-                        const label = typeCount[s.type]>1 ? `${s.subType||s.type} #${typeIdx[s.type]}` : (s.subType||s.type);
-                        const isEmpty = cnt===0;
-                        return (
-                          <button key={s.id} onClick={()=>setUpdateSlotId(s.id)}
-                            style={{display:'flex',width:'100%',padding:'13px 16px',marginBottom:10,
-                              borderRadius:8,border:`1px solid ${isEmpty?'#ccc':color}`,background:isEmpty?'#fafafa':'#fff',
-                              fontWeight:700,fontSize:14,cursor:'pointer',textAlign:'left',color:isEmpty?'#888':color,
-                              justifyContent:'space-between',alignItems:'center'}}>
-                            <span>{label}</span>
-                            {isEmpty
-                              ? <span style={{background:'#eee',color:'#999',borderRadius:20,padding:'2px 10px',fontSize:11}}>Empty — Fill karo</span>
-                              : <span style={{background:color,color:'#fff',borderRadius:20,padding:'2px 10px',fontSize:11}}>✓ {cnt} filled</span>
-                            }
-                          </button>
-                        );
+                        return <option key={s.id} value={s.subType||s.type}>{label}{cnt>0?` ✓ ${cnt} filled`:' (Empty)'}</option>;
                       });
                     })()}
-                    <button onClick={()=>setSchedModal(null)}
-                      style={{display:'block',width:'100%',padding:'11px',marginTop:4,
-                        borderRadius:8,border:'1px solid #ddd',background:'#f5f5f5',
-                        fontWeight:600,fontSize:14,cursor:'pointer',color:'#888'}}>
-                      Cancel
-                    </button>
-                  </>
-                ) : (()=>{
+                  </select>
+                  <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
+                    style={{padding:'10px 16px',borderRadius:8,border:'1px solid #ddd',
+                      background:'#f5f5f5',fontWeight:600,fontSize:13,cursor:'pointer',color:'#888'}}>
+                    ✕ Close
+                  </button>
+                </div>
+
+                {/* Fill table — neeche expand hoti hai */}
+                {updateSlotId && (()=>{
                   const s=slots.find(x=>x.id===updateSlotId);
                   if(!s) return null;
                   const cfg={SETUP:'#1e40af','4HRS':'#6b21a8',LAST:'#b91c1c'};
                   const color=cfg[s.type]||'#333';
                   return (
                     <>
-                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
-                        <span style={{fontWeight:800,fontSize:16,color}}>{s.subType||s.type}</span>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,
+                        background:color,padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
+                        <span style={{fontWeight:800,fontSize:15,color:'#fff'}}>{s.subType||s.type}</span>
                         <button onClick={()=>toggleRows(s.id)}
                           style={{padding:'3px 10px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
-                            background:s.singleRow?'#f3f4f6':'#3b82f6',color:s.singleRow?'#555':'#fff',border:'none'}}>
+                            background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)'}}>
                           {s.singleRow?'1 Row':'2 Rows'}
+                        </button>
+                        <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
+                          style={{marginLeft:'auto',padding:'4px 14px',borderRadius:6,border:'none',
+                            background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
+                          ✅ Done
                         </button>
                       </div>
                       <div style={{overflowX:'auto'}}>
@@ -815,12 +775,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             })}
                           </tbody>
                         </table>
-                      </div>
-                      <div style={{display:'flex',gap:8,marginTop:16}}>
-                        <button onClick={()=>setUpdateSlotId(null)}
-                          style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid #ddd',background:'#f5f5f5',fontWeight:700,cursor:'pointer'}}>← Back</button>
-                        <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
-                          style={{flex:2,padding:'10px',borderRadius:8,border:'none',background:'#6b21a8',color:'#fff',fontWeight:800,fontSize:14,cursor:'pointer'}}>✅ Done</button>
                       </div>
                     </>
                   );
