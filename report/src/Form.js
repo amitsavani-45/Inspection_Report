@@ -43,8 +43,7 @@ const emptyRow = () => ({ name:'', spec:'', tolerance:'', inst:'' });
 
 const STEPS = [
   { id:1, label:'Report',     icon:'📋' },
-  { id:2, label:'Inspection', icon:'🔍' },
-  { id:3, label:'Schedule',   icon:'📅' },
+  { id:2, label:'Schedule',   icon:'📅' },
 ];
 
 /* ── Reusable Select Field ── */
@@ -434,8 +433,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     onSubmit({partName:header.partName,partNumber:header.partNumber,operationName:header.operationName,customerName:header.customerName,scheduleDate:schedDate,operatorName,mcNo,items:allItems,schedule_entries:scheduleEntries});
   };
 
-  const stepDone = [false, step1Done, step2Done, isSetupFilled];
-  const progress = ((step-1)/2)*100;
+  const stepDone = [false, step1Done, isSetupFilled];
+  const progress = ((step-1)/1)*100;
 
   return (
     <div className="wiz-wrap">
@@ -470,6 +469,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
         {/* ════ STEP 1 ════ */}
         {step===1 && (
+          <>
           <div className="wiz-card">
             <div className="wiz-card-title">📋 Report Information</div>
             <div className="wiz-grid-2">
@@ -479,21 +479,20 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="Part Number" value={header.partNumber} onChange={v=>setHeader(p=>({...p,partNumber:v}))} options={dbOptions.part_numbers} placeholder={optionsLoading ? 'Loading...' : 'Select number...'} required /> 
             </div>
           </div>
+          {step1Done && (
+            <div className="wiz-card" style={{marginTop:16}}>
+              <div className="wiz-card-title">🔍 Inspection Items</div>
+              <CombinedTable
+                productRows={filledProducts}
+                processRows={filledProcesses}
+              />
+            </div>
+          )}
+          </>
         )}
 
-        {/* ════ STEP 2 ════ */}
+        {/* ════ STEP 2 - Schedule ════ */}
         {step===2 && (
-          <div className="wiz-card">
-            <div className="wiz-card-title">🔍 Inspection Items</div>
-            <CombinedTable
-              productRows={filledProducts}
-              processRows={filledProcesses}
-            />
-          </div>
-        )}
-
-        {/* ════ STEP 3 ════ */}
-        {step===3 && (
           <div className="wiz-card">
             <div className="wiz-card-title">📅 Schedule</div>
 
@@ -625,25 +624,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             <span style={{fontWeight:700, fontSize:13, color:cfg.color}}>
                               {slotLabel}
                             </span>
-                            {/* ✅ Har slot ka apna date picker */}
-                            <div
-                              onClick={e=>e.stopPropagation()}
-                              style={{
-                                position:'relative',display:'inline-flex',alignItems:'center',
-                                background:'rgba(255,255,255,0.15)',
-                                border:'1px solid rgba(255,255,255,0.4)',
-                                borderRadius:6,padding:'2px 8px',cursor:'pointer',marginLeft:6,
-                              }}>
-                              <span style={{fontSize:11,color:'#fff',fontWeight:600}}>
-                                📅 {slot.date ? slot.date.split('-').reverse().join('/') : 'Date'}
-                              </span>
-                              <input
-                                type="date"
-                                value={slot.date||today}
-                                onChange={e=>{e.stopPropagation();setSlotDate(slot.id,e.target.value);}}
-                                style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}
-                              />
-                            </div>
+
 
                             {cnt>0 && (
                               <span style={{
@@ -700,10 +681,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           ? <button onClick={()=>setStep(s=>s-1)} className="wiz-btn-back">← Back</button>
           : <button onClick={onCancel} className="wiz-btn-back">Cancel</button>
         }
-        {step<3
+        {step<2
           ? <button onClick={()=>setStep(s=>s+1)}
-              disabled={step===1&&!step1Done || step===2&&!step2Done}
-              className={`wiz-btn-next${(step===1&&!step1Done)||(step===2&&!step2Done)?' disabled':''}`}>
+              disabled={step===1&&!step1Done}
+              className={`wiz-btn-next${(step===1&&!step1Done)?' disabled':''}`}>
               Next →
             </button>
           : <button onClick={handleSubmit} className="wiz-btn-save">✅ Save</button>
