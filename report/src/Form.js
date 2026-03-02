@@ -433,19 +433,21 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
       {/* ── Progress Bar ── */}
       <div className="wiz-progress-wrap">
-        <div className="wiz-progress-track">
-          <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
-        </div>
-        <div className="wiz-steps-row">
-          {STEPS.map(s=>(
-            <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
-              onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
-              <div className="wiz-dot-circle">
-                {stepDone[s.id] ? '✓' : s.icon}
+        <div className="wiz-progress-inner">
+          <div className="wiz-progress-track">
+            <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
+          </div>
+          <div className="wiz-steps-row">
+            {STEPS.map(s=>(
+              <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
+                onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
+                <div className="wiz-dot-circle">
+                  {stepDone[s.id] ? '✓' : s.icon}
+                </div>
+                <div className="wiz-dot-label">{s.label}</div>
               </div>
-              <div className="wiz-dot-label">{s.label}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
