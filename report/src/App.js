@@ -26,7 +26,7 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   return (
     <Form
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/inspection')}
+      onCancel={() => navigate('/')}
       initialData={formInitialData}
       items={formItems}
     />
