@@ -431,26 +431,26 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
         <div style={{width:60}} />
       </div>
 
+      {/* ── Progress Bar ── */}
+      <div className="wiz-progress-wrap">
+        <div className="wiz-progress-track">
+          <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
+        </div>
+        <div className="wiz-steps-row">
+          {STEPS.map(s=>(
+            <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
+              onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
+              <div className="wiz-dot-circle">
+                {stepDone[s.id] ? '✓' : s.icon}
+              </div>
+              <div className="wiz-dot-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── Step Content ── */}
       <div className="wiz-body">
-
-        {/* ── Progress Bar ── */}
-        <div className="wiz-progress-wrap">
-          <div className="wiz-progress-track">
-            <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
-          </div>
-          <div className="wiz-steps-row">
-            {STEPS.map(s=>(
-              <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
-                onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
-                <div className="wiz-dot-circle">
-                  {stepDone[s.id] ? '✓' : s.icon}
-                </div>
-                <div className="wiz-dot-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* ════ STEP 1 ════ */}
         {step===1 && (
@@ -508,7 +508,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             <div style={{display:'flex', gap:14, marginBottom:24, flexWrap:'wrap'}}>
               <button onClick={()=>setSchedModal(schedModal==='add'?null:'add')}
                 style={{
-                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:12, 
+                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:8, 
                   border:schedModal==='add'?'2px solid #2563eb':'1px solid #cbd5e1',
                   background: schedModal==='add'?'#eff6ff':'#fff', 
                   color: schedModal==='add'?'#1d4ed8':'#475569',
@@ -521,7 +521,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               
               <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }}
                 style={{
-                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:12, 
+                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:8, 
                   border:schedModal==='update'?'2px solid #7c3aed':'1px solid #cbd5e1',
                   background: schedModal==='update'?'#f5f3ff':'#fff', 
                   color: schedModal==='update'?'#6d28d9':'#475569',
@@ -534,7 +534,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               
               <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }}
                 style={{
-                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:12, 
+                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:8, 
                   border:schedModal==='view'?'2px solid #059669':'1px solid #cbd5e1',
                   background: schedModal==='view'?'#ecfdf5':'#fff', 
                   color: schedModal==='view'?'#047857':'#475569',
@@ -567,6 +567,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       {label:'LAST',  sub:'LAST',  activeBg:'#e11d48', inactiveBg:'#f8fafc'},
                     ].map(btn => {
                       const isActive = modalSlotType === btn.sub;
+                      const isFilled = slots.some(s => s.type === btn.sub && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
                       return (
                         <button
                           key={btn.sub}
@@ -587,18 +588,20 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           style={{
                             flex:1, minWidth:100,
                             padding:'16px 12px',
-                            borderRadius:'12px',
-                            border: isActive ? `2px solid ${btn.activeBg}` : `1px solid #cbd5e1`,
-                            background: isActive ? btn.activeBg : btn.inactiveBg,
-                            color: isActive ? '#fff' : '#475569',
+                            borderRadius:'8px',
+                            border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : `1px solid #cbd5e1`,
+                            background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : btn.inactiveBg,
+                            color: isActive ? '#fff' : isFilled ? '#15803d' : '#475569',
                             fontWeight:700,
                             fontSize:'15px',
                             letterSpacing: '0.5px',
                             cursor:'pointer',
-                            boxShadow: isActive ? `0 6px 16px ${btn.activeBg}40` : '0 2px 4px rgba(0,0,0,0.02)',
+                            boxShadow: isActive ? `0 6px 16px ${btn.activeBg}40` : isFilled ? '0 2px 8px rgba(22,163,74,0.2)' : '0 2px 4px rgba(0,0,0,0.02)',
                             transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                             transition:'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            display:'flex', alignItems:'center', justifyContent:'center', gap:6,
                           }}>
+                          {isFilled && !isActive && <span style={{fontSize:14}}>✓</span>}
                           {btn.label}
                         </button>
                       );
