@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
+import Dashboard from './Dashboard';
 import Inspection from './Inspection';
 import Form from './Form';
 import { getAllReports, getReportById, createReport, updateReport } from './services/api';
@@ -12,7 +13,7 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   const handleSubmit = async (formData) => {
     try {
       await onAddItem({ ...formData, _isNew: isNew });
-      navigate('/');
+      navigate('/inspection');
     } catch (error) {
       console.error('Error adding item:', error);
       alert('Failed to save: ' + error.message);
@@ -25,7 +26,7 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   return (
     <Form
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/')}
+      onCancel={() => navigate('/inspection')}
       initialData={formInitialData}
       items={formItems}
     />
@@ -217,7 +218,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/inspection" element={
           <Inspection
             items={viewItems}
             reportId={currentReport?.id}
