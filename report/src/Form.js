@@ -358,6 +358,17 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [modalSubType,   setModalSubType]   = useState('');
   const [updateSlotId,   setUpdateSlotId]   = useState(null);
 
+  // Persistent timestamps for time-lock (survives re-renders)
+  const LS_KEY = `slot_timestamps_${header.partNumber||'default'}`;
+  const [slotTimestamps, setSlotTimestamps] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); } catch { return {}; }
+  });
+  const saveTimestamp = (type) => {
+    const updated = {...slotTimestamps, [type]: Date.now()};
+    setSlotTimestamps(updated);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(updated)); } catch {}
+  };
+
   const toggleRows  = (id) => setSlots(p=>p.map(s=>s.id===id?{...s,singleRow:!s.singleRow}:s));
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
@@ -390,6 +401,24 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
   const handleSubmit = () => {
     if (!step1Done){alert('Step 1 pura karo');return;}
+    if (!operatorName){alert('Operator select karo!');return;}
+    if (!mcNo){alert('M/C No select karo!');return;}
+    if (slots.length === 0){alert('Pehle SETUP ki report bharo!');return;}
+
+    // Agar modal abhi bhi khula hai aur data filled hai — auto save karo
+    if (modalActiveSlot && modalActiveSlot.upVals.some(v=>v&&v.trim())) {
+      setSlots(prev=>{
+        const newSlot = {...modalActiveSlot, savedAt: Date.now()};
+        const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
+        const at = li>=0 ? li+1 : prev.length;
+        const n = [...prev]; n.splice(at,0,newSlot); return n;
+      });
+      saveTimestamp(modalActiveSlot.type);
+      setModalActiveSlot(null);
+      setModalSlotType('');
+      setSchedModal(null);
+    }
+
     const allItems=[
       ...filledProducts.map((r,i) =>{
         const parsed = parseSpecTol(r.spec);
@@ -542,9 +571,48 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                     ].map(btn => {
                       const isActive = modalSlotType === btn.sub;
                       const isFilled = slots.some(s => s.type === btn.sub && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
+
+                      // Time-based lock using localStorage timestamps
+                      const setupSavedAt = slotTimestamps['SETUP'] || null;
+                      const fhrsSavedAt  = slotTimestamps['4HRS']  || null;
+                      const setupFilled  = slots.some(s => s.type === 'SETUP' && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
+                      const fhrsFilled   = slots.some(s => s.type === '4HRS'  && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
+                      const now = Date.now();
+                      const FOUR_HRS_MS = 4 * 60 * 60 * 1000;
+
+                      let isLocked = false;
+                      let lockMsg  = '';
+                      let timeLeft = '';
+
+                      if (btn.sub === '4HRS') {
+                        if (!setupFilled || !setupSavedAt) {
+                          isLocked = true; lockMsg = 'Pehle SETUP ki report bharni hogi!';
+                        } else if (now - setupSavedAt < FOUR_HRS_MS) {
+                          isLocked = true;
+                          const remainMs = FOUR_HRS_MS - (now - setupSavedAt);
+                          const h = Math.floor(remainMs/3600000);
+                          const m = Math.floor((remainMs%3600000)/60000);
+                          timeLeft = `${h}h ${m}m later`;
+                          lockMsg = `SETUP ke 4 ghante baad khulega! (${timeLeft})`;
+                        }
+                      }
+                      if (btn.sub === 'LAST') {
+                        if (!fhrsFilled || !fhrsSavedAt) {
+                          isLocked = true; lockMsg = 'Pehle 4HRS ki report bharni hogi!';
+                        } else if (now - fhrsSavedAt < FOUR_HRS_MS) {
+                          isLocked = true;
+                          const remainMs = FOUR_HRS_MS - (now - fhrsSavedAt);
+                          const h = Math.floor(remainMs/3600000);
+                          const m = Math.floor((remainMs%3600000)/60000);
+                          timeLeft = `${h}h ${m}m later`;
+                          lockMsg = `4HRS ke 4 ghante baad khulega! (${timeLeft})`;
+                        }
+                      }
+
                       return (
                         <button key={btn.sub} className="med-btn"
                           onClick={()=>{
+                            if (isLocked) { alert(lockMsg); return; }
                             setModalSlotType(btn.sub);
                             const newSlot={
                               id:nextId,
@@ -552,20 +620,26 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                               subType:btn.sub,
                               singleRow:true,
                               date:today,
+                              savedAt:null,
                               upVals:Array(MAX_COLS).fill(''),
                               downVals:Array(MAX_COLS).fill('')
                             };
                             setNextId(p=>p+1);
                             setModalActiveSlot(newSlot);
                           }}
+                          title={isLocked ? lockMsg : ''}
                           style={{
-                            border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : '1px solid #cbd5e1',
-                            background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : '#f8fafc',
-                            color: isActive ? '#fff' : isFilled ? '#15803d' : '#475569',
+                            border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : isLocked ? '1px dashed #cbd5e1' : '1px solid #cbd5e1',
+                            background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : isLocked ? '#f8f8f8' : '#f8fafc',
+                            color: isActive ? '#fff' : isFilled ? '#15803d' : isLocked ? '#c0c0c0' : '#475569',
                             boxShadow: isActive ? `0 4px 12px ${btn.activeBg}40` : '0 1px 3px rgba(0,0,0,0.04)',
+                            cursor: isLocked ? 'not-allowed' : 'pointer',
+                            flexDirection: 'column', gap: 4,
                           }}>
                           {isFilled && !isActive && <span style={{fontSize:13}}>✓</span>}
-                          {btn.label}
+                          {isLocked && !isFilled && <span style={{fontSize:16}}>🔒</span>}
+                          <span>{btn.label}</span>
+                          {isLocked && timeLeft && <span style={{fontSize:9,fontWeight:600,color:'#a0a0a0',lineHeight:1.2}}>{timeLeft}</span>}
                         </button>
                       );
                     })}
@@ -586,18 +660,20 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                         <button onClick={()=>{
                             setSlots(prev=>{
-                              const newSlot = modalActiveSlot;
+                              const newSlot = {...modalActiveSlot, savedAt: Date.now()};
                               const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
                               const at = li>=0 ? li+1 : prev.length;
                               const n = [...prev]; n.splice(at,0,newSlot); return n;
                             });
+                            saveTimestamp(modalActiveSlot.type);
                             setModalActiveSlot(null);
                             setModalSlotType('');
                             setSchedModal(null);
                           }}
-                          style={{padding:'4px 14px',borderRadius:6,border:'none',
-                            background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
-                          ✅ Save
+                          style={{padding:'6px 18px',borderRadius:8,border:'2px solid #fff',
+                            background:'#16a34a',color:'#fff',fontWeight:800,fontSize:13,cursor:'pointer',
+                            boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
+                          ✅ Save & Close
                         </button>
                         <button onClick={()=>{
                             setSlots(prev=>{
@@ -815,23 +891,17 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           <thead>
                             <tr style={{background:'#f8fafc'}}>
                               <th style={{padding:'7px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
-                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0'}}>Spec</th>
-                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Tolerance</th>
-                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0'}}>Instrument</th>
                               <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0'}}>Reading 1</th>
                               {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
-                            {colLabels.map(({idx,label,spec,tolerance,inst})=>{
+                            {colLabels.map(({idx,label})=>{
                               const uv=s.upVals[idx]||'—';
                               const dv=s.downVals[idx]||'—';
                               return (
                                 <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
                                   <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
-                                  <td style={{padding:'6px 8px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
-                                  <td style={{padding:'6px 8px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
-                                  <td style={{padding:'6px 8px',textAlign:'center',color:'#1565c0',fontSize:12}}>{inst||'—'}</td>
                                   <td style={{padding:'6px 12px',textAlign:'center',color:uv==='NG'?'#e53935':uv!=='—'?'#2e7d32':'#aaa',fontWeight:uv!=='—'?700:400}}>{uv}</td>
                                   {!s.singleRow && <td style={{padding:'6px 12px',textAlign:'center',color:dv==='NG'?'#e53935':dv!=='—'?'#e65100':'#aaa',fontWeight:dv!=='—'?700:400}}>{dv}</td>}
                                 </tr>
