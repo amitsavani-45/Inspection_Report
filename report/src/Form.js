@@ -431,26 +431,24 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
         <div style={{width:60}} />
       </div>
 
-      {/* ── Progress Bar ── */}
-      <div className="wiz-progress-wrap">
-        <div className="wiz-progress-track">
-          <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
-        </div>
-        <div className="wiz-steps-row">
-          {STEPS.map(s=>(
-            <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
-              onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
-              <div className="wiz-dot-circle">
-                {stepDone[s.id] ? '✓' : s.icon}
-              </div>
-              <div className="wiz-dot-label">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* ── Step Content ── */}
       <div className="wiz-body">
+
+        {/* ── Progress Bar ── */}
+        <div className="wiz-progress-wrap">
+          <div className="wiz-progress-track">
+            <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
+          </div>
+          <div className="wiz-steps-row">
+            {STEPS.map(s=>(
+              <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
+                onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
+                <div className="wiz-dot-circle">{stepDone[s.id] ? '✓' : s.icon}</div>
+                <div className="wiz-dot-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* ════ STEP 1 ════ */}
         {step===1 && (
@@ -505,45 +503,27 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             </div>
 
             {/* ── 3 MODERN UI BUTTONS ── */}
-            <div style={{display:'flex', gap:14, marginBottom:24, flexWrap:'wrap'}}>
-              <button onClick={()=>setSchedModal(schedModal==='add'?null:'add')}
-                style={{
-                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:8, 
-                  border:schedModal==='add'?'2px solid #2563eb':'1px solid #cbd5e1',
-                  background: schedModal==='add'?'#eff6ff':'#fff', 
-                  color: schedModal==='add'?'#1d4ed8':'#475569',
-                  fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-                  boxShadow: schedModal==='add'?'0 4px 12px rgba(37,99,235,0.2)':'0 1px 2px rgba(0,0,0,0.05)',
-                  transition: 'all 0.2s ease', transform: schedModal==='add' ? 'translateY(-2px)' : 'none'
-                }}>
-                <span style={{fontSize:20}}>➕</span> New Add
-              </button>
-              
-              <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }}
-                style={{
-                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:8, 
-                  border:schedModal==='update'?'2px solid #7c3aed':'1px solid #cbd5e1',
-                  background: schedModal==='update'?'#f5f3ff':'#fff', 
-                  color: schedModal==='update'?'#6d28d9':'#475569',
-                  fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-                  boxShadow: schedModal==='update'?'0 4px 12px rgba(124,58,237,0.2)':'0 1px 2px rgba(0,0,0,0.05)',
-                  transition: 'all 0.2s ease', transform: schedModal==='update' ? 'translateY(-2px)' : 'none'
-                }}>
-                <span style={{fontSize:20}}>✏️</span> Update
-              </button>
-              
-              <button onClick={()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }}
-                style={{
-                  flex:1, minWidth:120, padding:'14px 10px', borderRadius:8, 
-                  border:schedModal==='view'?'2px solid #059669':'1px solid #cbd5e1',
-                  background: schedModal==='view'?'#ecfdf5':'#fff', 
-                  color: schedModal==='view'?'#047857':'#475569',
-                  fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-                  boxShadow: schedModal==='view'?'0 4px 12px rgba(5,150,105,0.2)':'0 1px 2px rgba(0,0,0,0.05)',
-                  transition: 'all 0.2s ease', transform: schedModal==='view' ? 'translateY(-2px)' : 'none'
-                }}>
-                <span style={{fontSize:20}}>👁️</span> View
-              </button>
+            <div style={{display:'flex', gap:12, marginBottom:24}}>
+              {[
+                {key:'add', label:'New Add', icon:'➕', activeColor:'#2563eb', activeBg:'#eff6ff', shadow:'rgba(37,99,235,0.2)', onClick:()=>setSchedModal(schedModal==='add'?null:'add'), isActive: schedModal==='add'},
+                {key:'update', label:'Update', icon:'✏️', activeColor:'#7c3aed', activeBg:'#f5f3ff', shadow:'rgba(124,58,237,0.2)', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }, isActive: schedModal==='update'},
+                {key:'view', label:'View', icon:'👁️', activeColor:'#059669', activeBg:'#ecfdf5', shadow:'rgba(5,150,105,0.2)', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }, isActive: schedModal==='view'},
+              ].map(btn=>(
+                <button key={btn.key} onClick={btn.onClick}
+                  style={{
+                    flex:1, height:90, borderRadius:8,
+                    border: btn.isActive ? `2px solid ${btn.activeColor}` : '1px solid #cbd5e1',
+                    background: btn.isActive ? btn.activeBg : '#fff',
+                    color: btn.isActive ? btn.activeColor : '#475569',
+                    fontWeight:800, fontSize:13, cursor:'pointer',
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6,
+                    boxShadow: btn.isActive ? `0 4px 12px ${btn.shadow}` : '0 1px 2px rgba(0,0,0,0.05)',
+                    transition:'all 0.2s ease'
+                  }}>
+                  <span style={{fontSize:22}}>{btn.icon}</span>
+                  {btn.label}
+                </button>
+              ))}
             </div>
 
             {/* ── NEW ADD — inline expand ── */}
@@ -560,11 +540,11 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14, paddingRight:30}}>
                   {/* ── 3 PREMIUM SLEEK BUTTONS (Without Icons) ── */}
-                  <div style={{display:'flex',gap:12,width:'100%',flexWrap:'wrap'}}>
+                  <div style={{display:'flex', gap:12, width:'100%'}}>
                     {[
-                      {label:'SETUP', sub:'SETUP', activeBg:'#2563eb', inactiveBg:'#f8fafc'},
-                      {label:'4HRS',  sub:'4HRS',  activeBg:'#7c3aed', inactiveBg:'#f8fafc'},
-                      {label:'LAST',  sub:'LAST',  activeBg:'#e11d48', inactiveBg:'#f8fafc'},
+                      {label:'SETUP', sub:'SETUP', activeBg:'#2563eb'},
+                      {label:'4HRS',  sub:'4HRS',  activeBg:'#7c3aed'},
+                      {label:'LAST',  sub:'LAST',  activeBg:'#e11d48'},
                     ].map(btn => {
                       const isActive = modalSlotType === btn.sub;
                       const isFilled = slots.some(s => s.type === btn.sub && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
@@ -573,35 +553,22 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           key={btn.sub}
                           onClick={()=>{
                             setModalSlotType(btn.sub);
-                            const newSlot={
-                              id:nextId,
-                              type: btn.sub==='4HRS'?'4HRS':btn.sub,
-                              subType:btn.sub,
-                              singleRow:true,
-                              date:today,
-                              upVals:Array(MAX_COLS).fill(''),
-                              downVals:Array(MAX_COLS).fill('')
-                            };
+                            const newSlot={id:nextId, type:btn.sub==='4HRS'?'4HRS':btn.sub, subType:btn.sub, singleRow:true, date:today, upVals:Array(MAX_COLS).fill(''), downVals:Array(MAX_COLS).fill('')};
                             setNextId(p=>p+1);
                             setModalActiveSlot(newSlot);
                           }}
                           style={{
-                            flex:1, minWidth:100,
-                            padding:'16px 12px',
+                            flex:1, height:70,
                             borderRadius:'8px',
-                            border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : `1px solid #cbd5e1`,
-                            background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : btn.inactiveBg,
+                            border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                            background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : '#f8fafc',
                             color: isActive ? '#fff' : isFilled ? '#15803d' : '#475569',
-                            fontWeight:700,
-                            fontSize:'15px',
-                            letterSpacing: '0.5px',
-                            cursor:'pointer',
-                            boxShadow: isActive ? `0 6px 16px ${btn.activeBg}40` : isFilled ? '0 2px 8px rgba(22,163,74,0.2)' : '0 2px 4px rgba(0,0,0,0.02)',
-                            transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
-                            transition:'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            fontWeight:700, fontSize:'14px', letterSpacing:'0.5px', cursor:'pointer',
+                            boxShadow: isActive ? `0 4px 12px ${btn.activeBg}40` : isFilled ? '0 2px 8px rgba(22,163,74,0.2)' : '0 1px 3px rgba(0,0,0,0.04)',
+                            transition:'all 0.2s ease',
                             display:'flex', alignItems:'center', justifyContent:'center', gap:6,
                           }}>
-                          {isFilled && !isActive && <span style={{fontSize:14}}>✓</span>}
+                          {isFilled && !isActive && <span style={{fontSize:13}}>✓</span>}
                           {btn.label}
                         </button>
                       );
