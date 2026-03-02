@@ -57,10 +57,8 @@ body { background: var(--bg-color); color: var(--text-main); }
   background: var(--card-bg);
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-light);
-  position: sticky;
-  top: 60px;
-  z-index: 100;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  position: relative;
+  z-index: 1;
 }
 .wiz-progress-track {
   height: 6px; background: #f3f4f6; border-radius: 6px;
@@ -70,23 +68,78 @@ body { background: var(--bg-color); color: var(--text-main); }
   height: 100%; background: var(--primary);
   border-radius: 6px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.wiz-steps-row { display: flex; justify-content: space-between; align-items: flex-start; max-width: 400px; margin: 0 auto; }
-.wiz-step-dot { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; flex: 1; }
-.wiz-dot-circle {
-  width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-light);
-  background: var(--card-bg); display: flex; align-items: center; justify-content: center;
-  font-size: 16px; transition: all 0.3s ease; color: var(--text-muted);
+
+/* ── FIXED: full width, row layout with big square icons ── */
+.wiz-steps-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0;
+  max-width: 100%;        /* was 400px — caused squeezing */
+  margin: 0;
 }
+
+.wiz-step-dot {
+  display: flex;
+  flex-direction: row;    /* icon + label side by side */
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+  padding: 4px 0;
+}
+
+/* Divider line between steps */
+.wiz-step-dot:not(:last-child)::after {
+  content: '';
+  display: block;
+  flex-shrink: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--border-light);
+  border-radius: 2px;
+  margin: 0 12px;
+}
+
+/* ── FIXED: big square instead of small circle ── */
+.wiz-dot-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;    /* square, not circle */
+  border: 1.5px solid var(--border-light);
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  color: var(--text-muted);
+}
+
 .wiz-step-dot.active .wiz-dot-circle {
-  border-color: var(--primary); background: var(--primary); color: white;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  border-color: var(--primary);
+  background: #eff4ff;
+  color: var(--primary);
+  box-shadow: none;       /* removed glow */
 }
 .wiz-step-dot.done .wiz-dot-circle {
-  border-color: var(--success); background: #d1fae5; color: var(--success); font-weight: 800;
+  border-color: var(--success);
+  background: #d1fae5;
+  color: var(--success);
+  font-weight: 800;
+  font-size: 18px;
 }
-.wiz-dot-label { font-size: 12px; font-weight: 600; color: var(--text-muted); transition: color 0.3s; }
+
+.wiz-dot-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: color 0.3s;
+  white-space: nowrap;
+}
 .wiz-step-dot.active .wiz-dot-label { color: var(--primary); }
-.wiz-step-dot.done  .wiz-dot-label  { color: var(--success); }
+.wiz-step-dot.done   .wiz-dot-label { color: var(--success); }
 
 /* ══ BODY ══ */
 .wiz-body {
