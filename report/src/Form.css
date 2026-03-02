@@ -148,11 +148,11 @@ body { background: var(--bg-color); color: var(--text-main); }
 }
 
 /* ══ SQUARE ACTION BUTTONS ══ */
-.sq-btn-row { display:flex; gap:12px; margin-bottom:16px; align-items:flex-start; }
+.sq-btn-row { display:flex; gap:12px; margin-bottom:16px; align-items:stretch; width:100%; }
 .sq-btn {
-  width: 90px;
+  flex: 1;
   height: 90px;
-  flex: none;
+  min-width: 0;
   border-radius: 12px;
   border: 1px solid #cbd5e1;
   background: #fff;
@@ -167,23 +167,23 @@ body { background: var(--bg-color); color: var(--text-main); }
   justify-content: center;
   gap: 5px;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   color: #475569;
   height: 100%;
 }
-.sq-btn-icon { font-size: 20px; }
+.sq-btn-icon { font-size: 24px; }
 
 /* ══ MEDIUM RECT BUTTONS (SETUP/4HRS/LAST) ══ */
-.med-btn-row { display:flex; gap:12px; align-items:flex-start; }
+.med-btn-row { display:flex; gap:12px; align-items:stretch; width:100%; }
 .med-btn {
-  width: 90px;
+  flex: 1;
   height: 90px;
-  flex: none;
+  min-width: 0;
   border-radius: 12px;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #475569;
-  font-weight:700; font-size:13px; cursor:pointer;
+  font-weight:700; font-size:14px; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: all 0.2s ease;

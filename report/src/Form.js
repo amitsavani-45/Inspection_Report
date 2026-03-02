@@ -815,17 +815,23 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           <thead>
                             <tr style={{background:'#f8fafc'}}>
                               <th style={{padding:'7px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
+                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0'}}>Spec</th>
+                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Tolerance</th>
+                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0'}}>Instrument</th>
                               <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0'}}>Reading 1</th>
                               {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
-                            {colLabels.map(({idx,label})=>{
+                            {colLabels.map(({idx,label,spec,tolerance,inst})=>{
                               const uv=s.upVals[idx]||'—';
                               const dv=s.downVals[idx]||'—';
                               return (
                                 <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
                                   <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
+                                  <td style={{padding:'6px 8px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
+                                  <td style={{padding:'6px 8px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
+                                  <td style={{padding:'6px 8px',textAlign:'center',color:'#1565c0',fontSize:12}}>{inst||'—'}</td>
                                   <td style={{padding:'6px 12px',textAlign:'center',color:uv==='NG'?'#e53935':uv!=='—'?'#2e7d32':'#aaa',fontWeight:uv!=='—'?700:400}}>{uv}</td>
                                   {!s.singleRow && <td style={{padding:'6px 12px',textAlign:'center',color:dv==='NG'?'#e53935':dv!=='—'?'#e65100':'#aaa',fontWeight:dv!=='—'?700:400}}>{dv}</td>}
                                 </tr>
