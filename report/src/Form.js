@@ -4,20 +4,15 @@ import { getDropdownOptions } from './services/api';
 
 const parseSpecTol = (raw = '') => {
   if (!raw) return { spec: '', tol: '' };
-  // number +0.5/-1.0 MM
   let m = raw.match(/^([\d.]+)\s*(\+[\d.]+\s*\/\s*-[\d.]+\s*MM)\s*$/i);
   if (m) return { spec: m[1].trim(), tol: m[2].trim() };
-  // number + 0.9 MM
   m = raw.match(/^([\d.]+)\s*(\+\s*[\d.]+\s*MM)\s*$/i);
   if (m) return { spec: m[1].trim(), tol: m[2].trim() };
-  // number ± 0.07 MM
   m = raw.match(/^([\d.]+)\s*(±\s*[\d.]+\s*MM)\s*$/i);
   if (m) return { spec: m[1].trim(), tol: m[2].trim() };
-  // everything else — full spec, no tolerance
   return { spec: raw.trim(), tol: '' };
 };
 
-/* ── DB se inspection items fetch karo ── */
 const fetchInspectionItems = async (operation) => {
   try {
     const response = await fetch(`http://localhost:8000/api/inspection-items/?operation=${encodeURIComponent(operation)}`);
@@ -28,7 +23,6 @@ const fetchInspectionItems = async (operation) => {
   }
 };
 
-/* ── Constants (static - DB se nahi aate) ── */
 const OPERATOR_NAMES = ['ALEX','RAHUL SHARMA','SURESH KUMAR','RAMESH PATEL','DINESH VERMA','MAHESH YADAV','PRAKASH SINGH','VIJAY KUMAR','ANIL GUPTA','RAJU MEHTA','SANJAY JOSHI','DEEPAK NAIR','RAKESH TIWARI','MOHAN DAS','GANESH RAO'];
 const PRODUCT_ITEMS  = ['APPEARANCE','WIDTH','LENGTH','THICKNESS','DIMENSIONS A','DIMENSIONS B','RADIUS','BLANK PROFILE','DIAMETER','DEPTH','HEIGHT','FLATNESS','STRAIGHTNESS','ROUNDNESS','CHAMFER','THREAD','HOLE DIAMETER','PITCH','SURFACE FINISH','WEIGHT'];
 const PROCESS_ITEMS  = ['SHUT HEIGHT','BALANCER PRESSURE','CLUTCH PRESSURE','CUSHION PRESSURE','DIE HEIGHT','STROKE LENGTH','FEED RATE','CUTTING SPEED','SPINDLE SPEED','COOLANT PRESSURE','COOLANT FLOW','CLAMPING FORCE','BLANK HOLDER FORCE','DRAWING FORCE','PRESS TONNAGE','TEMPERATURE','CYCLE TIME','AIR PRESSURE','HYDRAULIC PRESSURE','LUBRICATION PRESSURE'];
@@ -41,11 +35,10 @@ const MAX_COLS = 20;
 const emptyRow = () => ({ name:'', spec:'', tolerance:'', inst:'' });
 
 const STEPS = [
-  { id:1, label:'Report',     icon:'📋' },
-  { id:2, label:'Schedule',   icon:'📅' },
+  { id:1, label:'Report', icon:'📋' },
+  { id:2, label:'Schedule', icon:'📅' },
 ];
 
-/* ── Reusable Select Field ── */
 const Field = ({ label, value, onChange, options, placeholder, required }) => (
   <div className="wiz-field">
     <label className="wiz-label">{label}{required && <span style={{color:'#e53935'}}> *</span>}</label>
@@ -59,7 +52,6 @@ const Field = ({ label, value, onChange, options, placeholder, required }) => (
   </div>
 );
 
-/* ── Inspection Row ── */
 const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems=[] }) => {
   const [spec, setSpec] = useState(row.spec || '');
   useEffect(() => setSpec(row.spec || ''), [row.spec]);
@@ -106,7 +98,6 @@ const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems=[] }) => 
   );
 };
 
-/* ── Combined Inspection Preview Table ── */
 const CombinedTable = ({ productRows, processRows }) => {
   const allRows = [
     ...productRows.map((r,i) => ({...r, category:'PRODUCT', catColor:'#1976d2', sr:i+1})),
@@ -161,7 +152,6 @@ const CombinedTable = ({ productRows, processRows }) => {
   );
 };
 
-/* ── Slot Value Entry — Direct Table ── */
 const SlotValueEntry = ({ slot, colLabels, setVal }) => {
   if (colLabels.length===0) return (
     <div style={{padding:'20px',textAlign:'center',color:'#aaa',fontSize:13}}>
@@ -188,37 +178,23 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
               <tr key={idx} style={{borderBottom:'1px solid #f0f0f0',background:idx%2===0?'#fff':'#fafafa'}}>
                 <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
                 <td style={{padding:'4px 8px',textAlign:'center'}}>
-                  <input
-                    type="text"
-                    value={uv}
-                    placeholder="—"
+                  <input type="text" value={uv} placeholder="—"
                     onChange={e=>setVal(slot.id,'up',idx,e.target.value)}
-                    style={{
-                      width:'80px',textAlign:'center',padding:'5px 8px',
+                    style={{width:'80px',textAlign:'center',padding:'5px 8px',
                       border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#ddd'}`,
                       borderRadius:6,fontSize:13,fontWeight:uv?700:400,
                       background:isNgUp?'#ffebee':uv?'#e8f5e9':'#fff',
-                      color:isNgUp?'#e53935':uv?'#2e7d32':'#999',
-                      outline:'none'
-                    }}
-                  />
+                      color:isNgUp?'#e53935':uv?'#2e7d32':'#999',outline:'none'}}/>
                 </td>
                 {!slot.singleRow && (
                   <td style={{padding:'4px 8px',textAlign:'center'}}>
-                    <input
-                      type="text"
-                      value={dv}
-                      placeholder="—"
+                    <input type="text" value={dv} placeholder="—"
                       onChange={e=>setVal(slot.id,'down',idx,e.target.value)}
-                      style={{
-                        width:'80px',textAlign:'center',padding:'5px 8px',
+                      style={{width:'80px',textAlign:'center',padding:'5px 8px',
                         border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#ddd'}`,
                         borderRadius:6,fontSize:13,fontWeight:dv?700:400,
                         background:isNgDn?'#ffebee':dv?'#fff3e0':'#fff',
-                        color:isNgDn?'#e53935':dv?'#e65100':'#999',
-                        outline:'none'
-                      }}
-                    />
+                        color:isNgDn?'#e53935':dv?'#e65100':'#999',outline:'none'}}/>
                   </td>
                 )}
               </tr>
@@ -236,13 +212,7 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
 const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [step, setStep] = useState(1);
 
-  /* ── DB se dropdown options ── */
-  const [dbOptions, setDbOptions] = useState({
-    customers: [],
-    part_names: [],
-    part_numbers: [],
-    operations: [],
-  });
+  const [dbOptions, setDbOptions] = useState({ customers:[], part_names:[], part_numbers:[], operations:[] });
   const [optionsLoading, setOptionsLoading] = useState(true);
 
   useEffect(() => {
@@ -254,13 +224,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           setHeader(p => ({...p, partNumber: data.part_numbers[0]}));
         }
       })
-      .catch(err => {
-        console.error('Dropdown options fetch failed:', err);
-        setOptionsLoading(false);
-      });
+      .catch(err => { console.error('Dropdown options fetch failed:', err); setOptionsLoading(false); });
   }, []);
 
-  /* Step 1 */
   const [header, setHeader] = useState({
     customerName:  initialData.customer_name  || '',
     partName:      initialData.part_name      || '',
@@ -269,7 +235,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   });
   const step1Done = !!(header.customerName && header.partName && header.operationName && header.partNumber);
 
-  /* Step 2 */
   const existingProducts  = items.filter(i=>i.sr_no<=10);
   const existingProcesses = items.filter(i=>i.sr_no>=11);
   const [productRows, setProductRows] = useState(
@@ -282,41 +247,19 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       ? existingProcesses.map(r=>({name:r.item||'',spec:r.spec||'',tolerance:r.tolerance||'',inst:r.inst||''}))
       : [emptyRow()]
   );
-
   const [inspType, setInspType] = useState('');
 
-  /* ── Operation select hone par DB se items auto-load karo ── */
   useEffect(() => {
     if (!header.operationName) return;
     fetchInspectionItems(header.operationName).then(data => {
       if (data.product && data.product.length > 0) {
-        setProductRows([
-          ...data.product.map(item => ({
-            name: item.name || '',
-            spec: item.spec || '',
-            tolerance: item.tolerance || '',
-            inst: item.instrument || '',
-          })),
-          emptyRow()
-        ]);
+        setProductRows([...data.product.map(item => ({name:item.name||'',spec:item.spec||'',tolerance:item.tolerance||'',inst:item.instrument||''})),emptyRow()]);
         setInspType('product');
-      } else {
-        setProductRows([emptyRow()]);
-      }
+      } else { setProductRows([emptyRow()]); }
       if (data.process && data.process.length > 0) {
-        setProcessRows([
-          ...data.process.map(item => ({
-            name: item.name || '',
-            spec: item.spec || '',
-            tolerance: item.tolerance || '',
-            inst: item.instrument || '',
-          })),
-          emptyRow()
-        ]);
+        setProcessRows([...data.process.map(item => ({name:item.name||'',spec:item.spec||'',tolerance:item.tolerance||'',inst:item.instrument||''})),emptyRow()]);
         if (data.product && data.product.length === 0) setInspType('process');
-      } else {
-        setProcessRows([emptyRow()]);
-      }
+      } else { setProcessRows([emptyRow()]); }
     });
   }, [header.operationName]);
 
@@ -324,7 +267,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const filledProcesses = processRows.filter(r=>r.name&&r.spec&&r.inst);
   const step2Done = filledProducts.length>0 || filledProcesses.length>0;
 
-  /* Step 3 */
   const [schedDate,    setSchedDate]   = useState(initialData.date||new Date().toISOString().split('T')[0]);
   const existingEntries = initialData.schedule_entries||[];
   const firstEntry = existingEntries[0]||{};
@@ -333,13 +275,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [schedExpanded, setSchedExpanded] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
-  const makeSlot = (id,type,subType='',slotDate='') => ({id,type,subType,singleRow:true,date:slotDate||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
+  const makeSlot = (id,type,subType='',slotDate='') => ({id,type,subType,singleRow:true,date:slotDate||today,savedAt:null,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')});
   const buildInitialSlots = () => {
     if (!existingEntries.length) return [];
     const map={};
     existingEntries.forEach(e=>{
       const k=e.slot_index??0;
-      if (!map[k]) map[k]={id:k+1,type:e.time_type||'SETUP',singleRow:true,date:e.date||today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+      if (!map[k]) map[k]={id:k+1,type:e.time_type||'SETUP',singleRow:true,date:e.date||today,savedAt:e.filled_at?new Date(e.filled_at).getTime():null,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
       const vals=Array(MAX_COLS).fill('');
       for(let i=0;i<MAX_COLS;i++) vals[i]=e[`value_${i+1}`]||'';
       if (e.row_order===0){map[k].upVals=vals;}
@@ -349,16 +291,16 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     return r.length?r:[];
   };
   const initSlots = buildInitialSlots();
-  const [slots,        setSlots]        = useState(initSlots);
-  const [nextId,       setNextId]       = useState(initSlots.length+1);
-  const [activeSlotId, setActiveSlotId] = useState(initSlots[0]?.id??1);
-  const [schedModal,     setSchedModal]     = useState(null);
+  const [slots,           setSlots]           = useState(initSlots);
+  const [nextId,          setNextId]          = useState(initSlots.length+1);
+  const [activeSlotId,    setActiveSlotId]    = useState(initSlots[0]?.id??1);
+  const [schedModal,      setSchedModal]      = useState(null);
   const [modalActiveSlot, setModalActiveSlot] = useState(null);
-  const [modalSlotType,  setModalSlotType]  = useState('');
-  const [modalSubType,   setModalSubType]   = useState('');
-  const [updateSlotId,   setUpdateSlotId]   = useState(null);
+  const [modalSlotType,   setModalSlotType]   = useState('');
+  const [modalSubType,    setModalSubType]    = useState('');
+  const [updateSlotId,    setUpdateSlotId]    = useState(null);
 
-  // Persistent timestamps for time-lock (survives re-renders)
+  // Persistent timestamps for time-lock
   const LS_KEY = `slot_timestamps_${header.partNumber||'default'}`;
   const [slotTimestamps, setSlotTimestamps] = useState(() => {
     try { return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); } catch { return {}; }
@@ -369,7 +311,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(updated)); } catch {}
   };
 
-  const toggleRows  = (id) => setSlots(p=>p.map(s=>s.id===id?{...s,singleRow:!s.singleRow}:s));
+  const toggleRows = (id) => setSlots(p=>p.map(s=>s.id===id?{...s,singleRow:!s.singleRow}:s));
   const setVal = (slotId,row,idx,val) =>
     setSlots(p=>p.map(s=>s.id===slotId
       ?{...s,[row==='up'?'upVals':'downVals']:s[row==='up'?'upVals':'downVals'].map((v,i)=>i===idx?val:v)}:s));
@@ -377,11 +319,11 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const colLabels = [
     ...filledProducts.map((r,i) => {
       const {spec:s, tol:t} = parseSpecTol(r.spec);
-      return { idx: i, label: `${i+1}. ${r.name}`, spec: s || r.spec || '—', tolerance: r.tolerance ? `± ${r.tolerance}` : (t || '—'), inst: r.inst || '—' };
+      return { idx:i, label:`${i+1}. ${r.name}`, spec:s||r.spec||'—', tolerance:r.tolerance?`± ${r.tolerance}`:(t||'—'), inst:r.inst||'—' };
     }),
     ...filledProcesses.map((r,i) => {
       const {spec:s, tol:t} = parseSpecTol(r.spec);
-      return { idx: filledProducts.length+i, label: `${filledProducts.length+i+1}. ${r.name}`, spec: s || r.spec || '—', tolerance: r.tolerance ? r.tolerance : (t || '—'), inst: r.inst || '—' };
+      return { idx:filledProducts.length+i, label:`${filledProducts.length+i+1}. ${r.name}`, spec:s||r.spec||'—', tolerance:r.tolerance?r.tolerance:(t||'—'), inst:r.inst||'—' };
     }),
   ].slice(0,MAX_COLS);
 
@@ -389,13 +331,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())
   );
 
-  const TYPE_ORDER = ['SETUP', '4HRS', 'LAST'];
+  const TYPE_ORDER = ['SETUP','4HRS','LAST'];
   const getSortedSlotsForDropdown = () => {
-    return [...slots].sort((a, b) => {
-      const ai = TYPE_ORDER.indexOf(a.type);
-      const bi = TYPE_ORDER.indexOf(b.type);
-      if (ai !== bi) return ai - bi;
-      return a.id - b.id; 
+    return [...slots].sort((a,b) => {
+      const ai=TYPE_ORDER.indexOf(a.type), bi=TYPE_ORDER.indexOf(b.type);
+      if (ai!==bi) return ai-bi;
+      return a.id-b.id;
     });
   };
 
@@ -403,43 +344,45 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     if (!step1Done){alert('Step 1 pura karo');return;}
     if (!operatorName){alert('Operator select karo!');return;}
     if (!mcNo){alert('M/C No select karo!');return;}
-    if (slots.length === 0){alert('Pehle SETUP ki report bharo!');return;}
+    if (slots.length===0){alert('Pehle SETUP ki report bharo!');return;}
 
-    // Agar modal abhi bhi khula hai aur data filled hai — auto save karo
+    // Auto-save modal slot if open and has data
     if (modalActiveSlot && modalActiveSlot.upVals.some(v=>v&&v.trim())) {
       setSlots(prev=>{
-        const newSlot = {...modalActiveSlot, savedAt: Date.now()};
-        const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
-        const at = li>=0 ? li+1 : prev.length;
-        const n = [...prev]; n.splice(at,0,newSlot); return n;
+        const newSlot={...modalActiveSlot,savedAt:Date.now()};
+        const li=[...prev].map(x=>x.type).lastIndexOf(newSlot.type);
+        const at=li>=0?li+1:prev.length;
+        const n=[...prev]; n.splice(at,0,newSlot); return n;
       });
       saveTimestamp(modalActiveSlot.type);
-      setModalActiveSlot(null);
-      setModalSlotType('');
-      setSchedModal(null);
+      setModalActiveSlot(null); setModalSlotType(''); setSchedModal(null);
     }
 
     const allItems=[
-      ...filledProducts.map((r,i) =>{
-        const parsed = parseSpecTol(r.spec);
-        const cleanSpec = parsed.spec || r.spec;
-        const tol = r.tolerance ? `± ${r.tolerance}` : parsed.tol;
-        return {sr_no:i+1, item:r.name, spec:cleanSpec, tolerance:tol, inst:r.inst};
+      ...filledProducts.map((r,i)=>{
+        const parsed=parseSpecTol(r.spec);
+        const cleanSpec=parsed.spec||r.spec;
+        const tol=r.tolerance?`± ${r.tolerance}`:parsed.tol;
+        return {sr_no:i+1,item:r.name,spec:cleanSpec,tolerance:tol,inst:r.inst};
       }),
       ...filledProcesses.map((r,i)=>{
-        const parsed = parseSpecTol(r.spec);
-        const cleanSpec = parsed.spec || r.spec;
-        const tol = r.tolerance ? r.tolerance : parsed.tol;
-        return {sr_no:11+i, item:r.name, spec:cleanSpec, tolerance:tol, inst:r.inst};
+        const parsed=parseSpecTol(r.spec);
+        const cleanSpec=parsed.spec||r.spec;
+        const tol=r.tolerance?r.tolerance:parsed.tol;
+        return {sr_no:11+i,item:r.name,spec:cleanSpec,tolerance:tol,inst:r.inst};
       }),
     ];
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
-      const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
+      // Har slot ka apna filled_at — jab "Save & Close" dabaya tha
+      const filledAt = slot.savedAt
+        ? new Date(slot.savedAt).toISOString()
+        : new Date().toISOString();
+      const eUp={time_type:slot.type,row_order:0,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate,filled_at:filledAt};
       slot.upVals.forEach((v,i)=>{eUp[`value_${i+1}`]=v||'';});
       scheduleEntries.push(eUp);
       if(!slot.singleRow){
-        const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate};
+        const eDown={time_type:slot.type,row_order:1,slot_index:si,operator:operatorName,machine_no:mcNo,date:slot.date||schedDate,filled_at:filledAt};
         slot.downVals.forEach((v,i)=>{eDown[`value_${i+1}`]=v||'';});
         scheduleEntries.push(eDown);
       }
@@ -447,20 +390,27 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     onSubmit({partName:header.partName,partNumber:header.partNumber,operationName:header.operationName,customerName:header.customerName,scheduleDate:schedDate,operatorName,mcNo,items:allItems,schedule_entries:scheduleEntries});
   };
 
-  const stepDone = [false, step1Done, isSetupFilled];
-  const progress = ((step-1)/1)*100;
+  const stepDone=[false,step1Done,isSetupFilled];
+  const progress=((step-1)/1)*100;
+
+  // Shared reading input style
+  const readingInput = (val, isNg, colorOk, colorNg, colorEmpty) => ({
+    width:'80px',textAlign:'center',padding:'5px 8px',
+    border:`1px solid ${isNg?'#e53935':val?colorOk:'#cbd5e1'}`,
+    borderRadius:6,fontSize:13,fontWeight:val?700:400,
+    background:isNg?'#ffebee':val?colorEmpty:'#fff',
+    color:isNg?'#e53935':val?colorNg:'#333',outline:'none'
+  });
 
   return (
     <div className="wiz-wrap">
 
-      {/* ── Top Bar ── */}
       <div className="wiz-topbar">
         <button onClick={onCancel} className="wiz-back-btn">← Back</button>
         <span className="wiz-topbar-title">📋 Inspection Form</span>
         <div style={{width:60}} />
       </div>
 
-      {/* ── Step Content ── */}
       <div className="wiz-body">
         <div className="wiz-progress-wrap">
           <div className="wiz-progress-track">
@@ -469,8 +419,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           <div className="wiz-steps-row">
             {STEPS.map(s=>(
               <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
-                onClick={()=>{ if(s.id<step || stepDone[s.id-1] || s.id===1) setStep(s.id); }}>
-                <div className="wiz-dot-circle">{stepDone[s.id] ? '✓' : s.icon}</div>
+                onClick={()=>{ if(s.id<step||stepDone[s.id-1]||s.id===1) setStep(s.id); }}>
+                <div className="wiz-dot-circle">{stepDone[s.id]?'✓':s.icon}</div>
                 <div className="wiz-dot-label">{s.label}</div>
               </div>
             ))}
@@ -483,11 +433,11 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           <div className="wiz-card">
             <div className="wiz-card-title">📋 Report Information</div>
             <div className="wiz-grid-2">
-              <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={dbOptions.customers} placeholder={optionsLoading ? 'Loading...' : 'Select customer...'} required />
-              <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={dbOptions.part_names} placeholder={optionsLoading ? 'Loading...' : 'Select part...'} required />
-              <Field label="Operation" value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={dbOptions.operations} placeholder={optionsLoading ? 'Loading...' : 'Select operation...'} required />
+              <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={dbOptions.customers} placeholder={optionsLoading?'Loading...':'Select customer...'} required />
+              <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={dbOptions.part_names} placeholder={optionsLoading?'Loading...':'Select part...'} required />
+              <Field label="Operation" value={header.operationName} onChange={v=>setHeader(p=>({...p,operationName:v}))} options={dbOptions.operations} placeholder={optionsLoading?'Loading...':'Select operation...'} required />
               {header.customerName && header.partName && header.operationName
-                ? (dbOptions.part_numbers.length === 1
+                ? (dbOptions.part_numbers.length===1
                     ? <div style={{display:'flex',flexDirection:'column',gap:4}}>
                         <label className="wiz-label">Part Number <span style={{color:'#e53935'}}>*</span></label>
                         <div style={{padding:'10px 14px',border:'1px solid #ccc',borderRadius:6,background:'#f5f5f5',fontWeight:600,color:'#333'}}>{header.partNumber}</div>
@@ -501,10 +451,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           {step1Done && (
             <div className="wiz-card" style={{marginTop:16}}>
               <div className="wiz-card-title">🔍 Inspection Items</div>
-              <CombinedTable
-                productRows={filledProducts}
-                processRows={filledProcesses}
-              />
+              <CombinedTable productRows={filledProducts} processRows={filledProcesses} />
             </div>
           )}
           </>
@@ -515,7 +462,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           <div className="wiz-card">
             <div className="wiz-card-title">📅 Schedule</div>
 
-            {/* Basic info */}
             <div className="wiz-grid-3" style={{marginBottom:20}}>
               <div className="wiz-field">
                 <label className="wiz-label">Date <span style={{color:'#e53935'}}>*</span></label>
@@ -529,19 +475,19 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
             </div>
 
-            {/* ── 3 SQUARE BUTTONS ── */}
-            <div className="sq-btn-row">
+            {/* ── 3 SQUARE BUTTONS — hide when New Add is open ── */}
+            <div className="sq-btn-row" style={{display: schedModal==='add'?'none':'flex'}}>
               {[
                 {key:'add',    label:'New Add', icon:'➕', color:'#2563eb', bg:'#eff6ff', shadow:'rgba(37,99,235,0.2)',   active:schedModal==='add',    onClick:()=>setSchedModal(schedModal==='add'?null:'add')},
                 {key:'update', label:'Update',  icon:'✏️', color:'#7c3aed', bg:'#f5f3ff', shadow:'rgba(124,58,237,0.2)', active:schedModal==='update', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }},
                 {key:'view',   label:'View',    icon:'👁️', color:'#059669', bg:'#ecfdf5', shadow:'rgba(5,150,105,0.2)',  active:schedModal==='view',   onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }},
               ].map(btn=>(
                 <button key={btn.key} onClick={btn.onClick} className="sq-btn" style={{
-                  border: btn.active ? `2px solid ${btn.color}` : '1px solid #cbd5e1',
-                  background: btn.active ? btn.bg : '#fff',
-                  boxShadow: btn.active ? `0 4px 12px ${btn.shadow}` : '0 1px 3px rgba(0,0,0,0.06)',
+                  border:btn.active?`2px solid ${btn.color}`:'1px solid #cbd5e1',
+                  background:btn.active?btn.bg:'#fff',
+                  boxShadow:btn.active?`0 4px 12px ${btn.shadow}`:'0 1px 3px rgba(0,0,0,0.06)',
                 }}>
-                  <div className="sq-btn-inner" style={{color: btn.active ? btn.color : '#475569'}}>
+                  <div className="sq-btn-inner" style={{color:btn.active?btn.color:'#475569'}}>
                     <span className="sq-btn-icon">{btn.icon}</span>
                     {btn.label}
                   </div>
@@ -549,97 +495,70 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               ))}
             </div>
 
-            {/* ── NEW ADD — inline expand ── */}
+            {/* ── NEW ADD ── */}
             {schedModal==='add' && (
-              <div style={{position:'relative', background:'#f8fafc', borderRadius:12, border:'1px solid #e2e8f0', margin:'0 -24px', padding:'16px 48px 16px 24px', marginBottom:16}}>
-
-                {/* Sleek Top-Right Close Icon */}
+              <div style={{position:'relative',background:'#f8fafc',borderRadius:12,border:'1px solid #e2e8f0',margin:'0 -24px',padding:'16px 48px 16px 24px',marginBottom:16}}>
                 <button onClick={()=>{setSchedModal(null);setModalActiveSlot(null);setModalSlotType('');}}
-                  style={{position:'absolute', top:12, right:12, background:'transparent', border:'none', fontSize:20, color:'#94a3b8', cursor:'pointer', width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s ease'}}
-                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9'; e.currentTarget.style.color='#334155';}}
-                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#94a3b8';}}>
-                  ✕
-                </button>
+                  style={{position:'absolute',top:12,right:12,background:'transparent',border:'none',fontSize:20,color:'#94a3b8',cursor:'pointer',width:32,height:32,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.2s ease'}}
+                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9';e.currentTarget.style.color='#334155';}}
+                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#94a3b8';}}>✕</button>
 
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-                  {/* ── 3 MEDIUM BUTTONS ── */}
-                  <div className="med-btn-row">
+                  <div className="med-btn-row" style={{width:'100%'}}>
                     {[
-                      {label:'SETUP', sub:'SETUP', activeBg:'#2563eb'},
-                      {label:'4HRS',  sub:'4HRS',  activeBg:'#7c3aed'},
-                      {label:'LAST',  sub:'LAST',  activeBg:'#e11d48'},
+                      {label:'SETUP',sub:'SETUP',activeBg:'#2563eb'},
+                      {label:'4HRS', sub:'4HRS', activeBg:'#7c3aed'},
+                      {label:'LAST', sub:'LAST', activeBg:'#e11d48'},
                     ].map(btn => {
-                      const isActive = modalSlotType === btn.sub;
-                      const isFilled = slots.some(s => s.type === btn.sub && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
+                      const isActive   = modalSlotType===btn.sub;
+                      const isFilled   = slots.some(s=>s.type===btn.sub&&(s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())));
+                      const setupSavedAt = slotTimestamps['SETUP'] || slots.find(s=>s.type==='SETUP'&&s.savedAt)?.savedAt || null;
+                      const fhrsSavedAt  = slotTimestamps['4HRS']  || slots.find(s=>s.type==='4HRS' &&s.savedAt)?.savedAt || null;
+                      const setupFilled  = slots.some(s=>s.type==='SETUP'&&(s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())));
+                      const fhrsFilled   = slots.some(s=>s.type==='4HRS' &&(s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())));
+                      const now=Date.now(), FOUR_HRS_MS=4*60*60*1000;
+                      let isLocked=false, lockMsg='', timeLeft='';
 
-                      // Time-based lock using localStorage timestamps
-                      const setupSavedAt = slotTimestamps['SETUP'] || null;
-                      const fhrsSavedAt  = slotTimestamps['4HRS']  || null;
-                      const setupFilled  = slots.some(s => s.type === 'SETUP' && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
-                      const fhrsFilled   = slots.some(s => s.type === '4HRS'  && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
-                      const now = Date.now();
-                      const FOUR_HRS_MS = 4 * 60 * 60 * 1000;
-
-                      let isLocked = false;
-                      let lockMsg  = '';
-                      let timeLeft = '';
-
-                      if (btn.sub === '4HRS') {
-                        if (!setupFilled || !setupSavedAt) {
-                          isLocked = true; lockMsg = 'Pehle SETUP ki report bharni hogi!';
-                        } else if (now - setupSavedAt < FOUR_HRS_MS) {
-                          isLocked = true;
-                          const remainMs = FOUR_HRS_MS - (now - setupSavedAt);
-                          const h = Math.floor(remainMs/3600000);
-                          const m = Math.floor((remainMs%3600000)/60000);
-                          timeLeft = `${h}h ${m}m later`;
-                          lockMsg = `SETUP ke 4 ghante baad khulega! (${timeLeft})`;
+                      if (btn.sub==='4HRS') {
+                        if (!setupFilled||!setupSavedAt) { isLocked=true; lockMsg='Pehle SETUP ki report bharni hogi!'; }
+                        else if (now-setupSavedAt<FOUR_HRS_MS) {
+                          isLocked=true;
+                          const rem=FOUR_HRS_MS-(now-setupSavedAt);
+                          timeLeft=`${Math.floor(rem/3600000)}h ${Math.floor((rem%3600000)/60000)}m later`;
+                          lockMsg=`SETUP ke 4 ghante baad khulega! (${timeLeft})`;
                         }
                       }
-                      if (btn.sub === 'LAST') {
-                        if (!fhrsFilled || !fhrsSavedAt) {
-                          isLocked = true; lockMsg = 'Pehle 4HRS ki report bharni hogi!';
-                        } else if (now - fhrsSavedAt < FOUR_HRS_MS) {
-                          isLocked = true;
-                          const remainMs = FOUR_HRS_MS - (now - fhrsSavedAt);
-                          const h = Math.floor(remainMs/3600000);
-                          const m = Math.floor((remainMs%3600000)/60000);
-                          timeLeft = `${h}h ${m}m later`;
-                          lockMsg = `4HRS ke 4 ghante baad khulega! (${timeLeft})`;
+                      if (btn.sub==='LAST') {
+                        if (!fhrsFilled||!fhrsSavedAt) { isLocked=true; lockMsg='Pehle 4HRS ki report bharni hogi!'; }
+                        else if (now-fhrsSavedAt<FOUR_HRS_MS) {
+                          isLocked=true;
+                          const rem=FOUR_HRS_MS-(now-fhrsSavedAt);
+                          timeLeft=`${Math.floor(rem/3600000)}h ${Math.floor((rem%3600000)/60000)}m later`;
+                          lockMsg=`4HRS ke 4 ghante baad khulega! (${timeLeft})`;
                         }
                       }
 
                       return (
                         <button key={btn.sub} className="med-btn"
                           onClick={()=>{
-                            if (isLocked) { alert(lockMsg); return; }
+                            if (isLocked){alert(lockMsg);return;}
                             setModalSlotType(btn.sub);
-                            const newSlot={
-                              id:nextId,
-                              type: btn.sub==='4HRS'?'4HRS':btn.sub,
-                              subType:btn.sub,
-                              singleRow:true,
-                              date:today,
-                              savedAt:null,
-                              upVals:Array(MAX_COLS).fill(''),
-                              downVals:Array(MAX_COLS).fill('')
-                            };
+                            const newSlot={id:nextId,type:btn.sub==='4HRS'?'4HRS':btn.sub,subType:btn.sub,singleRow:true,date:today,savedAt:null,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
                             setNextId(p=>p+1);
                             setModalActiveSlot(newSlot);
                           }}
-                          title={isLocked ? lockMsg : ''}
+                          title={isLocked?lockMsg:''}
                           style={{
-                            border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : isLocked ? '1px dashed #cbd5e1' : '1px solid #cbd5e1',
-                            background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : isLocked ? '#f8f8f8' : '#f8fafc',
-                            color: isActive ? '#fff' : isFilled ? '#15803d' : isLocked ? '#c0c0c0' : '#475569',
-                            boxShadow: isActive ? `0 4px 12px ${btn.activeBg}40` : '0 1px 3px rgba(0,0,0,0.04)',
-                            cursor: isLocked ? 'not-allowed' : 'pointer',
-                            flexDirection: 'column', gap: 4,
+                            border:isActive?`2px solid ${btn.activeBg}`:isFilled?'2px solid #16a34a':isLocked?'1px dashed #cbd5e1':'1px solid #cbd5e1',
+                            background:isActive?btn.activeBg:isFilled?'#dcfce7':isLocked?'#f8f8f8':'#f8fafc',
+                            color:isActive?'#fff':isFilled?'#15803d':isLocked?'#c0c0c0':'#475569',
+                            boxShadow:isActive?`0 4px 12px ${btn.activeBg}40`:'0 1px 3px rgba(0,0,0,0.04)',
+                            cursor:isLocked?'not-allowed':'pointer',flexDirection:'column',gap:4,
                           }}>
-                          {isFilled && !isActive && <span style={{fontSize:13}}>✓</span>}
-                          {isLocked && !isFilled && <span style={{fontSize:16}}>🔒</span>}
+                          {isFilled&&!isActive&&<span style={{fontSize:13}}>✓</span>}
+                          {isLocked&&!isFilled&&<span style={{fontSize:16}}>🔒</span>}
                           <span>{btn.label}</span>
-                          {isLocked && timeLeft && <span style={{fontSize:9,fontWeight:600,color:'#a0a0a0',lineHeight:1.2}}>{timeLeft}</span>}
+                          {isLocked&&timeLeft&&<span style={{fontSize:9,fontWeight:600,color:'#a0a0a0',lineHeight:1.2}}>{timeLeft}</span>}
                         </button>
                       );
                     })}
@@ -649,46 +568,39 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                 {modalActiveSlot && (
                   <>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,
-                      background: modalActiveSlot.type==='SETUP'?'#2563eb':modalActiveSlot.type==='4HRS'?'#7c3aed':'#e11d48',
+                      background:modalActiveSlot.type==='SETUP'?'#2563eb':modalActiveSlot.type==='4HRS'?'#7c3aed':'#e11d48',
                       padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
                       <span style={{fontWeight:800,fontSize:15,color:'#fff'}}>{modalActiveSlot.subType||modalActiveSlot.type}</span>
                       <button onClick={()=>setModalActiveSlot(p=>({...p,singleRow:!p.singleRow}))}
-                        style={{padding:'3px 10px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
-                          background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)'}}>
+                        style={{padding:'3px 10px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)'}}>
                         {modalActiveSlot.singleRow?'1 Row':'2 Rows'}
                       </button>
                       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                         <button onClick={()=>{
                             setSlots(prev=>{
-                              const newSlot = {...modalActiveSlot, savedAt: Date.now()};
-                              const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
-                              const at = li>=0 ? li+1 : prev.length;
-                              const n = [...prev]; n.splice(at,0,newSlot); return n;
+                              const newSlot={...modalActiveSlot,savedAt:Date.now()};
+                              const li=[...prev].map(x=>x.type).lastIndexOf(newSlot.type);
+                              const at=li>=0?li+1:prev.length;
+                              const n=[...prev]; n.splice(at,0,newSlot); return n;
                             });
                             saveTimestamp(modalActiveSlot.type);
-                            setModalActiveSlot(null);
-                            setModalSlotType('');
-                            setSchedModal(null);
+                            setModalActiveSlot(null); setModalSlotType(''); setSchedModal(null);
                           }}
-                          style={{padding:'6px 18px',borderRadius:8,border:'2px solid #fff',
-                            background:'#16a34a',color:'#fff',fontWeight:800,fontSize:13,cursor:'pointer',
-                            boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
+                          style={{padding:'6px 18px',borderRadius:8,border:'2px solid #fff',background:'#16a34a',color:'#fff',fontWeight:800,fontSize:13,cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
                           ✅ Save & Close
                         </button>
                         <button onClick={()=>{
                             setSlots(prev=>{
-                              const newSlot = modalActiveSlot;
-                              const li = [...prev].map(x=>x.type).lastIndexOf(newSlot.type);
-                              const at = li>=0 ? li+1 : prev.length;
-                              const n = [...prev]; n.splice(at,0,newSlot); return n;
+                              const newSlot=modalActiveSlot;
+                              const li=[...prev].map(x=>x.type).lastIndexOf(newSlot.type);
+                              const at=li>=0?li+1:prev.length;
+                              const n=[...prev]; n.splice(at,0,newSlot); return n;
                             });
                             const t=modalSlotType;
-                            const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
-                            setNextId(p=>p+1);
-                            setModalActiveSlot(newSlot);
+                            const newSlot={id:nextId,type:(t==='4HRS'||t==='2HRS')?'4HRS':t,subType:t,singleRow:true,date:today,savedAt:null,upVals:Array(MAX_COLS).fill(''),downVals:Array(MAX_COLS).fill('')};
+                            setNextId(p=>p+1); setModalActiveSlot(newSlot);
                           }}
-                          style={{padding:'4px 14px',borderRadius:6,border:'none',
-                            background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
+                          style={{padding:'4px 14px',borderRadius:6,border:'none',background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
                           ➕ Add
                         </button>
                       </div>
@@ -700,7 +612,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                           <tr style={{background:'#f8fafc'}}>
                             <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
                             <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Spec</th>
-                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Tolerance</th>
+                            <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Tolerance</th>
                             <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Instrument</th>
                             <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 1</th>
                             {!modalActiveSlot.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 2</th>}
@@ -721,21 +633,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                                 <td style={{padding:'4px 8px',textAlign:'center'}}>
                                   <input type="text" value={uv} placeholder="—"
                                     onChange={e=>setModalActiveSlot(p=>({...p,upVals:p.upVals.map((v,i)=>i===idx?e.target.value:v)}))}
-                                    style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                      border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#cbd5e1'}`,
-                                      borderRadius:6,fontSize:13,fontWeight:uv?700:400,
-                                      background:isNgUp?'#ffebee':uv?'#e8f5e9':'#fff',
-                                      color:isNgUp?'#e53935':uv?'#2e7d32':'#333',outline:'none'}}/>
+                                    style={readingInput(uv,isNgUp,'#4caf50','#2e7d32','#e8f5e9')}/>
                                 </td>
                                 {!modalActiveSlot.singleRow && (
                                   <td style={{padding:'4px 8px',textAlign:'center'}}>
                                     <input type="text" value={dv} placeholder="—"
                                       onChange={e=>setModalActiveSlot(p=>({...p,downVals:p.downVals.map((v,i)=>i===idx?e.target.value:v)}))}
-                                      style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                        border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#cbd5e1'}`,
-                                        borderRadius:6,fontSize:13,fontWeight:dv?700:400,
-                                        background:isNgDn?'#ffebee':dv?'#fff3e0':'#fff',
-                                        color:isNgDn?'#e53935':dv?'#e65100':'#333',outline:'none'}}/>
+                                      style={readingInput(dv,isNgDn,'#ff9800','#e65100','#fff3e0')}/>
                                   </td>
                                 )}
                               </tr>
@@ -749,43 +653,28 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               </div>
             )}
 
-            {/* ── UPDATE — inline expand ── */}
+            {/* ── UPDATE ── */}
             {schedModal==='update' && (
-              <div style={{position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:16, padding:'24px', marginBottom:16, boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
-
+              <div style={{position:'relative',background:'#fff',border:'1px solid #e2e8f0',borderRadius:16,padding:'24px',marginBottom:16,boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
                 <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
-                  style={{position:'absolute', top:12, right:12, background:'transparent', border:'none', fontSize:20, color:'#94a3b8', cursor:'pointer', width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s ease'}}
-                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9'; e.currentTarget.style.color='#334155';}}
-                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#94a3b8';}}>
-                  ✕
-                </button>
+                  style={{position:'absolute',top:12,right:12,background:'transparent',border:'none',fontSize:20,color:'#94a3b8',cursor:'pointer',width:32,height:32,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}
+                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9';e.currentTarget.style.color='#334155';}}
+                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#94a3b8';}}>✕</button>
 
-                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14, paddingRight:30}}>
-                  <select
-                    value={updateSlotId ? String(updateSlotId) : ''}
-                    onChange={e=>{
-                      if(!e.target.value){setUpdateSlotId(null);return;}
-                      setUpdateSlotId(Number(e.target.value));
-                    }}
-                    style={{flex:1,padding:'12px 14px',borderRadius:8,border:'1px solid #cbd5e1',
-                      background:'#f8fafc',fontWeight:600,fontSize:14,cursor:'pointer',color:'#334155',outline:'none'}}>
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,paddingRight:30}}>
+                  <select value={updateSlotId?String(updateSlotId):''}
+                    onChange={e=>{if(!e.target.value){setUpdateSlotId(null);return;} setUpdateSlotId(Number(e.target.value));}}
+                    style={{flex:1,padding:'12px 14px',borderRadius:8,border:'1px solid #cbd5e1',background:'#f8fafc',fontWeight:600,fontSize:14,cursor:'pointer',color:'#334155',outline:'none'}}>
                     <option value="">-- Select Saved Slot to Edit --</option>
                     {(()=>{
                       const typeCount={};
                       slots.forEach(s=>{typeCount[s.type]=(typeCount[s.type]||0)+1;});
                       const typeIdx={};
-                      const sortedSlots = getSortedSlotsForDropdown();
-                      return sortedSlots.map(s=>{
+                      return getSortedSlotsForDropdown().map(s=>{
                         typeIdx[s.type]=(typeIdx[s.type]||0)+1;
-                        const label=typeCount[s.type]>1
-                          ? `${s.subType||s.type} #${typeIdx[s.type]}`
-                          : (s.subType||s.type);
+                        const label=typeCount[s.type]>1?`${s.subType||s.type} #${typeIdx[s.type]}`:(s.subType||s.type);
                         const cnt=s.upVals.filter(v=>v&&v.trim()).length+s.downVals.filter(v=>v&&v.trim()).length;
-                        return (
-                          <option key={s.id} value={String(s.id)}>
-                            {label}{cnt>0?` ✓ ${cnt} filled`:' (Empty)'}
-                          </option>
-                        );
+                        return <option key={s.id} value={String(s.id)}>{label}{cnt>0?` ✓ ${cnt} filled`:' (Empty)'}</option>;
                       });
                     })()}
                   </select>
@@ -798,17 +687,14 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                   const color=cfg[s.type]||'#333';
                   return (
                     <>
-                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,
-                        background:color,padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,background:color,padding:'10px 14px',borderRadius:8,flexWrap:'wrap'}}>
                         <span style={{fontWeight:800,fontSize:15,color:'#fff'}}>{s.subType||s.type}</span>
                         <button onClick={()=>toggleRows(s.id)}
-                          style={{padding:'3px 10px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
-                            background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)'}}>
+                          style={{padding:'3px 10px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)'}}>
                           {s.singleRow?'1 Row':'2 Rows'}
                         </button>
                         <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
-                          style={{marginLeft:'auto',padding:'4px 14px',borderRadius:6,border:'none',
-                            background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
+                          style={{marginLeft:'auto',padding:'4px 14px',borderRadius:6,border:'none',background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
                           ✅ Done
                         </button>
                       </div>
@@ -818,10 +704,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             <tr style={{background:'#f8fafc'}}>
                               <th style={{padding:'8px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
                               <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Spec</th>
-                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Tolerance</th>
+                              <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Tolerance</th>
                               <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0',minWidth:80}}>Instrument</th>
                               <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 1</th>
-                              {!s.singleRow && <th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 2</th>}
+                              {!s.singleRow&&<th style={{padding:'8px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0',minWidth:90}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -839,21 +725,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                                   <td style={{padding:'4px 8px',textAlign:'center'}}>
                                     <input type="text" value={uv} placeholder="—"
                                       onChange={e=>setVal(s.id,'up',idx,e.target.value)}
-                                      style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                        border:`1px solid ${isNgUp?'#e53935':uv?'#4caf50':'#cbd5e1'}`,
-                                        borderRadius:6,fontSize:13,fontWeight:uv?700:400,
-                                        background:isNgUp?'#ffebee':uv?'#e8f5e9':'#fff',
-                                        color:isNgUp?'#e53935':uv?'#2e7d32':'#333',outline:'none'}}/>
+                                      style={readingInput(uv,isNgUp,'#4caf50','#2e7d32','#e8f5e9')}/>
                                   </td>
-                                  {!s.singleRow && (
+                                  {!s.singleRow&&(
                                     <td style={{padding:'4px 8px',textAlign:'center'}}>
                                       <input type="text" value={dv} placeholder="—"
                                         onChange={e=>setVal(s.id,'down',idx,e.target.value)}
-                                        style={{width:'80px',textAlign:'center',padding:'5px 8px',
-                                          border:`1px solid ${isNgDn?'#e53935':dv?'#ff9800':'#cbd5e1'}`,
-                                          borderRadius:6,fontSize:13,fontWeight:dv?700:400,
-                                          background:isNgDn?'#ffebee':dv?'#fff3e0':'#fff',
-                                          color:isNgDn?'#e53935':dv?'#e65100':'#333',outline:'none'}}/>
+                                        style={readingInput(dv,isNgDn,'#ff9800','#e65100','#fff3e0')}/>
                                     </td>
                                   )}
                                 </tr>
@@ -868,42 +746,52 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               </div>
             )}
 
-            {/* ── VIEW — inline expand ── */}
+            {/* ── VIEW — Spec, Tolerance, Instrument INCLUDED ── */}
             {schedModal==='view' && (
-              <div style={{position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:16, padding:'24px', marginBottom:16, boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
-                
+              <div style={{position:'relative',background:'#fff',border:'1px solid #e2e8f0',borderRadius:16,padding:'24px',marginBottom:16,boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
                 <button onClick={()=>setSchedModal(null)}
-                  style={{position:'absolute', top:12, right:12, background:'transparent', border:'none', fontSize:20, color:'#94a3b8', cursor:'pointer', width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s ease'}}
-                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9'; e.currentTarget.style.color='#334155';}}
-                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#94a3b8';}}>
-                  ✕
-                </button>
+                  style={{position:'absolute',top:12,right:12,background:'transparent',border:'none',fontSize:20,color:'#94a3b8',cursor:'pointer',width:32,height:32,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}
+                  onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9';e.currentTarget.style.color='#334155';}}
+                  onMouseOut={(e)=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#94a3b8';}}>✕</button>
 
-                <div style={{fontWeight:800,fontSize:16,marginBottom:14,color:'#334155', paddingRight:30}}>All Completed Entries</div>
+                <div style={{fontWeight:800,fontSize:16,marginBottom:14,color:'#334155',paddingRight:30}}>All Completed Entries</div>
                 {slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).map(s=>{
                   const cfg={SETUP:'#2563eb','4HRS':'#7c3aed',LAST:'#e11d48'};
                   const color=cfg[s.type]||'#333';
+                  // Filled time display
+                  const filledTime = s.savedAt
+                    ? new Date(s.savedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Kolkata'})
+                    : null;
                   return (
                     <div key={s.id} style={{marginBottom:16,border:`1px solid ${color}33`,borderRadius:10,overflow:'hidden'}}>
-                      <div style={{background:color,padding:'8px 14px',color:'#fff',fontWeight:800,fontSize:14}}>{s.subType||s.type}</div>
+                      <div style={{background:color,padding:'8px 14px',color:'#fff',fontWeight:800,fontSize:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                        <span>{s.subType||s.type}</span>
+                        {filledTime && <span style={{fontSize:12,fontWeight:600,opacity:0.9,background:'rgba(255,255,255,0.2)',padding:'2px 10px',borderRadius:20}}>⏰ {filledTime}</span>}
+                      </div>
                       <div style={{overflowX:'auto'}}>
                         <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                           <thead>
                             <tr style={{background:'#f8fafc'}}>
                               <th style={{padding:'7px 12px',textAlign:'left',fontWeight:700,color:'#333',borderBottom:'1px solid #e2e8f0'}}>Column</th>
-                              <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0'}}>Reading 1</th>
-                              {!s.singleRow && <th style={{padding:'7px 12px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Reading 2</th>}
+                              <th style={{padding:'7px 10px',textAlign:'center',fontWeight:700,color:'#555',borderBottom:'1px solid #e2e8f0'}}>Spec</th>
+                              <th style={{padding:'7px 10px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Tolerance</th>
+                              <th style={{padding:'7px 10px',textAlign:'center',fontWeight:700,color:'#1565c0',borderBottom:'1px solid #e2e8f0'}}>Instrument</th>
+                              <th style={{padding:'7px 10px',textAlign:'center',fontWeight:700,color:'#2e7d32',borderBottom:'1px solid #e2e8f0'}}>Reading 1</th>
+                              {!s.singleRow&&<th style={{padding:'7px 10px',textAlign:'center',fontWeight:700,color:'#e65100',borderBottom:'1px solid #e2e8f0'}}>Reading 2</th>}
                             </tr>
                           </thead>
                           <tbody>
-                            {colLabels.map(({idx,label})=>{
+                            {colLabels.map(({idx,label,spec,tolerance,inst})=>{
                               const uv=s.upVals[idx]||'—';
                               const dv=s.downVals[idx]||'—';
                               return (
                                 <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
                                   <td style={{padding:'6px 12px',fontWeight:600,color:'#333'}}>{label}</td>
-                                  <td style={{padding:'6px 12px',textAlign:'center',color:uv==='NG'?'#e53935':uv!=='—'?'#2e7d32':'#aaa',fontWeight:uv!=='—'?700:400}}>{uv}</td>
-                                  {!s.singleRow && <td style={{padding:'6px 12px',textAlign:'center',color:dv==='NG'?'#e53935':dv!=='—'?'#e65100':'#aaa',fontWeight:dv!=='—'?700:400}}>{dv}</td>}
+                                  <td style={{padding:'6px 10px',textAlign:'center',color:'#555',fontSize:12}}>{spec||'—'}</td>
+                                  <td style={{padding:'6px 10px',textAlign:'center',color:'#e65100',fontSize:12,fontWeight:600}}>{tolerance||'—'}</td>
+                                  <td style={{padding:'6px 10px',textAlign:'center',color:'#1565c0',fontSize:12}}>{inst||'—'}</td>
+                                  <td style={{padding:'6px 10px',textAlign:'center',color:uv==='NG'?'#e53935':uv!=='—'?'#2e7d32':'#aaa',fontWeight:uv!=='—'?700:400}}>{uv}</td>
+                                  {!s.singleRow&&<td style={{padding:'6px 10px',textAlign:'center',color:dv==='NG'?'#e53935':dv!=='—'?'#e65100':'#aaa',fontWeight:dv!=='—'?700:400}}>{dv}</td>}
                                 </tr>
                               );
                             })}
@@ -927,11 +815,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           : <button onClick={onCancel} className="wiz-btn-back">Cancel</button>
         }
         {step<2
-          ? <button onClick={()=>setStep(s=>s+1)}
-              disabled={step===1&&!step1Done}
-              className={`wiz-btn-next${(step===1&&!step1Done)?' disabled':''}`}>
-              Next →
-            </button>
+          ? <button onClick={()=>setStep(s=>s+1)} disabled={step===1&&!step1Done} className={`wiz-btn-next${(step===1&&!step1Done)?' disabled':''}`}>Next →</button>
           : <button onClick={handleSubmit} className="wiz-btn-save">✅ Save</button>
         }
       </div>

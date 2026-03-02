@@ -93,13 +93,14 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         from django.utils import timezone
         import pytz
         ist = pytz.timezone('Asia/Kolkata')
-        now_ist = timezone.now().astimezone(ist)
 
         for entry_data in schedule_data:
             entry_data.pop('id', None)
             entry_data.pop('values', None)
             entry_data.pop('_isNew', None)
-            entry_data['filled_at'] = now_ist
+            # Frontend se filled_at aaya? Wahi use karo. Nahi aaya? Abhi ka time
+            if not entry_data.get('filled_at'):
+                entry_data['filled_at'] = timezone.now().astimezone(ist)
             ScheduleEntry.objects.create(report=report, **entry_data)
 
         return report
@@ -124,10 +125,6 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         # Sirf jo slot_index + row_order aa raha hai usse UPDATE karo
         # Baaki purani entries INTACT rahein — unka date/values nahi badlega
         if schedule_data is not None:
-            from django.utils import timezone
-            import pytz
-            ist = pytz.timezone('Asia/Kolkata')
-            now_ist = timezone.now().astimezone(ist)
 
             for entry_data in schedule_data:
                 entry_data.pop('id', None)
@@ -137,24 +134,29 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
                 slot_index = entry_data.get('slot_index', 0)
                 row_order  = entry_data.get('row_order', 0)
 
-                # Kya yeh slot pehle se DB mein hai?
                 existing = instance.schedule_entries.filter(
                     slot_index=slot_index,
                     row_order=row_order
                 ).first()
 
                 if existing:
-                    # ✅ SIRF values update karo — date PRESERVE karo agar naya data empty hai
                     for field, value in entry_data.items():
-                        # Date sirf tab update karo jab value aaya ho
                         if field == 'date' and not value:
-                            continue  # purani date rakho
+                            continue
+                        # filled_at sirf tab update karo jab naya value aaya ho
+                        if field == 'filled_at' and not value:
+                            continue
                         setattr(existing, field, value)
-                    existing.filled_at = now_ist
+                    # Agar filled_at nahi aaya toh purana rakho — overwrite mat karo
+                    if entry_data.get('filled_at'):
+                        existing.filled_at = entry_data['filled_at']
                     existing.save()
                 else:
-                    # Naya slot — fresh create karo
-                    entry_data['filled_at'] = now_ist
+                    if not entry_data.get('filled_at'):
+                        from django.utils import timezone
+                        import pytz
+                        ist = pytz.timezone('Asia/Kolkata')
+                        entry_data['filled_at'] = timezone.now().astimezone(ist)
                     ScheduleEntry.objects.create(report=instance, **entry_data)
 
         return instance
