@@ -148,11 +148,11 @@ body { background: var(--bg-color); color: var(--text-main); }
 }
 
 /* ══ SQUARE ACTION BUTTONS ══ */
-.sq-btn-row { display:flex; gap:12px; margin-bottom:24px; }
+.sq-btn-row { display:flex; gap:12px; margin-bottom:16px; align-items:flex-start; }
 .sq-btn {
-  flex:1;
-  aspect-ratio: 1 / 1;
-  max-width: 110px;
+  width: 90px;
+  height: 90px;
+  flex: none;
   border-radius: 12px;
   border: 1px solid #cbd5e1;
   background: #fff;
@@ -167,24 +167,24 @@ body { background: var(--bg-color); color: var(--text-main); }
   justify-content: center;
   gap: 5px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   color: #475569;
   height: 100%;
 }
 .sq-btn-icon { font-size: 20px; }
 
 /* ══ MEDIUM RECT BUTTONS (SETUP/4HRS/LAST) ══ */
-.med-btn-row { display:flex; gap:10px; width:100%; }
+.med-btn-row { display:flex; gap:12px; align-items:flex-start; }
 .med-btn {
-  flex:1;
-  aspect-ratio: 1 / 1;
-  max-width: 110px;
+  width: 90px;
+  height: 90px;
+  flex: none;
   border-radius: 12px;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #475569;
-  font-weight:700; font-size:14px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; gap:6px;
+  font-weight:700; font-size:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: all 0.2s ease;
 }
