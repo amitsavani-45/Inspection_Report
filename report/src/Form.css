@@ -55,11 +55,10 @@ body { background: var(--bg-color); color: var(--text-main); }
 /* ══ PROGRESS ══ */
 .wiz-progress-wrap {
   background: var(--card-bg);
-  border-radius: 16px;
   padding: 20px 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+  z-index: 1;
 }
 .wiz-progress-track {
   height: 6px; background: #f3f4f6; border-radius: 6px;
@@ -70,22 +69,23 @@ body { background: var(--bg-color); color: var(--text-main); }
   border-radius: 6px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Report left, Schedule right ── */
+/* ── FIXED: full width, row layout with big square icons ── */
 .wiz-steps-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  width: 100%;
+  gap: 0;
+  max-width: 100%;        /* was 400px — caused squeezing */
   margin: 0;
 }
 
 .wiz-step-dot {
   display: flex;
-  flex-direction: row;
+  flex-direction: row;    /* icon + label side by side */
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  flex: 0;
+  flex: 1;
   padding: 4px 0;
 }
 
@@ -94,11 +94,11 @@ body { background: var(--bg-color); color: var(--text-main); }
   content: '';
   display: block;
   flex-shrink: 0;
-  width: 120px;
+  width: 40px;
   height: 2px;
   background: var(--border-light);
   border-radius: 2px;
-  margin: 0 16px;
+  margin: 0 12px;
 }
 
 /* ── FIXED: big square instead of small circle ── */
@@ -170,8 +170,6 @@ body { background: var(--bg-color); color: var(--text-main); }
   border: 1.5px solid var(--border-light); border-radius: 10px;
   font-size: 14px; font-weight: 500; background: #f9fafb;
   color: var(--text-main); outline: none; transition: all 0.2s; cursor: pointer;
-  appearance: auto;
-  -webkit-appearance: auto;
 }
 .wiz-select:hover, .date-box:hover { border-color: #d1d5db; background: white; }
 .wiz-select:focus, .wiz-select.filled { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
