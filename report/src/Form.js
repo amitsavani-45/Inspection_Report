@@ -431,9 +431,11 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
         <div style={{width:60}} />
       </div>
 
-      {/* ── Progress Bar ── */}
-      <div className="wiz-progress-wrap">
-        <div className="wiz-progress-inner">
+      {/* ── Step Content ── */}
+      <div className="wiz-body">
+
+        {/* ── Progress Bar ── */}
+        <div className="wiz-progress-wrap">
           <div className="wiz-progress-track">
             <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
           </div>
@@ -449,10 +451,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* ── Step Content ── */}
-      <div className="wiz-body">
 
         {/* ════ STEP 1 ════ */}
         {step===1 && (
