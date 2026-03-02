@@ -243,6 +243,14 @@ function App() {
             currentReport={currentReport}
           />
         } />
+        <Route path="/setup-inspection" element={
+          <FormPageWrapper
+            key={formKey}
+            onAddItem={handleAddItem}
+            items={formItems}
+            currentReport={currentReport}
+          />
+        } />
       </Routes>
     </BrowserRouter>
   );

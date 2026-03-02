@@ -148,6 +148,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
 
       {/* ── Top Bar (no-print) ── */}
       <div className="no-print" style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:'12px',marginBottom:'10px'}}>
+        <button onClick={()=>navigate('/')} style={{background:'#607d8b',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>🏠 Home</button>
         <div style={{position:'relative'}}>
           <button onClick={()=>setShowFilter(p=>!p)} style={{background:showFilter?'#1565c0':'#1976d2',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>
             🔍 Filter {isAnyFilterActive?'●':''}

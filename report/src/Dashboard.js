@@ -12,7 +12,7 @@ const sections = [
     color: '#1976d2',
     bg: '#e3f2fd',
     border: '#90caf9',
-    route: '/inspection',
+    route: '/form?mode=new',
     enabled: true,
   },
   {
