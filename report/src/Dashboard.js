@@ -7,7 +7,7 @@ const sections = [
   {
     id: 'setup-inspection',
     title: 'Setup & Patrol Inspection Report',
-    icon: '🔍',
+    icon: 'bi bi-clipboard2-pulse-fill',
     description: 'View & manage setup and patrol inspection reports',
     color: '#1976d2',
     bg: '#e3f2fd',
@@ -18,7 +18,7 @@ const sections = [
   {
     id: 'raw-material',
     title: 'Raw Material',
-    icon: '🧱',
+    icon: 'bi bi-boxes',
     description: 'Raw material inspection & tracking',
     color: '#388e3c',
     bg: '#e8f5e9',
@@ -29,7 +29,7 @@ const sections = [
   {
     id: 'incoming-quality',
     title: 'Incoming Quality Control',
-    icon: '📦',
+    icon: 'bi bi-box-arrow-in-down',
     description: 'Incoming material quality check records',
     color: '#f57c00',
     bg: '#fff3e0',
@@ -40,7 +40,7 @@ const sections = [
   {
     id: 'final-inspection',
     title: 'Final Inspection',
-    icon: '✅',
+    icon: 'bi bi-patch-check-fill',
     description: 'Final product inspection before dispatch',
     color: '#7b1fa2',
     bg: '#f3e5f5',
@@ -51,7 +51,7 @@ const sections = [
   {
     id: 'process-audit',
     title: 'Process Audit',
-    icon: '📋',
+    icon: 'bi bi-journal-text',
     description: 'Process audit reports and findings',
     color: '#c62828',
     bg: '#ffebee',
@@ -62,7 +62,7 @@ const sections = [
   {
     id: 'reports',
     title: 'Reports & Analytics',
-    icon: '📊',
+    icon: 'bi bi-bar-chart-line-fill',
     description: 'Summary reports and quality analytics dashboard',
     color: '#00796b',
     bg: '#e0f2f1',
@@ -83,7 +83,6 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
       <div className="dashboard-header">
         <div className="dashboard-header-left">
           <img src={atomone} alt="ATOM ONE" className="dashboard-logo" />
@@ -99,7 +98,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Cards Grid */}
       <div className="dashboard-grid">
         {sections.map((section) => (
           <div
@@ -113,14 +111,16 @@ const Dashboard = () => {
             onClick={() => handleCardClick(section)}
           >
             <div className="card-icon-wrap">
-              <span className="card-icon">{section.icon}</span>
+              <i className={section.icon} style={{ fontSize: '26px', color: '#fff' }}></i>
             </div>
             <div className="card-content">
               <h2 className="card-title">{section.title}</h2>
               <p className="card-desc">{section.description}</p>
             </div>
             {section.enabled ? (
-              <div className="card-arrow">→</div>
+              <div className="card-arrow">
+                <i className="bi bi-arrow-right-circle-fill"></i>
+              </div>
             ) : (
               <div className="card-badge">Coming Soon</div>
             )}

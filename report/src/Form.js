@@ -35,8 +35,8 @@ const MAX_COLS = 20;
 const emptyRow = () => ({ name:'', spec:'', tolerance:'', inst:'' });
 
 const STEPS = [
-  { id:1, label:'Report', icon:'📋' },
-  { id:2, label:'Schedule', icon:'📅' },
+  { id:1, label:'Report',   icon:'bi bi-file-earmark-text-fill' },
+  { id:2, label:'Schedule', icon:'bi bi-calendar2-week-fill'    },
 ];
 
 const Field = ({ label, value, onChange, options, placeholder, required }) => (
@@ -75,7 +75,7 @@ const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems=[] }) => 
           if(match&&match.instrument) onUpdate('inst',match.instrument);
           if(match&&match.tolerance) onUpdate('tolerance',match.tolerance);
         }} className="insp-select">
-          <option value="">{isProduct ? '📦 Product item select karo...' : '⚙️ Process item select karo...'}</option>
+          <option value="">{isProduct ? 'Product item select karo...' : 'Process item select karo...'}</option>
           {items.map(i=><option key={i} value={i}>{i}</option>)}
         </select>
         <div className="insp-row-bottom">
@@ -300,7 +300,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [modalSubType,    setModalSubType]    = useState('');
   const [updateSlotId,    setUpdateSlotId]    = useState(null);
 
-  // Persistent timestamps for time-lock
   const LS_KEY = `slot_timestamps_${header.partNumber||'default'}`;
   const [slotTimestamps, setSlotTimestamps] = useState(() => {
     try { return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); } catch { return {}; }
@@ -346,7 +345,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     if (!mcNo){alert('M/C No select karo!');return;}
     if (slots.length===0){alert('Pehle SETUP ki report bharo!');return;}
 
-    // Auto-save modal slot if open and has data
     if (modalActiveSlot && modalActiveSlot.upVals.some(v=>v&&v.trim())) {
       setSlots(prev=>{
         const newSlot={...modalActiveSlot,savedAt:Date.now()};
@@ -374,7 +372,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
     ];
     const scheduleEntries=[];
     slots.forEach((slot,si)=>{
-      // Har slot ka apna filled_at — jab "Save & Close" dabaya tha
       const filledAt = slot.savedAt
         ? new Date(slot.savedAt).toISOString()
         : new Date().toISOString();
@@ -393,7 +390,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const stepDone=[false,step1Done,isSetupFilled];
   const progress=((step-1)/1)*100;
 
-  // Shared reading input style
   const readingInput = (val, isNg, colorOk, colorNg, colorEmpty) => ({
     width:'80px',textAlign:'center',padding:'5px 8px',
     border:`1px solid ${isNg?'#e53935':val?colorOk:'#cbd5e1'}`,
@@ -407,7 +403,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
       <div className="wiz-topbar">
         <button onClick={onCancel} className="wiz-back-btn">← Back</button>
-        <span className="wiz-topbar-title">📋 Inspection Form</span>
+        <span className="wiz-topbar-title">
+          <i className="bi bi-clipboard2-pulse-fill" style={{marginRight:8,fontSize:18,verticalAlign:'middle'}}></i>
+          Inspection Form
+        </span>
         <div style={{width:60}} />
       </div>
 
@@ -420,7 +419,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
             {STEPS.map(s=>(
               <div key={s.id} className={`wiz-step-dot${step===s.id?' active':''}${stepDone[s.id]?' done':''}`}
                 onClick={()=>{ if(s.id<step||stepDone[s.id-1]||s.id===1) setStep(s.id); }}>
-                <div className="wiz-dot-circle">{stepDone[s.id]?'✓':s.icon}</div>
+                <div className="wiz-dot-circle">
+                  {stepDone[s.id]
+                    ? '✓'
+                    : <i className={s.icon} style={{fontSize:18}}></i>
+                  }
+                </div>
                 <div className="wiz-dot-label">{s.label}</div>
               </div>
             ))}
@@ -431,7 +435,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
         {step===1 && (
           <>
           <div className="wiz-card">
-            <div className="wiz-card-title">📋 Report Information</div>
+            <div className="wiz-card-title">
+              <i className="bi bi-file-earmark-text-fill" style={{marginRight:8,color:'#1976d2'}}></i>
+              Report Information
+            </div>
             <div className="wiz-grid-2">
               <Field label="Customer" value={header.customerName} onChange={v=>setHeader(p=>({...p,customerName:v}))} options={dbOptions.customers} placeholder={optionsLoading?'Loading...':'Select customer...'} required />
               <Field label="Part Name" value={header.partName} onChange={v=>setHeader(p=>({...p,partName:v}))} options={dbOptions.part_names} placeholder={optionsLoading?'Loading...':'Select part...'} required />
@@ -450,7 +457,10 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           </div>
           {step1Done && (
             <div className="wiz-card" style={{marginTop:16}}>
-              <div className="wiz-card-title">🔍 Inspection Items</div>
+              <div className="wiz-card-title">
+                <i className="bi bi-search" style={{marginRight:8,color:'#1976d2'}}></i>
+                Inspection Items
+              </div>
               <CombinedTable productRows={filledProducts} processRows={filledProcesses} />
             </div>
           )}
@@ -460,14 +470,17 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
         {/* ════ STEP 2 - Schedule ════ */}
         {step===2 && (
           <div className="wiz-card">
-            <div className="wiz-card-title">📅 Schedule</div>
+            <div className="wiz-card-title">
+              <i className="bi bi-calendar2-week-fill" style={{marginRight:8,color:'#1976d2'}}></i>
+              Schedule
+            </div>
 
             <div className="wiz-grid-3" style={{marginBottom:20}}>
               <div className="wiz-field">
                 <label className="wiz-label">Date <span style={{color:'#e53935'}}>*</span></label>
                 <div className="date-box">
                   <span>{schedDate?schedDate.split('-').reverse().join('/'):'DD/MM/YYYY'}</span>
-                  <span>📅</span>
+                  <span><i className="bi bi-calendar3"></i></span>
                   <input type="date" value={schedDate} onChange={e=>setSchedDate(e.target.value)} className="date-input-hidden" />
                 </div>
               </div>
@@ -475,12 +488,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
             </div>
 
-            {/* ── 3 SQUARE BUTTONS — hide when New Add is open ── */}
+            {/* ── 3 SQUARE BUTTONS ── */}
             <div className="sq-btn-row" style={{display: schedModal==='add'?'none':'flex'}}>
               {[
-                {key:'add',    label:'New Add', icon:'➕', color:'#2563eb', bg:'#eff6ff', shadow:'rgba(37,99,235,0.2)',   active:schedModal==='add',    onClick:()=>setSchedModal(schedModal==='add'?null:'add')},
-                {key:'update', label:'Update',  icon:'✏️', color:'#7c3aed', bg:'#f5f3ff', shadow:'rgba(124,58,237,0.2)', active:schedModal==='update', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }},
-                {key:'view',   label:'View',    icon:'👁️', color:'#059669', bg:'#ecfdf5', shadow:'rgba(5,150,105,0.2)',  active:schedModal==='view',   onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }},
+                {key:'add',    label:'New Add', icon:'bi bi-plus-circle-fill',  color:'#2563eb', bg:'#eff6ff', shadow:'rgba(37,99,235,0.2)',   active:schedModal==='add',    onClick:()=>setSchedModal(schedModal==='add'?null:'add')},
+                {key:'update', label:'Update',  icon:'bi bi-pencil-square',      color:'#7c3aed', bg:'#f5f3ff', shadow:'rgba(124,58,237,0.2)', active:schedModal==='update', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }},
+                {key:'view',   label:'View',    icon:'bi bi-eye-fill',           color:'#059669', bg:'#ecfdf5', shadow:'rgba(5,150,105,0.2)',  active:schedModal==='view',   onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }},
               ].map(btn=>(
                 <button key={btn.key} onClick={btn.onClick} className="sq-btn" style={{
                   border:btn.active?`2px solid ${btn.color}`:'1px solid #cbd5e1',
@@ -488,7 +501,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                   boxShadow:btn.active?`0 4px 12px ${btn.shadow}`:'0 1px 3px rgba(0,0,0,0.06)',
                 }}>
                   <div className="sq-btn-inner" style={{color:btn.active?btn.color:'#475569'}}>
-                    <span className="sq-btn-icon">{btn.icon}</span>
+                    <i className={btn.icon} style={{fontSize:22}}></i>
                     {btn.label}
                   </div>
                 </button>
@@ -556,7 +569,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             cursor:isLocked?'not-allowed':'pointer',flexDirection:'column',gap:4,
                           }}>
                           {isFilled&&!isActive&&<span style={{fontSize:13}}>✓</span>}
-                          {isLocked&&!isFilled&&<span style={{fontSize:16}}>🔒</span>}
+                          {isLocked&&!isFilled&&<i className="bi bi-lock-fill" style={{fontSize:16}}></i>}
                           <span>{btn.label}</span>
                           {isLocked&&timeLeft&&<span style={{fontSize:9,fontWeight:600,color:'#a0a0a0',lineHeight:1.2}}>{timeLeft}</span>}
                         </button>
@@ -587,7 +600,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             setModalActiveSlot(null); setModalSlotType(''); setSchedModal(null);
                           }}
                           style={{padding:'6px 18px',borderRadius:8,border:'2px solid #fff',background:'#16a34a',color:'#fff',fontWeight:800,fontSize:13,cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
-                          ✅ Save & Close
+                          <i className="bi bi-check-circle-fill" style={{marginRight:6}}></i>Save & Close
                         </button>
                         <button onClick={()=>{
                             setSlots(prev=>{
@@ -601,7 +614,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                             setNextId(p=>p+1); setModalActiveSlot(newSlot);
                           }}
                           style={{padding:'4px 14px',borderRadius:6,border:'none',background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
-                          ➕ Add
+                          <i className="bi bi-plus-lg" style={{marginRight:4}}></i>Add
                         </button>
                       </div>
                     </div>
@@ -695,7 +708,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         </button>
                         <button onClick={()=>{setSchedModal(null);setUpdateSlotId(null);}}
                           style={{marginLeft:'auto',padding:'4px 14px',borderRadius:6,border:'none',background:'rgba(255,255,255,0.25)',color:'#fff',fontWeight:800,fontSize:12,cursor:'pointer'}}>
-                          ✅ Done
+                          <i className="bi bi-check-lg" style={{marginRight:4}}></i>Done
                         </button>
                       </div>
                       <div style={{overflowX:'auto'}}>
@@ -746,7 +759,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               </div>
             )}
 
-            {/* ── VIEW — Spec, Tolerance, Instrument INCLUDED ── */}
+            {/* ── VIEW ── */}
             {schedModal==='view' && (
               <div style={{position:'relative',background:'#fff',border:'1px solid #e2e8f0',borderRadius:16,padding:'24px',marginBottom:16,boxShadow:'0 10px 25px -5px rgba(0,0,0,0.05)'}}>
                 <button onClick={()=>setSchedModal(null)}
@@ -754,11 +767,12 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                   onMouseOver={(e)=>{e.currentTarget.style.background='#f1f5f9';e.currentTarget.style.color='#334155';}}
                   onMouseOut={(e)=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#94a3b8';}}>✕</button>
 
-                <div style={{fontWeight:800,fontSize:16,marginBottom:14,color:'#334155',paddingRight:30}}>All Completed Entries</div>
+                <div style={{fontWeight:800,fontSize:16,marginBottom:14,color:'#334155',paddingRight:30}}>
+                  <i className="bi bi-list-check" style={{marginRight:8,color:'#059669'}}></i>All Completed Entries
+                </div>
                 {slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).map(s=>{
                   const cfg={SETUP:'#2563eb','4HRS':'#7c3aed',LAST:'#e11d48'};
                   const color=cfg[s.type]||'#333';
-                  // Filled time display
                   const filledTime = s.savedAt
                     ? new Date(s.savedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Kolkata'})
                     : null;
@@ -766,7 +780,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                     <div key={s.id} style={{marginBottom:16,border:`1px solid ${color}33`,borderRadius:10,overflow:'hidden'}}>
                       <div style={{background:color,padding:'8px 14px',color:'#fff',fontWeight:800,fontSize:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                         <span>{s.subType||s.type}</span>
-                        {filledTime && <span style={{fontSize:12,fontWeight:600,opacity:0.9,background:'rgba(255,255,255,0.2)',padding:'2px 10px',borderRadius:20}}>⏰ {filledTime}</span>}
+                        {filledTime && <span style={{fontSize:12,fontWeight:600,opacity:0.9,background:'rgba(255,255,255,0.2)',padding:'2px 10px',borderRadius:20}}>
+                          <i className="bi bi-clock-fill" style={{marginRight:4}}></i>{filledTime}
+                        </span>}
                       </div>
                       <div style={{overflowX:'auto'}}>
                         <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
@@ -811,12 +827,18 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       {/* ── Bottom Nav ── */}
       <div className="wiz-footer">
         {step>1
-          ? <button onClick={()=>setStep(s=>s-1)} className="wiz-btn-back">← Back</button>
+          ? <button onClick={()=>setStep(s=>s-1)} className="wiz-btn-back">
+              <i className="bi bi-arrow-left" style={{marginRight:6}}></i>Back
+            </button>
           : <button onClick={onCancel} className="wiz-btn-back">Cancel</button>
         }
         {step<2
-          ? <button onClick={()=>setStep(s=>s+1)} disabled={step===1&&!step1Done} className={`wiz-btn-next${(step===1&&!step1Done)?' disabled':''}`}>Next →</button>
-          : <button onClick={handleSubmit} className="wiz-btn-save">✅ Save</button>
+          ? <button onClick={()=>setStep(s=>s+1)} disabled={step===1&&!step1Done} className={`wiz-btn-next${(step===1&&!step1Done)?' disabled':''}`}>
+              Next <i className="bi bi-arrow-right" style={{marginLeft:6}}></i>
+            </button>
+          : <button onClick={handleSubmit} className="wiz-btn-save">
+              <i className="bi bi-check-circle-fill" style={{marginRight:6}}></i>Save
+            </button>
         }
       </div>
 
