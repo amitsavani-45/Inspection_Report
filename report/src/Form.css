@@ -73,21 +73,20 @@ body { background: var(--bg-color); color: var(--text-main); }
 /* ── FIXED: full width, row layout with big square icons ── */
 .wiz-steps-row {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   gap: 0;
-  max-width: 100%;        /* was 400px — caused squeezing */
+  width: 100%;
   margin: 0;
 }
 
 .wiz-step-dot {
   display: flex;
-  flex-direction: row;    /* icon + label side by side */
+  flex-direction: row;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  flex: 1;
-  padding: 4px 0;
+  padding: 4px 16px;
 }
 
 /* Divider line between steps */
@@ -95,11 +94,11 @@ body { background: var(--bg-color); color: var(--text-main); }
   content: '';
   display: block;
   flex-shrink: 0;
-  width: 40px;
+  width: 60px;
   height: 2px;
   background: var(--border-light);
   border-radius: 2px;
-  margin: 0 12px;
+  margin: 0 8px;
 }
 
 /* ── FIXED: big square instead of small circle ── */
