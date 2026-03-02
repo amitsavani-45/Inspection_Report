@@ -70,33 +70,10 @@ body { background: var(--bg-color); color: var(--text-main); }
   border-radius: 6px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Report left, Schedule right ── */
-.wiz-steps-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin: 0;
-}
-.wiz-step-dot {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  flex: 0;
-  padding: 4px 0;
-}
-.wiz-step-dot:not(:last-child)::after {
-  content: '';
-  display: block;
-  flex-shrink: 0;
-  width: 120px;
-  height: 2px;
-  background: var(--border-light);
-  border-radius: 2px;
-  margin: 0 16px;
-}
+/* ── Report LEFT, Schedule RIGHT ── */
+.wiz-steps-row { display:flex; justify-content:space-between; align-items:center; width:100%; margin:0; }
+.wiz-step-dot { display:flex; flex-direction:row; align-items:center; gap:12px; cursor:pointer; flex:0; padding:4px 0; }
+.wiz-step-dot:not(:last-child)::after { content:''; display:block; flex-shrink:0; width:120px; height:2px; background:var(--border-light); border-radius:2px; margin:0 16px; }
 
 /* ── FIXED: big square instead of small circle ── */
 .wiz-dot-circle {
@@ -168,6 +145,48 @@ body { background: var(--bg-color); color: var(--text-main); }
   font-size: 14px; font-weight: 500; background: #f9fafb;
   color: var(--text-main); outline: none; transition: all 0.2s; cursor: pointer;
   appearance: auto; -webkit-appearance: auto;
+}
+
+/* ══ SQUARE ACTION BUTTONS ══ */
+.sq-btn-row { display:flex; gap:12px; margin-bottom:24px; }
+.sq-btn {
+  flex:1;
+  aspect-ratio: 1 / 1;
+  max-width: 110px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.sq-btn-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #475569;
+  height: 100%;
+}
+.sq-btn-icon { font-size: 20px; }
+
+/* ══ MEDIUM RECT BUTTONS (SETUP/4HRS/LAST) ══ */
+.med-btn-row { display:flex; gap:10px; width:100%; }
+.med-btn {
+  flex:1;
+  aspect-ratio: 1 / 1;
+  max-width: 110px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-weight:700; font-size:14px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
 }
 .wiz-select:hover, .date-box:hover { border-color: #d1d5db; background: white; }
 .wiz-select:focus, .wiz-select.filled { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }

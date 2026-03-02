@@ -433,8 +433,6 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
 
       {/* ── Step Content ── */}
       <div className="wiz-body">
-
-        {/* ── Progress Bar ── */}
         <div className="wiz-progress-wrap">
           <div className="wiz-progress-track">
             <div className="wiz-progress-fill" style={{width:`${progress}%`}} />
@@ -502,26 +500,22 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
               <Field label="M/C No" required value={mcNo} onChange={setMcNo} options={Array.from({length:23},(_,i)=>String(i+1))} placeholder="Select machine..." />
             </div>
 
-            {/* ── 3 MODERN UI BUTTONS ── */}
-            <div style={{display:'flex', gap:12, marginBottom:24}}>
+            {/* ── 3 SQUARE BUTTONS ── */}
+            <div className="sq-btn-row">
               {[
-                {key:'add', label:'New Add', icon:'➕', activeColor:'#2563eb', activeBg:'#eff6ff', shadow:'rgba(37,99,235,0.2)', onClick:()=>setSchedModal(schedModal==='add'?null:'add'), isActive: schedModal==='add'},
-                {key:'update', label:'Update', icon:'✏️', activeColor:'#7c3aed', activeBg:'#f5f3ff', shadow:'rgba(124,58,237,0.2)', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }, isActive: schedModal==='update'},
-                {key:'view', label:'View', icon:'👁️', activeColor:'#059669', activeBg:'#ecfdf5', shadow:'rgba(5,150,105,0.2)', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }, isActive: schedModal==='view'},
+                {key:'add',    label:'New Add', icon:'➕', color:'#2563eb', bg:'#eff6ff', shadow:'rgba(37,99,235,0.2)',   active:schedModal==='add',    onClick:()=>setSchedModal(schedModal==='add'?null:'add')},
+                {key:'update', label:'Update',  icon:'✏️', color:'#7c3aed', bg:'#f5f3ff', shadow:'rgba(124,58,237,0.2)', active:schedModal==='update', onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Pehle kuch fill karo');return;} setSchedModal(schedModal==='update'?null:'update'); setUpdateSlotId(null); }},
+                {key:'view',   label:'View',    icon:'👁️', color:'#059669', bg:'#ecfdf5', shadow:'rgba(5,150,105,0.2)',  active:schedModal==='view',   onClick:()=>{ if(slots.filter(s=>s.upVals.some(v=>v&&v.trim())||s.downVals.some(v=>v&&v.trim())).length===0){alert('Koi data nahi hai abhi');return;} setSchedModal(schedModal==='view'?null:'view'); }},
               ].map(btn=>(
-                <button key={btn.key} onClick={btn.onClick}
-                  style={{
-                    flex:1, height:90, borderRadius:8,
-                    border: btn.isActive ? `2px solid ${btn.activeColor}` : '1px solid #cbd5e1',
-                    background: btn.isActive ? btn.activeBg : '#fff',
-                    color: btn.isActive ? btn.activeColor : '#475569',
-                    fontWeight:800, fontSize:13, cursor:'pointer',
-                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6,
-                    boxShadow: btn.isActive ? `0 4px 12px ${btn.shadow}` : '0 1px 2px rgba(0,0,0,0.05)',
-                    transition:'all 0.2s ease'
-                  }}>
-                  <span style={{fontSize:22}}>{btn.icon}</span>
-                  {btn.label}
+                <button key={btn.key} onClick={btn.onClick} className="sq-btn" style={{
+                  border: btn.active ? `2px solid ${btn.color}` : '1px solid #cbd5e1',
+                  background: btn.active ? btn.bg : '#fff',
+                  boxShadow: btn.active ? `0 4px 12px ${btn.shadow}` : '0 1px 3px rgba(0,0,0,0.06)',
+                }}>
+                  <div className="sq-btn-inner" style={{color: btn.active ? btn.color : '#475569'}}>
+                    <span className="sq-btn-icon">{btn.icon}</span>
+                    {btn.label}
+                  </div>
                 </button>
               ))}
             </div>
@@ -539,8 +533,8 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                 </button>
 
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14, paddingRight:30}}>
-                  {/* ── 3 PREMIUM SLEEK BUTTONS (Without Icons) ── */}
-                  <div style={{display:'flex', gap:12, width:'100%'}}>
+                  {/* ── 3 MEDIUM BUTTONS ── */}
+                  <div className="med-btn-row">
                     {[
                       {label:'SETUP', sub:'SETUP', activeBg:'#2563eb'},
                       {label:'4HRS',  sub:'4HRS',  activeBg:'#7c3aed'},
@@ -549,24 +543,26 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                       const isActive = modalSlotType === btn.sub;
                       const isFilled = slots.some(s => s.type === btn.sub && (s.upVals.some(v=>v&&v.trim()) || s.downVals.some(v=>v&&v.trim())));
                       return (
-                        <button
-                          key={btn.sub}
+                        <button key={btn.sub} className="med-btn"
                           onClick={()=>{
                             setModalSlotType(btn.sub);
-                            const newSlot={id:nextId, type:btn.sub==='4HRS'?'4HRS':btn.sub, subType:btn.sub, singleRow:true, date:today, upVals:Array(MAX_COLS).fill(''), downVals:Array(MAX_COLS).fill('')};
+                            const newSlot={
+                              id:nextId,
+                              type: btn.sub==='4HRS'?'4HRS':btn.sub,
+                              subType:btn.sub,
+                              singleRow:true,
+                              date:today,
+                              upVals:Array(MAX_COLS).fill(''),
+                              downVals:Array(MAX_COLS).fill('')
+                            };
                             setNextId(p=>p+1);
                             setModalActiveSlot(newSlot);
                           }}
                           style={{
-                            flex:1, height:70,
-                            borderRadius:'8px',
                             border: isActive ? `2px solid ${btn.activeBg}` : isFilled ? '2px solid #16a34a' : '1px solid #cbd5e1',
                             background: isActive ? btn.activeBg : isFilled ? '#dcfce7' : '#f8fafc',
                             color: isActive ? '#fff' : isFilled ? '#15803d' : '#475569',
-                            fontWeight:700, fontSize:'14px', letterSpacing:'0.5px', cursor:'pointer',
-                            boxShadow: isActive ? `0 4px 12px ${btn.activeBg}40` : isFilled ? '0 2px 8px rgba(22,163,74,0.2)' : '0 1px 3px rgba(0,0,0,0.04)',
-                            transition:'all 0.2s ease',
-                            display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                            boxShadow: isActive ? `0 4px 12px ${btn.activeBg}40` : '0 1px 3px rgba(0,0,0,0.04)',
                           }}>
                           {isFilled && !isActive && <span style={{fontSize:13}}>✓</span>}
                           {btn.label}
