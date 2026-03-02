@@ -828,13 +828,13 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
       <div className="wiz-footer">
         {step>1
           ? <button onClick={()=>setStep(s=>s-1)} className="wiz-btn-back">
-              <i className="bi bi-arrow-left" style={{marginRight:6}}></i>Back
+              <i className="bi-arrow-left-circle-fill" style={{marginRight:6}}></i>Back
             </button>
           : <button onClick={onCancel} className="wiz-btn-back">Cancel</button>
         }
         {step<2
           ? <button onClick={()=>setStep(s=>s+1)} disabled={step===1&&!step1Done} className={`wiz-btn-next${(step===1&&!step1Done)?' disabled':''}`}>
-              Next <i className="bi bi-arrow-right" style={{marginLeft:6}}></i>
+              Next <i className="bi-arrow-right-circle-fill" style={{marginLeft:6}}></i>
             </button>
           : <button onClick={handleSubmit} className="wiz-btn-save">
               <i className="bi bi-check-circle-fill" style={{marginRight:6}}></i>Save

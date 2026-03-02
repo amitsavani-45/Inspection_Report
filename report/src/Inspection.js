@@ -148,60 +148,60 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
 
       {/* ── Top Bar (no-print) ── */}
       <div className="no-print" style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:'12px',marginBottom:'10px'}}>
-        <button onClick={()=>navigate('/')} style={{background:'#607d8b',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>🏠 Home</button>
+        <button onClick={()=>navigate('/')} style={{background:'#607d8b',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-house-fill"></i> Home</button>
         <div style={{position:'relative'}}>
-          <button onClick={()=>setShowFilter(p=>!p)} style={{background:showFilter?'#1565c0':'#1976d2',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>
-            🔍 Filter {isAnyFilterActive?'●':''}
+          <button onClick={()=>setShowFilter(p=>!p)} style={{background:showFilter?'#1565c0':'#1976d2',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+            <i className="bi bi-funnel-fill"></i> Filter {isAnyFilterActive?'●':''}
           </button>
           {showFilter&&(
             <>
               <div onClick={()=>setShowFilter(false)} style={{position:'fixed',inset:0,zIndex:998}}/>
               <div style={{position:'absolute',right:0,top:'46px',zIndex:999,background:'#fff',border:'1px solid #e0e0e0',borderRadius:'12px',boxShadow:'0 8px 32px rgba(0,0,0,0.18)',padding:'20px',minWidth:'320px'}}>
                 <div style={{fontWeight:'bold',fontSize:'14px',marginBottom:'16px',color:'#1976d2',borderBottom:'2px solid #e3f2fd',paddingBottom:'10px',display:'flex',justifyContent:'space-between'}}>
-                  <span>🔍 Filter Reports</span>
+                  <span><i className="bi bi-funnel-fill" style={{marginRight:6}}></i>Filter Reports</span>
                   <span onClick={()=>setShowFilter(false)} style={{cursor:'pointer',color:'#999'}}>✕</span>
                 </div>
                 {[
-                  {label:'📅 Date', content:(
+                  {label:<><i className="bi bi-calendar3" style={{marginRight:5}}></i>Date</>, content:(
                     <div style={{position:'relative',display:'flex',alignItems:'center',border:`1px solid ${filterDate?'#1976d2':'#ccc'}`,borderRadius:'6px',padding:'7px 10px',background:filterDate?'#e3f2fd':'#fff',cursor:'pointer'}}>
                       <span style={{fontSize:'13px',flex:1,color:filterDate?'#1976d2':'#999'}}>{filterDate?filterDate.split('-').reverse().join('/'):'Select Date'}</span>
-                      <input type="date"  value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/>📅
+                      <input type="date"  value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/><i className="bi bi-calendar3"></i>
                     </div>
                   )},
-                  {label:'🔩 Part Name', content:(
+                  {label:<><i className="bi bi-gear-fill" style={{marginRight:5}}></i>Part Name</>, content:(
                     <select value={filterPart} onChange={e=>setFilterPart(e.target.value)} style={{width:'100%',padding:'7px 10px',border:`1px solid ${filterPart?'#1976d2':'#ccc'}`,borderRadius:'6px',fontSize:'13px'}}>
                       <option value="">All Parts</option>
                       {dbOptions.part_names.map(p=><option key={p} value={p}>{p}</option>)}
                     </select>
                   )},
-                  {label:'⚙️ Operation', content:(
+                  {label:<><i className="bi bi-tools" style={{marginRight:5}}></i>Operation</>, content:(
                     <select value={filterOp} onChange={e=>setFilterOp(e.target.value)} style={{width:'100%',padding:'7px 10px',border:`1px solid ${filterOp?'#1976d2':'#ccc'}`,borderRadius:'6px',fontSize:'13px'}}>
                       <option value="">All Operations</option>
                       {dbOptions.operations.map(op=><option key={op} value={op}>{op}</option>)}
                     </select>
                   )},
-                  {label:'🏭 Customer', content:(
+                  {label:<><i className="bi bi-building" style={{marginRight:5}}></i>Customer</>, content:(
                     <select value={filterCustomer} onChange={e=>setFilterCustomer(e.target.value)} style={{width:'100%',padding:'7px 10px',border:`1px solid ${filterCustomer?'#1976d2':'#ccc'}`,borderRadius:'6px',fontSize:'13px'}}>
                       <option value="">All Customers</option>
                       {dbOptions.customers.map(c=><option key={c} value={c}>{c}</option>)}
                     </select>
                   )},
-                ].map(({label,content})=>(
-                  <div key={label} style={{marginBottom:'14px'}}>
+                ].map(({label,content},i)=>(
+                  <div key={i} style={{marginBottom:'14px'}}>
                     <label style={{fontSize:'11px',fontWeight:'700',color:'#555',display:'block',marginBottom:'5px',textTransform:'uppercase'}}>{label}</label>
                     {content}
                   </div>
                 ))}
                 <div style={{display:'flex',gap:'8px',marginTop:'4px'}}>
-                  <button onClick={handleFilterApply} style={{flex:1,background:'#1976d2',color:'#fff',border:'none',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer'}}>✅ Apply</button>
-                  <button onClick={handleFilterReset}  style={{flex:1,background:'#fff',color:'#e53935',border:'1px solid #e53935',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer'}}>🔄 Reset</button>
+                  <button onClick={handleFilterApply} style={{flex:1,background:'#1976d2',color:'#fff',border:'none',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}><i className="bi bi-check-circle-fill"></i> Apply</button>
+                  <button onClick={handleFilterReset}  style={{flex:1,background:'#fff',color:'#e53935',border:'1px solid #e53935',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}><i className="bi bi-arrow-counterclockwise"></i> Reset</button>
                 </div>
               </div>
             </>
           )}
         </div>
-        <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>✏️ Edit</button>
-        <button onClick={()=>{ if(onNewForm) onNewForm(); navigate('/form?mode=new'); }} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px'}}>📋 New Form</button>
+        <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-pencil-square"></i> Edit</button>
+        <button onClick={()=>{ if(onNewForm) onNewForm(); navigate('/form?mode=new'); }} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-file-earmark-plus-fill"></i> New Form</button>
       </div>
 
       {/* ── Print Report ── */}
