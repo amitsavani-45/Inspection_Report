@@ -73,7 +73,7 @@ body { background: var(--bg-color); color: var(--text-main); }
 /* ── Report LEFT, Schedule RIGHT ── */
 .wiz-steps-row { display:flex; justify-content:space-between; align-items:center; width:100%; margin:0; }
 .wiz-step-dot { display:flex; flex-direction:row; align-items:center; gap:12px; cursor:pointer; flex:0; padding:4px 0; }
-.wiz-step-dot:not(:last-child)::after { content:''; display:block; flex-shrink:0; width:120px; height:2px; background:var(--border-light); border-radius:2px; margin:0 16px; }
+.wiz-step-dot:not(:last-child)::after { content:''; display:block;}
 
 /* ── FIXED: big square instead of small circle ── */
 .wiz-dot-circle {
