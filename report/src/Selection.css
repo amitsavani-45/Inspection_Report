@@ -1,0 +1,137 @@
+.selection-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selection-header {
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
+}
+
+.selection-back-btn {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #475569;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selection-back-btn:hover {
+  background: #f1f5f9;
+  color: #1a2740;
+}
+
+.selection-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a2740;
+  margin-bottom: 8px;
+}
+
+.selection-subtitle {
+  font-size: 15px;
+  color: #64748b;
+}
+
+.selection-cards-wrapper {
+  display: flex;
+  gap: 30px;
+  max-width: 800px;
+  width: 100%;
+  justify-content: center;
+}
+
+.select-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px 30px;
+  width: 45%;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.select-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+
+.fill-data-card:hover { border-color: #3b82f6; }
+.print-data-card:hover { border-color: #10b981; }
+
+.select-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.fill-data-card .select-icon-wrapper { background: #eff6ff; color: #3b82f6; }
+.print-data-card .select-icon-wrapper { background: #ecfdf5; color: #10b981; }
+
+.select-icon {
+  font-size: 36px;
+}
+
+.select-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.select-card p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.select-arrow {
+  font-size: 20px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.fill-data-card .select-arrow { color: #3b82f6; }
+.print-data-card .select-arrow { color: #10b981; }
+
+.select-card:hover .select-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (max-width: 768px) {
+  .selection-cards-wrapper { flex-direction: column; align-items: center; }
+  .select-card { width: 100%; max-width: 400px; }
+  .selection-back-btn { position: relative; left: auto; top: auto; margin-bottom: 20px; display: inline-flex; }
+  .selection-header { text-align: center; display: flex; flex-direction: column; align-items: center; }
+}
