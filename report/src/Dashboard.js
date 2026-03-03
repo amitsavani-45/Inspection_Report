@@ -12,7 +12,7 @@ const sections = [
     color: '#1976d2',
     bg: '#e3f2fd',
     border: '#90caf9',
-    route: '/form?mode=new',
+    route: '/selection',
     enabled: true,
   },
   {

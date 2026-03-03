@@ -407,12 +407,7 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
           <i className="bi bi-clipboard2-pulse-fill" style={{marginRight:8,fontSize:18,verticalAlign:'middle'}}></i>
           Inspection Form
         </span>
-        {step===2
-          ? <button onClick={()=>window.print()} style={{background:'#0d6efd',color:'#fff',border:'none',padding:'7px 18px',borderRadius:'8px',fontWeight:700,cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'7px',boxShadow:'0 2px 8px rgba(13,110,253,0.3)'}}>
-              <i className="bi bi-printer-fill" style={{fontSize:16}}></i> Print
-            </button>
-          : <div style={{width:60}} />
-        }
+        <div style={{width:60}} />
       </div>
 
       <div className="wiz-body">

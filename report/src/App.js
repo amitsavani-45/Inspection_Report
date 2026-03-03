@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'reac
 import Dashboard from './Dashboard';
 import Inspection from './Inspection';
 import Form from './Form';
+import SelectionPage from './Selection';
 import { getAllReports, getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
@@ -137,21 +138,17 @@ function App() {
       }));
 
       // ── Clean schedule entries ──
-      // ✅ FIX: assign sr correctly based on slot_index grouping
-      //    All entries with the same operator/date share sr=1 (single machine run).
-      //    If you ever support multiple SRs, change this logic.
       const newScheduleEntries = (formData.schedule_entries || []).map(entry => {
         // Strip all frontend-only flags
         const { _isNew: _flag, values, id, ...cleanEntry } = entry;
         return {
           ...cleanEntry,
-          sr:         cleanEntry.sr         ?? 1,            // ✅ FIX: keep sr from entry, default 1
+          sr:         cleanEntry.sr         ?? 1,            
           slot_index: cleanEntry.slot_index ?? 0,
           row_order:  cleanEntry.row_order  ?? 0,
         };
       });
 
-      // ✅ FIX: _isNew is frontend flag — never send to backend
       const reportPayload = {
         doc_no:           'KGTL-QCL-01',
         revision_no:      '01',
@@ -160,11 +157,10 @@ function App() {
         part_number:      formData.partNumber    || '',
         operation_name:   formData.operationName || '',
         customer_name:    formData.customerName  || '',
-        prepared_by:      formData.preparedBy    || '',   // ✅ FIX: added
-        approved_by:      formData.approvedBy    || '',   // ✅ FIX: added
+        prepared_by:      formData.preparedBy    || '',   
+        approved_by:      formData.approvedBy    || '',   
         items:            updatedItems,
         schedule_entries: newScheduleEntries,
-        // NOTE: _isNew is intentionally NOT included here
       };
 
       let reportId = null;
@@ -219,6 +215,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        
+        {/* NAYA SELECTION PAGE ROUTE YAHAN HAI */}
+        <Route path="/selection" element={<SelectionPage />} />
+
         <Route path="/inspection" element={
           <Inspection
             items={viewItems}

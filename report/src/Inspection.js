@@ -201,7 +201,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
           )}
         </div>
         <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-pencil-square"></i> Edit</button>
-        <button onClick={()=>{ if(onNewForm) onNewForm(); navigate('/form?mode=new'); }} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-file-earmark-plus-fill"></i> New Form</button>
+
       </div>
 
       {/* ── Print Report ── */}
