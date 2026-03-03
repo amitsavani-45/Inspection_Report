@@ -24,7 +24,7 @@ const sections = [
     bg: '#e8f5e9',
     border: '#a5d6a7',
     route: '/raw-material',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'incoming-quality',
@@ -35,7 +35,7 @@ const sections = [
     bg: '#fff3e0',
     border: '#ffcc80',
     route: '/incoming-quality',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'final-inspection',
@@ -46,7 +46,7 @@ const sections = [
     bg: '#f3e5f5',
     border: '#ce93d8',
     route: '/final-inspection',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'process-audit',
@@ -57,7 +57,7 @@ const sections = [
     bg: '#ffebee',
     border: '#ef9a9a',
     route: '/process-audit',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'reports',
@@ -68,7 +68,7 @@ const sections = [
     bg: '#e0f2f1',
     border: '#80cbc4',
     route: '/reports',
-    enabled: false,
+    enabled: true,
   },
 ];
 
