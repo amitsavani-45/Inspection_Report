@@ -5,6 +5,16 @@ import './Dashboard.css';
 
 const sections = [
   {
+    id: 'raw-material',
+    title: 'Raw Material',
+    icon: 'bi bi-boxes',
+    description: 'Raw material inspection & tracking',
+    color: '#388e3c',
+    bg: '#e8f5e9',
+    border: '#a5d6a7',
+    route: '/raw-material',
+    enabled: true,
+  },{
     id: 'setup-inspection',
     title: 'Setup & Patrol Inspection Report',
     icon: 'bi bi-clipboard2-pulse-fill',
@@ -15,17 +25,7 @@ const sections = [
     route: '/selection',
     enabled: true,
   },
-  {
-    id: 'raw-material',
-    title: 'Raw Material',
-    icon: 'bi bi-boxes',
-    description: 'Raw material inspection & tracking',
-    color: '#388e3c',
-    bg: '#e8f5e9',
-    border: '#a5d6a7',
-    route: '/raw-material',
-    enabled: true,
-  },
+ 
   {
     id: 'incoming-quality',
     title: 'Incoming Quality Control',

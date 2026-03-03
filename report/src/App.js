@@ -4,6 +4,11 @@ import Dashboard from './Dashboard';
 import Inspection from './Inspection';
 import Form from './Form';
 import SelectionPage from './Selection';
+import RawMaterial from './RawMaterial';
+import IncomingQuality from './IncomingQuality';
+import FinalInspection from './FinalInspection';
+import ProcessAudit from './ProcessAudit';
+import ReportsAnalytics from './ReportsAnalytics';
 import { getAllReports, getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
@@ -251,6 +256,11 @@ function App() {
             currentReport={currentReport}
           />
         } />
+        <Route path="/raw-material" element={<RawMaterial />} />
+        <Route path="/incoming-quality" element={<IncomingQuality />} />
+        <Route path="/final-inspection" element={<FinalInspection />} />
+        <Route path="/process-audit" element={<ProcessAudit />} />
+        <Route path="/reports" element={<ReportsAnalytics />} />
       </Routes>
     </BrowserRouter>
   );
