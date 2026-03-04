@@ -79,7 +79,7 @@ body { background: var(--bg-color); color: var(--text-main); }
 .wiz-dot-circle {
   width: 48px;
   height: 48px;
-  border-radius: 12px;    /* square, not circle */
+  border-radius: 12px;    
   border: 1.5px solid var(--border-light);
   background: var(--card-bg);
   display: flex;
