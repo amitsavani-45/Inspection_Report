@@ -206,9 +206,7 @@ const SlotValueEntry = ({ slot, colLabels, setVal }) => {
   );
 };
 
-/* ══════════════════════════════════════
-   MAIN FORM — WIZARD
-══════════════════════════════════════ */
+
 const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
   const [step, setStep] = useState(1);
 
