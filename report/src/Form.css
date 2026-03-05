@@ -299,9 +299,16 @@ body { background: var(--bg-color); color: var(--text-main); }
 .wiz-btn-back:hover { background: #f3f4f6; color: var(--text-main); }
 
 .wiz-btn-next, .wiz-btn-save {
-  padding: 0 32px; height: 48px; background: var(--primary);
-  border: none; border-radius: 10px; font-size: 15px;
-  font-weight: 700; color: white; cursor: pointer; transition: all 0.2s;
+  padding: 0 32px;
+  height: 48px; 
+  background: var(--primary);
+  border: none; 
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700; 
+  color: white;
+  cursor: pointer; 
+  transition: all 0.2s;
   box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
 }
 .wiz-btn-next:hover, .wiz-btn-save:hover { background: var(--primary-hover); transform: translateY(-1px); }
