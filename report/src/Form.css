@@ -43,12 +43,20 @@ body { background: var(--bg-color); color: var(--text-main); }
   top: 0;
   z-index: 200;
 }
-.wiz-topbar-title { font-weight: 700; font-size: 16px; color: var(--text-main); letter-spacing: 0.5px; }
+.wiz-topbar-title { font-weight: 700;
+   font-size: 16px; 
+   color: var(--text-main); 
+   letter-spacing: 0.5px; }
 
 .wiz-back-btn {
-  background: none; border: none; color: var(--text-muted);
-  font-size: 14px; cursor: pointer; padding: 8px;
-  font-weight: 600; transition: color 0.2s;
+  background: none;
+   border: none; 
+   color: var(--text-muted);
+  font-size: 14px; 
+  cursor: pointer;
+   padding: 8px;
+  font-weight: 600; 
+  transition: color 0.2s;
 }
 .wiz-back-btn:hover { color: var(--text-main); }
 
@@ -62,17 +70,32 @@ body { background: var(--bg-color); color: var(--text-main); }
   border: 1px solid rgba(229, 231, 235, 0.5);
 }
 .wiz-progress-track {
-  height: 6px; background: #f3f4f6; border-radius: 6px;
-  margin-bottom: 20px; overflow: hidden;
+  height: 6px; 
+  background: #f3f4f6; 
+  border-radius: 6px;
+  margin-bottom: 20px; 
+  overflow: hidden;
 }
 .wiz-progress-fill {
-  height: 100%; background: var(--primary);
-  border-radius: 6px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+   background: var(--primary);
+  border-radius: 6px;
+   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Report LEFT, Schedule RIGHT ── */
-.wiz-steps-row { display:flex; justify-content:space-between; align-items:center; width:100%; margin:0; }
-.wiz-step-dot { display:flex; flex-direction:row; align-items:center; gap:12px; cursor:pointer; flex:0; padding:4px 0; }
+.wiz-steps-row { display:flex;
+   justify-content:space-between;
+    align-items:center;
+     width:100%;
+      margin:0; }
+.wiz-step-dot { display:flex; 
+  flex-direction:row; 
+  align-items:center; 
+  gap:12px;
+   cursor:pointer;
+    flex:0;
+     padding:4px 0; }
 .wiz-step-dot:not(:last-child)::after { content:''; display:block;}
 
 /* ── FIXED: big square instead of small circle ── */
