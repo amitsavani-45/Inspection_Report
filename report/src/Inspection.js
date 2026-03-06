@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import './Inspection.css';
 import atomone from './image/atomone.jpg';
 
-
 const formatDisplay = (dateStr) => {
   if (!dateStr) return '';
   const parts = String(dateStr).split('-');
@@ -40,27 +39,56 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
 
   // ── Build schedule rows for report ──
   const buildScheduleRows = () => {
-    const empty20 = () => Array(20).fill('');
+  const empty20 = () => Array(20).fill('');
 
-    // Group entries by operator + machine_no + date (sr field reliable nahi hai)
+    // Group entries by slot_index — har slot_index ek alag schedule row hai
+    // Phir un rows ko operator+date+mcNo se SR groups mein band karo
+    const slotGroups = {};
+    scheduleEntries.forEach(entry => {
+      const si = entry.slot_index ?? 0;
+      if (!slotGroups[si]) slotGroups[si] = [];
+      slotGroups[si].push(entry);
+    });
+
+    // Ab har unique (operator, machine_no, date) combo = ek SR row
+    // Lekin ek SR row ke andar multiple slot_indexes ho sakte hain (SETUP, 4HRS, LAST)
+    // Dono SETUP alag slot_index pe hain — unhe alag SR rows banana hai
+    // Key insight: agar same time_type ke 2 alag slot_indexes hain, woh alag SR rows hain
+
+    // Pehle sab slot_indexes ko time_type ke saath list karo
+    const slotList = Object.entries(slotGroups)
+      .map(([si, entries]) => ({
+        slot_index: Number(si),
+        time_type: entries[0]?.time_type || 'SETUP',
+        operator: entries[0]?.operator || '',
+        machine_no: entries[0]?.machine_no || '',
+        date: entries[0]?.date || '',
+        entries,
+      }))
+      .sort((a, b) => a.slot_index - b.slot_index);
+
+    // SETUP type slots ko alag SR rows mein daalo
+    // Logic: har SETUP slot ek nayi SR row start karta hai
+    //        4HRS/LAST us SR row mein jaate hain jo pichle SETUP ke baad aaye
     const grouped = {};
     let srCounter = 1;
-    scheduleEntries.forEach(entry => {
-      // sr field reliable nahi — operator+mcNo+date se group karo
-      const groupKey = `${entry.operator||''}__${entry.machine_no||''}__${entry.date||''}`;
-      if (!grouped[groupKey]) {
-        grouped[groupKey] = {
-          sr: entry.sr || srCounter++,
-          date: formatDisplay(entry.date) || '',
-          operator: entry.operator || '',
-          mcNo: entry.machine_no || '',
+    let currentSrKey = null;
+
+    slotList.forEach(slot => {
+      if (slot.time_type === 'SETUP' || currentSrKey === null) {
+        // Nayi SR row banao
+        currentSrKey = `sr_${srCounter++}`;
+        grouped[currentSrKey] = {
+          sr: srCounter - 1,
+          date: formatDisplay(slot.date) || '',
+          operator: slot.operator || '',
+          mcNo: slot.machine_no || '',
           rawEntries: []
         };
       }
-      grouped[groupKey].rawEntries.push(entry);
+      slot.entries.forEach(e => grouped[currentSrKey].rawEntries.push(e));
     });
 
-    // Agar koi bhi entry nahi hai toh default empty row show karo
     if (Object.keys(grouped).length === 0) {
       return [{
         sr:1, date:'', operator:'', mcNo:'',
@@ -73,39 +101,36 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
     }
 
     return Object.values(grouped).map(grp => {
-      // slot_index aur row_order se sort karo
       const sorted = [...grp.rawEntries].sort((a,b) => {
         const si = (a.slot_index??0) - (b.slot_index??0);
         if (si!==0) return si;
         return (a.row_order??0) - (b.row_order??0);
       });
 
-      // slotMap: slot_index → {time_type, up, down}
       const slotMap = {};
       sorted.forEach(e => {
         const si = e.slot_index ?? 0;
-        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type, up: null, down: null };
+        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type, readings: [] };
         const vals = empty20();
         for(let i=0; i<20; i++) vals[i] = e[`value_${i+1}`] || '';
-        if (e.row_order === 0) slotMap[si].up   = vals;
-        else                   slotMap[si].down  = vals;
+        const ri = e.row_order ?? 0;
+        slotMap[si].readings[ri] = vals;
       });
 
-      // time_type order: SETUP → 4HRS → LAST, phir slot_index se
       const timeOrder = { SETUP: 0, '4HRS': 1, '2HRS': 1, LAST: 2 };
       const slots = Object.entries(slotMap)
         .sort((a,b) => {
           const ta = timeOrder[a[1].time_type] ?? 9;
           const tb = timeOrder[b[1].time_type] ?? 9;
           if (ta !== tb) return ta - tb;
-          return Number(a[0]) - Number(b[0]); // same type mein slot_index se sort
+          return Number(a[0]) - Number(b[0]);
         })
         .flatMap(([, s]) => {
-          const rows = [{time: s.time_type, row_order:0, values: s.up || empty20()}];
-          // down row sirf tab dikhao jab actual data ho
-          if (s.down !== null && s.down.some(v => v !== ''))
-            rows.push({time: s.time_type, row_order:1, values: s.down});
-          return rows;
+          // Ensure index 0 always exists
+          if (!s.readings[0]) s.readings[0] = empty20();
+          return s.readings
+            .map((vals, ri) => ({time: s.time_type, row_order: ri, values: vals || empty20()}))
+            .filter((row, ri) => ri === 0 || row.values.some(v => v !== ''));
         });
 
       return { sr: grp.sr, date: grp.date, operator: grp.operator, mcNo: grp.mcNo, slots };
@@ -116,16 +141,13 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
   const totalSchedHtmlRows = scheduleRows.reduce((sum,s)=>sum+s.slots.length, 0);
 
   // ── Print layout heights (A4 landscape 6mm margin = 749px usable) ──
-  // Total usable = 749px
-  // Fixed sections: header=67, fleet=60, footer=40, gaps(5×2)=10 → used=177
-  // Remaining for insp+schedule = 749 - 177 = 572px
   const TOTAL_USABLE   = 572;
-  const SCHED_THEAD    = 22;                                         // schedule header
-  const SCHED_ROW_H    = 26;                                         // each schedule row (fixed)
+  const SCHED_THEAD    = 22;                                         
+  const SCHED_ROW_H    = 26;                                         
   const SCHED_H        = SCHED_THEAD + totalSchedHtmlRows * SCHED_ROW_H;
-  const INSP_THEAD     = 26;                                         // inspection header
-  const inspAvailable  = TOTAL_USABLE - SCHED_H - INSP_THEAD;       // space left for 10 rows
-  const inspRowH       = Math.max(18, inspAvailable / 10);           // stretch rows to fill — min 18px
+  const INSP_THEAD     = 26;                                         
+  const inspAvailable  = TOTAL_USABLE - SCHED_H - INSP_THEAD;       
+  const inspRowH       = Math.max(18, inspAvailable / 10);           
   const inspTotalH     = INSP_THEAD + 10 * inspRowH;
 
   // ── Filter ──
@@ -148,7 +170,11 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
 
       {/* ── Top Bar (no-print) ── */}
       <div className="no-print" style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:'12px',marginBottom:'10px'}}>
-        <button onClick={()=>navigate('/')} style={{background:'#607d8b',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-house-fill"></i> Home</button>
+        
+        <button onClick={()=>navigate('/selection')} style={{background:'#607d8b',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+          <i className="bi bi-arrow-left-circle-fill"></i> Back
+        </button>
+
         <div style={{position:'relative'}}>
           <button onClick={()=>setShowFilter(p=>!p)} style={{background:showFilter?'#1565c0':'#1976d2',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
             <i className="bi bi-funnel-fill"></i> Filter {isAnyFilterActive?'●':''}
@@ -200,7 +226,20 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
             </>
           )}
         </div>
-        <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}><i className="bi bi-pencil-square"></i> Edit</button>
+
+        {/* 👇 YAHAN CONDITION LAGAYI HAI: Agar data hai, tabhi Edit aur Print button dikhega 👇 */}
+        {currentReport?.customer_name && (
+          <>
+            <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+              <i className="bi bi-pencil-square"></i> Edit
+            </button>
+
+            {/* 👇 YEH NAYA PRINT BUTTON HAI 👇 */}
+            <button onClick={() => window.print()} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+              <i className="bi bi-printer-fill"></i> Print
+            </button>
+          </>
+        )}
 
       </div>
 
@@ -290,13 +329,16 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
             <tbody>
               {scheduleRows.map((si, rowIdx)=>{
                 const totalTimeRows = si.slots.length;
-                const timeSpans = si.slots.map((row,idx)=>{
-                  if (row.row_order===0){
-                    const next = si.slots[idx+1];
-                    if (next && next.row_order===1 && next.time===row.time) return 2;
-                    return 1;
+                const timeSpans = si.slots.map((row, idx) => {
+                  // First row of a time-type group gets rowSpan = count of that type's rows
+                  const prev = si.slots[idx - 1];
+                  if (!prev || prev.time !== row.time) {
+                    // Count how many consecutive rows share same time
+                    let count = 0;
+                    for (let j = idx; j < si.slots.length && si.slots[j].time === row.time; j++) count++;
+                    return count;
                   }
-                  return 0;
+                  return 0; // merged into above
                 });
                 return (
                   <React.Fragment key={rowIdx}>

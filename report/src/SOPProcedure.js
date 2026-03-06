@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Selection.css';
 
-const ProcessAudit = () => {
-  const navigate = useNavigate();
+const SOPProcedure = () => {
+const navigate = useNavigate();
 
   return (
     <div className="selection-container">
@@ -11,26 +11,26 @@ const ProcessAudit = () => {
         <button onClick={() => navigate('/')} className="selection-back-btn">
           <i className="bi bi-arrow-left-circle-fill"></i> Back to Dashboard
         </button>
-        <h2 className="selection-title">Process Audit</h2>
-        <p className="selection-subtitle">Process audit reports and findings</p>
+        <h2 className="selection-title">SOP & Procedure</h2>
+        <p className="selection-subtitle">Standard Operating Procedures and guidelines</p>
       </div>
 
       <div className="selection-cards-wrapper">
-        <div className="select-card fill-data-card" onClick={() => alert('Process Audit Entry — Coming Soon!')}>
+        <div className="select-card fill-data-card" onClick={() => alert('Add SOP — Coming Soon!')}>
           <div className="select-icon-wrapper">
-            <i className="bi bi-pencil-square select-icon"></i>
+            <i className="bi bi-journal-plus select-icon"></i>
           </div>
-          <h3>Fill Data</h3>
-          <p>Enter new process audit report</p>
+          <h3>Add SOP</h3>
+          <p>Upload or create new standard operating procedures</p>
           <div className="select-arrow"><i className="bi bi-arrow-right"></i></div>
         </div>
 
-        <div className="select-card print-data-card" onClick={() => alert('Process Audit Reports — Coming Soon!')}>
+        <div className="select-card print-data-card" onClick={() => alert('View SOPs — Coming Soon!')}>
           <div className="select-icon-wrapper">
-            <i className="bi bi-printer-fill select-icon"></i>
+            <i className="bi bi-book select-icon"></i>
           </div>
-          <h3>View Reports</h3>
-          <p>View, filter and print process audit reports</p>
+          <h3>View SOPs</h3>
+          <p>Browse, read, and download existing procedures</p>
           <div className="select-arrow"><i className="bi bi-arrow-right"></i></div>
         </div>
       </div>
@@ -38,4 +38,4 @@ const ProcessAudit = () => {
   );
 };
 
-export default ProcessAudit;
+export default SOPProcedure;

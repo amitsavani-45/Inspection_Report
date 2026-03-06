@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import atomone from './image/atomone.jpg';
-import './Dashboard.css';
+import './QMS_Portal.css';
 
 const sections = [
   {
@@ -9,65 +9,65 @@ const sections = [
     title: 'Raw Material',
     icon: 'bi bi-boxes',
     description: 'Raw material inspection & tracking',
-    color: '#388e3c',
+    color: '#2e7d32', // Green
     bg: '#e8f5e9',
     border: '#a5d6a7',
     route: '/raw-material',
     enabled: true,
-  },{
+  },
+  {
     id: 'setup-inspection',
     title: 'Setup & Patrol Inspection Report',
-    icon: 'bi bi-clipboard2-pulse-fill',
+    icon: 'bi bi-clipboard2-pulse',
     description: 'View & manage setup and patrol inspection reports',
-    color: '#1976d2',
+    color: '#1565c0', // Blue
     bg: '#e3f2fd',
     border: '#90caf9',
     route: '/selection',
     enabled: true,
   },
- 
   {
-    id: 'incoming-quality',
-    title: 'Incoming Quality Control',
-    icon: 'bi bi-box-arrow-in-down',
-    description: 'Incoming material quality check records',
-    color: '#f57c00',
+    id: 'layout-report',
+    title: 'Layout Report',
+    icon: 'bi bi-calculator',
+    description: 'View and manage layout inspection reports',
+    color: '#ef6c00', // Orange
     bg: '#fff3e0',
     border: '#ffcc80',
-    route: '/incoming-quality',
+    route: '/layout-report',
     enabled: true,
   },
   {
-    id: 'final-inspection',
-    title: 'Final Inspection',
-    icon: 'bi bi-patch-check-fill',
-    description: 'Final product inspection before dispatch',
-    color: '#7b1fa2',
+    id: 'dispatch',
+    title: 'Dispatch',
+    icon: 'bi bi-truck',
+    description: 'Final dispatch inspection and tracking',
+    color: '#7b1fa2', // Purple
     bg: '#f3e5f5',
     border: '#ce93d8',
-    route: '/final-inspection',
+    route: '/dispatch',
     enabled: true,
   },
   {
-    id: 'process-audit',
-    title: 'Process Audit',
-    icon: 'bi bi-journal-text',
-    description: 'Process audit reports and findings',
-    color: '#c62828',
+    id: 'pdi-report',
+    title: 'PDI Report',
+    icon: 'bi bi-shield-check',
+    description: 'Pre-Delivery Inspection (PDI) records',
+    color: '#c62828', // Red
     bg: '#ffebee',
     border: '#ef9a9a',
-    route: '/process-audit',
+    route: '/pdi-report',
     enabled: true,
   },
   {
-    id: 'reports',
-    title: 'Reports & Analytics',
-    icon: 'bi bi-bar-chart-line-fill',
-    description: 'Summary reports and quality analytics dashboard',
-    color: '#00796b',
+    id: 'sop-procedure',
+    title: 'SOP & Procedure',
+    icon: 'bi bi-book',
+    description: 'Standard Operating Procedures and guidelines',
+    color: '#00695c', // Teal
     bg: '#e0f2f1',
     border: '#80cbc4',
-    route: '/reports',
+    route: '/sop-procedure',
     enabled: true,
   },
 ];
@@ -83,13 +83,10 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      {/* ── Top Header Bar (Logo & Date only) ── */}
       <div className="dashboard-header">
         <div className="dashboard-header-left">
           <img src={atomone} alt="ATOM ONE" className="dashboard-logo" />
-        </div>
-        <div className="dashboard-header-center">
-          <h1 className="dashboard-title">Quality Management System</h1>
-          <p className="dashboard-subtitle">Select a module to continue</p>
         </div>
         <div className="dashboard-header-right">
           <div className="dashboard-date">
@@ -98,6 +95,13 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* ── Main Heading (Now below the header) ── */}
+      <div className="dashboard-main-heading">
+        <h1 className="dashboard-title">Quality Management System</h1>
+        <p className="dashboard-subtitle">Select a module to continue</p>
+      </div>
+
+      {/* ── Cards Grid ── */}
       <div className="dashboard-grid">
         {sections.map((section) => (
           <div
@@ -124,7 +128,6 @@ const Dashboard = () => {
             ) : (
               <div className="card-badge">Coming Soon</div>
             )}
-            <div className="card-top-bar" />
           </div>
         ))}
       </div>

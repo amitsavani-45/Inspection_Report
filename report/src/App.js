@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
-import Dashboard from './Dashboard';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import QMS_Portal from './QMS_Portal';
 import Inspection from './Inspection';
 import Form from './Form';
 import SelectionPage from './Selection';
 import RawMaterial from './RawMaterial';
-import IncomingQuality from './IncomingQuality';
-import FinalInspection from './FinalInspection';
-import ProcessAudit from './ProcessAudit';
-import ReportsAnalytics from './ReportsAnalytics';
+import LayoutReport from './LayoutReport';
+import Dispatch from './Dispatch';
+import PDIReport from './PDIReport';
+import SOPProcedure from './SOPProcedure';
 import { getAllReports, getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
@@ -32,45 +32,44 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   return (
     <Form
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/')}
+      onCancel={() => navigate('/selection')}
       initialData={formInitialData}
       items={formItems}
     />
   );
 }
 
-function App() {
-  const [currentReport, setCurrentReport] = useState(null);
+// 👇 NAYA COMPONENT BANA DIYA HAI TAAKI ROUTE CHANGE DETECT HO SAKE 👇
+function AppContent() {
+  const [currentReport, setCurrentReport] = useState({
+    doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
+    part_name: '', part_number: '', operation_name: '', customer_name: '',
+    items: [], schedule_entries: [],
+  });
   const [viewItems, setViewItems]         = useState([]);
   const [formItems, setFormItems]         = useState([]);
   const [loading, setLoading]             = useState(false);
   const [formKey, setFormKey]             = useState(0);
 
-  useEffect(() => { loadLatestReport(); }, []);
+  const location = useLocation();
+
+  // 👇 YAHAN MAGIC HOGA: Jab bhi aap Home ya Selection page par jayenge, data blank ho jayega
+  useEffect(() => {
+    if (location.pathname === '/' || location.pathname === '/selection') {
+      setCurrentReport({
+        doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
+        part_name: '', part_number: '', operation_name: '', customer_name: '',
+        items: [], schedule_entries: [],
+      });
+      setViewItems([]);
+      setFormItems([]);
+    }
+  }, [location.pathname]);
 
   const applyReport = (fullReport) => {
     setCurrentReport(fullReport);
     setViewItems(fullReport.items || []);
     setFormItems(fullReport.items || []);
-  };
-
-  const loadLatestReport = async () => {
-    try {
-      setLoading(true);
-      const reports = await getAllReports();
-      if (reports && reports.length > 0) {
-        const full = await getReportById(reports[0].id);
-        applyReport(full);
-      } else {
-        setCurrentReport(null);
-        setViewItems([]);
-        setFormItems([]);
-      }
-    } catch (error) {
-      console.error('Error loading report:', error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleDateChange = async (date) => {
@@ -132,7 +131,6 @@ function App() {
       const date   = formData.scheduleDate || new Date().toISOString().split('T')[0];
       const isNew  = formData._isNew === true;
 
-      // ── Clean items ──
       const updatedItems = (formData.items || []).map(item => ({
         sr_no:        item.sr_no,
         item:         item.item         || '',
@@ -142,9 +140,7 @@ function App() {
         inst:         item.inst         || '',
       }));
 
-      // ── Clean schedule entries ──
       const newScheduleEntries = (formData.schedule_entries || []).map(entry => {
-        // Strip all frontend-only flags
         const { _isNew: _flag, values, id, ...cleanEntry } = entry;
         return {
           ...cleanEntry,
@@ -203,65 +199,62 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{
-        display:        'flex',
-        justifyContent: 'center',
-        alignItems:     'center',
-        height:         '100vh',
-        fontSize:       '18px',
-        color:          '#666',
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '18px', color: '#666' }}>
         Loading...
       </div>
     );
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        
-        {/* NAYA SELECTION PAGE ROUTE YAHAN HAI */}
-        <Route path="/selection" element={<SelectionPage />} />
+    <Routes>
+      <Route path="/" element={<QMS_Portal />} />
+      <Route path="/selection" element={<SelectionPage />} />
+      <Route path="/inspection" element={
+        <Inspection
+          items={viewItems}
+          reportId={currentReport?.id}
+          currentReport={currentReport}
+          onResetAfterSave={() => {
+            setCurrentReport(null);
+            setViewItems([]);
+            setFormItems([]);
+          }}
+          onDateChange={handleDateChange}
+          onFilter={handleFilter}
+          onNewForm={() => { setFormKey(k => k + 1); }}
+          onEditForm={() => { setFormKey(k => k + 1); }}
+        />
+      } />
+      <Route path="/form" element={
+        <FormPageWrapper
+          key={formKey}
+          onAddItem={handleAddItem}
+          items={formItems}
+          currentReport={currentReport}
+        />
+      } />
+      <Route path="/setup-inspection" element={
+        <FormPageWrapper
+          key={formKey}
+          onAddItem={handleAddItem}
+          items={formItems}
+          currentReport={currentReport}
+        />
+      } />
+      <Route path="/raw-material" element={<RawMaterial />} />
+      <Route path="/layout-report" element={<LayoutReport />} />
+      <Route path="/dispatch" element={<Dispatch />} />
+      <Route path="/pdi-report" element={<PDIReport />} />
+      <Route path="/sop-procedure" element={<SOPProcedure />} />
+    </Routes>
+  );
+}
 
-        <Route path="/inspection" element={
-          <Inspection
-            items={viewItems}
-            reportId={currentReport?.id}
-            currentReport={currentReport}
-            onResetAfterSave={() => {
-              setCurrentReport(null);
-              setViewItems([]);
-              setFormItems([]);
-            }}
-            onDateChange={handleDateChange}
-            onFilter={handleFilter}
-            onNewForm={() => { setFormKey(k => k + 1); }}
-            onEditForm={() => { setFormKey(k => k + 1); }}
-          />
-        } />
-        <Route path="/form" element={
-          <FormPageWrapper
-            key={formKey}
-            onAddItem={handleAddItem}
-            items={formItems}
-            currentReport={currentReport}
-          />
-        } />
-        <Route path="/setup-inspection" element={
-          <FormPageWrapper
-            key={formKey}
-            onAddItem={handleAddItem}
-            items={formItems}
-            currentReport={currentReport}
-          />
-        } />
-        <Route path="/raw-material" element={<RawMaterial />} />
-        <Route path="/incoming-quality" element={<IncomingQuality />} />
-        <Route path="/final-inspection" element={<FinalInspection />} />
-        <Route path="/process-audit" element={<ProcessAudit />} />
-        <Route path="/reports" element={<ReportsAnalytics />} />
-      </Routes>
+// App wrapper for Router
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
