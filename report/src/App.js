@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import QMS_Portal from './QMS_Portal';
-import Inspection from './inspection';
-import Form from './form';
+import Inspection from './Inspection';
+import Form from './Form';
 import SelectionPage from './Selection';
 import RawMaterial from './RawMaterial';
 import LayoutReport from './LayoutReport';
