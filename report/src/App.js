@@ -29,11 +29,17 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   const formInitialData = isNew ? {} : (currentReport || {});
   const formItems = isNew ? [] : items;
 
+  // Safety: agar isNew hai toh schedule_entries kabhi pass na ho
+  const safeInitialData = isNew ? {} : {
+    ...formInitialData,
+    schedule_entries: formInitialData.schedule_entries || [],
+  };
+
   return (
     <Form
       onSubmit={handleSubmit}
       onCancel={() => navigate('/selection')}
-      initialData={formInitialData}
+      initialData={safeInitialData}
       items={formItems}
     />
   );
@@ -221,7 +227,16 @@ function AppContent() {
           }}
           onDateChange={handleDateChange}
           onFilter={handleFilter}
-          onNewForm={() => { setFormKey(k => k + 1); }}
+          onNewForm={() => { 
+            setCurrentReport({
+              doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
+              part_name: '', part_number: '', operation_name: '', customer_name: '',
+              items: [], schedule_entries: [],
+            });
+            setViewItems([]);
+            setFormItems([]);
+            setFormKey(k => k + 1); 
+          }}
           onEditForm={() => { setFormKey(k => k + 1); }}
         />
       } />
