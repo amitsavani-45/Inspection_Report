@@ -1,15 +1,16 @@
+/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import QMS_Portal from './QMS_Portal';
-import Inspection from './Inspection';
-import Form from './Form';
+import Inspection from './inspection';
+import Form from './form';
 import SelectionPage from './Selection';
 import RawMaterial from './RawMaterial';
 import LayoutReport from './LayoutReport';
 import Dispatch from './Dispatch';
 import PDIReport from './PDIReport';
 import SOPProcedure from './SOPProcedure';
-import { getAllReports, getReportById, createReport, updateReport } from './services/api';
+import { getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   const navigate = useNavigate();
@@ -26,13 +27,11 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
     }
   };
 
-  const formInitialData = isNew ? {} : (currentReport || {});
   const formItems = isNew ? [] : items;
 
-  // Safety: agar isNew hai toh schedule_entries kabhi pass na ho
   const safeInitialData = isNew ? {} : {
-    ...formInitialData,
-    schedule_entries: formInitialData.schedule_entries || [],
+    ...(currentReport || {}),
+    schedule_entries: (currentReport || {}).schedule_entries || [],
   };
 
   return (

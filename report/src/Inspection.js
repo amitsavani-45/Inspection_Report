@@ -11,7 +11,7 @@ const formatDisplay = (dateStr) => {
   return dateStr;
 };
 
-const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }) => {
+const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
   const navigate = useNavigate();
 
   const displayDate = '01/01/2026';
