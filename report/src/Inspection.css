@@ -29,7 +29,7 @@ table { width:100%;
 td, th { border:1px solid black; 
   text-align:center; 
   vertical-align:middle;
-   overflow:hidden; }
+  overflow:hidden; }
 
 /* ── HEADER ── */
 .header-table
@@ -38,8 +38,8 @@ td, th { border:1px solid black;
 .logo-cell 
 { width:120px; 
   padding:6px;
-   text-align:center;
-    border-right:2px solid black; }
+  text-align:center;
+  border-right:2px solid black; }
 
 .logo-image
  { max-width:100%;
@@ -63,10 +63,10 @@ td, th { border:1px solid black;
 .doc-info-cell table td 
 { border:none; 
   border-bottom:1px solid black;
-   padding:4px 8px;
-    font-size:11px; 
-    height:24px; 
-    text-align:left; }
+  padding:4px 8px;
+  font-size:11px; 
+  height:24px; 
+  text-align:left; }
 
 .doc-info-cell table tr:last-child td 
 { border-bottom:none; }
@@ -133,8 +133,8 @@ td, th { border:1px solid black;
   font-size:11px; 
   padding:4px 3px; 
   white-space:normal;
-   word-break:break-word; 
-   line-height:1.2; }
+  word-break:break-word; 
+  line-height:1.2; }
 
 .schedule-table td
  { font-size:11px; 
@@ -143,13 +143,13 @@ td, th { border:1px solid black;
 /* ── FOOTER ── */
 .footer 
 { display:flex;
-   justify-content:space-between; 
-   padding:10px 10px 4px;
-    margin-top:8px; }
+  justify-content:space-between; 
+  padding:10px 10px 4px;
+  margin-top:8px; }
 
 .signature-field
  { display:flex; 
-  align-items:flex-end;
+   align-items:flex-end;
    min-width:300px; 
    gap:8px; }
 
@@ -163,11 +163,11 @@ td, th { border:1px solid black;
 .signature-field input 
 { flex:1; 
   border:none;
-   border-bottom:1.5px solid black; 
-   outline:none; 
-   font-size:11px;
-    background:transparent; 
-    min-width:200px; }
+  border-bottom:1.5px solid black; 
+  outline:none; 
+  font-size:11px;
+  background:transparent; 
+  min-width:200px; }
 
 /* ══════════════════════════════════════════════════════
    PRINT STYLES
@@ -199,7 +199,7 @@ td, th { border:1px solid black;
     background:white !important;
     min-height:unset !important;
     width:1078px !important;
-     height:749px !important;
+    height:749px !important;
     overflow:hidden !important;
   }
 
