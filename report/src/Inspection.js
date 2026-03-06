@@ -41,52 +41,22 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
   const buildScheduleRows = () => {
   const empty20 = () => Array(20).fill('');
 
-    // Group entries by slot_index — har slot_index ek alag schedule row hai
-    // Phir un rows ko operator+date+mcNo se SR groups mein band karo
-    const slotGroups = {};
-    scheduleEntries.forEach(entry => {
-      const si = entry.slot_index ?? 0;
-      if (!slotGroups[si]) slotGroups[si] = [];
-      slotGroups[si].push(entry);
-    });
-
-    // Ab har unique (operator, machine_no, date) combo = ek SR row
-    // Lekin ek SR row ke andar multiple slot_indexes ho sakte hain (SETUP, 4HRS, LAST)
-    // Dono SETUP alag slot_index pe hain — unhe alag SR rows banana hai
-    // Key insight: agar same time_type ke 2 alag slot_indexes hain, woh alag SR rows hain
-
-    // Pehle sab slot_indexes ko time_type ke saath list karo
-    const slotList = Object.entries(slotGroups)
-      .map(([si, entries]) => ({
-        slot_index: Number(si),
-        time_type: entries[0]?.time_type || 'SETUP',
-        operator: entries[0]?.operator || '',
-        machine_no: entries[0]?.machine_no || '',
-        date: entries[0]?.date || '',
-        entries,
-      }))
-      .sort((a, b) => a.slot_index - b.slot_index);
-
-    // SETUP type slots ko alag SR rows mein daalo
-    // Logic: har SETUP slot ek nayi SR row start karta hai
-    //        4HRS/LAST us SR row mein jaate hain jo pichle SETUP ke baad aaye
+    // Group entries by operator + machine_no + date = ek SR row
+    // Andar multiple SETUP slots ho sakte hain — woh alag TIME groups banenge
     const grouped = {};
     let srCounter = 1;
-    let currentSrKey = null;
-
-    slotList.forEach(slot => {
-      if (slot.time_type === 'SETUP' || currentSrKey === null) {
-        // Nayi SR row banao
-        currentSrKey = `sr_${srCounter++}`;
-        grouped[currentSrKey] = {
-          sr: srCounter - 1,
-          date: formatDisplay(slot.date) || '',
-          operator: slot.operator || '',
-          mcNo: slot.machine_no || '',
+    scheduleEntries.forEach(entry => {
+      const groupKey = `${entry.operator||''}__${entry.machine_no||''}__${entry.date||''}`;
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = {
+          sr: srCounter++,
+          date: formatDisplay(entry.date) || '',
+          operator: entry.operator || '',
+          mcNo: entry.machine_no || '',
           rawEntries: []
         };
       }
-      slot.entries.forEach(e => grouped[currentSrKey].rawEntries.push(e));
+      grouped[groupKey].rawEntries.push(entry);
     });
 
     if (Object.keys(grouped).length === 0) {
@@ -107,10 +77,11 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
         return (a.row_order??0) - (b.row_order??0);
       });
 
+      // har slot_index = alag TIME group (isliye 2 SETUP = 2 alag TIME cells)
       const slotMap = {};
       sorted.forEach(e => {
         const si = e.slot_index ?? 0;
-        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type, readings: [] };
+        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type || 'SETUP', readings: [] };
         const vals = empty20();
         for(let i=0; i<20; i++) vals[i] = e[`value_${i+1}`] || '';
         const ri = e.row_order ?? 0;
@@ -125,11 +96,10 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
           if (ta !== tb) return ta - tb;
           return Number(a[0]) - Number(b[0]);
         })
-        .flatMap(([, s]) => {
-          // Ensure index 0 always exists
+        .flatMap(([slotKey, s]) => {
           if (!s.readings[0]) s.readings[0] = empty20();
           return s.readings
-            .map((vals, ri) => ({time: s.time_type, row_order: ri, values: vals || empty20()}))
+            .map((vals, ri) => ({time: s.time_type, slotKey, row_order: ri, values: vals || empty20()}))
             .filter((row, ri) => ri === 0 || row.values.some(v => v !== ''));
         });
 
@@ -330,15 +300,15 @@ const Inspection = ({ items=[], currentReport, onFilter, onNewForm, onEditForm }
               {scheduleRows.map((si, rowIdx)=>{
                 const totalTimeRows = si.slots.length;
                 const timeSpans = si.slots.map((row, idx) => {
-                  // First row of a time-type group gets rowSpan = count of that type's rows
+                  // Same slotKey ki pehli row ko rowSpan milega
                   const prev = si.slots[idx - 1];
-                  if (!prev || prev.time !== row.time) {
-                    // Count how many consecutive rows share same time
+                  if (!prev || prev.slotKey !== row.slotKey) {
+                    // Count consecutive rows with same slotKey
                     let count = 0;
-                    for (let j = idx; j < si.slots.length && si.slots[j].time === row.time; j++) count++;
+                    for (let j = idx; j < si.slots.length && si.slots[j].slotKey === row.slotKey; j++) count++;
                     return count;
                   }
-                  return 0; // merged into above
+                  return 0;
                 });
                 return (
                   <React.Fragment key={rowIdx}>

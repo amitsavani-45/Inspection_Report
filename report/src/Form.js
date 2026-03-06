@@ -791,6 +791,9 @@ const Form = ({ onSubmit, onCancel, initialData={}, items=[] }) => {
                         onClick={()=>{
                           if(isLocked){alert(lockMsg);return;}
                           setModalSlotType(btn.sub);
+                          // Pehle se saved slots of this type ko locked cards mein dikhao
+                          const existingOfType = slots.filter(s => s.type === btn.sub && s.readings.some(r => r.some(v => v && v.trim())));
+                          setSavedModalSlots(existingOfType);
                           setModalActiveSlot(makeSlot(nextId, btn.sub, btn.sub));
                           setNextId(p=>p+1);
                         }}
