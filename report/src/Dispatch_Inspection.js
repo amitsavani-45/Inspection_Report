@@ -124,6 +124,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
     border: '1px solid black',
     verticalAlign: 'middle',
     letterSpacing: '0px',
+    textAlign: 'left',
   };
 
   const valueCell = {
@@ -345,27 +346,25 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                  PART NO label(col5) + value(col6)             = 9+6            = 15%
                  INSPECTION DATE label(col7) + value(col8)     = 6+8            = 14%
                  CUSTOMER NAME label(col9-10) + value(col11-12)= 6+6+8+8        = 28% */}
+            {/* Row1: SUPPLIER NAME(1+2) | PART NO(1+1) | INSPECTION DATE(1+1) | CUSTOMER NAME(1+2) = 12 cols */}
             <tr style={{ height:'24px' }}>
-              <td style={{ ...labelCell }} colSpan={2}>SUPPLIER NAME :</td>
+              <td style={{ ...labelCell }} colSpan={1}>SUPPLIER NAME :</td>
               <td style={{ ...valueCell }} colSpan={2}>{currentReport?.supplier_name || ''}</td>
               <td style={{ ...labelCell }} colSpan={1}>PART NO :</td>
               <td style={{ ...valueCell }} colSpan={2}>{currentReport?.part_no || ''}</td>
               <td style={{ ...labelCell }} colSpan={1}>INSPECTION DATE. :</td>
-              <td style={{ ...valueCell }} colSpan={1}>{displayDate}</td>
-              <td style={{ ...labelCell }} colSpan={2}>CUSTOMER NAME :-</td>
-              <td style={{ ...valueCell }} colSpan={1}>{currentReport?.customer_name || ''}</td>
+              <td style={{ ...valueCell }} colSpan={2}>{displayDate}</td>
+              <td style={{ ...labelCell }} colSpan={1}>CUSTOMER NAME :-</td>
+              <td style={{ ...valueCell }} colSpan={2}>{currentReport?.customer_name || ''}</td>
             </tr>
 
-            {/* ── ROW 2: PART NAME | INVOICE NO | LOT QTY
-                 PART NAME label(col1-2) + value(col3-5)        = 52%
-                 INVOICE NO label(col6-7) + value(col8)         = 20% (VENDOR OBS ke neeche)
-                 LOT QTY label(col9-10) + value(col11-12)       = 28% (CUSTOMER OBS ke neeche) */}
+            {/* Row2: PART NAME(1+3) | INVOICE NO(2+1) | LOT QTY(1+2) = 10? no = 12 cols */}
             <tr style={{ height:'24px' }}>
-              <td style={{ ...labelCell }} colSpan={2}>PART NAME :</td>
-              <td style={{ ...valueCell }} colSpan={3}>{currentReport?.part_name || ''}</td>
+              <td style={{ ...labelCell }} colSpan={1}>PART NAME :</td>
+              <td style={{ ...valueCell }} colSpan={4}>{currentReport?.part_name || ''}</td>
               <td style={{ ...labelCell }} colSpan={2}>INVOICE NO. :-</td>
-              <td style={{ ...valueCell }} colSpan={1}>{currentReport?.invoice_no || ''}</td>
-              <td style={{ ...labelCell }} colSpan={2}>LOT QTY. :</td>
+              <td style={{ ...valueCell }} colSpan={2}>{currentReport?.invoice_no || ''}</td>
+              <td style={{ ...labelCell }} colSpan={1}>LOT QTY. :</td>
               <td style={{ ...valueCell }} colSpan={2}>{currentReport?.lot_qty || ''}</td>
             </tr>
 
