@@ -29,45 +29,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
   const navigate = useNavigate();
   const displayDate = formatDisplay(currentReport?.inspection_date) || '';
 
-  // ── Print CSS inject ──
-  useEffect(() => {
-    const id = 'di-page-style';
-    if (!document.getElementById(id)) {
-      const s = document.createElement('style');
-      s.id = id;
-      s.innerHTML = `
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 8mm;
-          }
-          body {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-            margin: 0;
-            padding: 0;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .di-report {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-          }
-          .di-report table:last-child {
-            flex: 1 !important;
-          }
-        }
-      `;
-      document.head.appendChild(s);
-    }
-    return () => { const el = document.getElementById(id); if (el) el.remove(); };
-  }, []);
+  // 👇 YAHAN SE USE-EFFECT WALA PRINT CSS INJECT CODE HATA DIYA GAYA HAI 👇
 
   // ── Filter states ──
   const [showFilter,     setShowFilter]     = useState(false);
@@ -90,6 +52,8 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
 
   // Total rows = max of MIN_ROWS or actual data count
   const TOTAL_ROWS = Math.max(MIN_ROWS, inspItems.length);
+
+  // ... (Baaki ka code same rahega) ...
 
   // Row height is auto - CSS flex handles the table height filling
 
@@ -221,9 +185,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
         style={{
           fontFamily: 'Arial, sans-serif',
           width: '210mm',
-          height: '297mm',
           boxSizing: 'border-box',
-          overflow: 'hidden',
         }}
       >
 
@@ -240,7 +202,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                 </span>
               </td>
               <td className="border-l-2 border-black align-top p-0" style={{ width: '150px' }}>
-                <div className="border-b border-black px-3 py-2" style={{ backgroundColor: '#c0c0c0' }}>
+                <div className="border-b border-black px-3 py-2" style={{ backgroundColor: '#ffffff' }}>
                   <span style={{ fontSize: '14px', fontWeight: 'bold' }}>PAGE NO.</span>
                 </div>
                 <div className="px-3 py-2">
@@ -257,7 +219,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
              ROW 2: PART NAME label(C1-C2) | value(C3-C5) | INVOICE NO(C6-C8) | LOT QTY(C9-C11) | empty(C12)
         ── */}
         <table
-          className="w-full border-2 border-black border-t-0"
+          className="w-full border border-black border-t-0"
           style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}
         >
           <colgroup>
@@ -290,12 +252,12 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
               </td>
               <td colSpan={3} className="border border-black bg-white"
                 style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
-                <span style={{ fontWeight: 'bold' }}>INSPECTION DATE. : </span>
+                <span style={{ fontWeight: 'bold' }}>INSPECTION DATE : </span>
                 <span style={{ fontSize: '11px' }}>{displayDate}</span>
               </td>
               <td colSpan={3} className="border border-black bg-white"
                 style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
-                <span style={{ fontWeight: 'bold' }}>CUSTOMER NAME :- </span>
+                <span style={{ fontWeight: 'bold' }}>CUSTOMER NAME : </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.customer_name || ''}</span>
               </td>
             </tr>
@@ -312,12 +274,12 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
               </td>
               <td colSpan={3} className="border border-black bg-white"
                 style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
-                <span style={{ fontWeight: 'bold' }}>INVOICE NO.:- </span>
+                <span style={{ fontWeight: 'bold' }}>INVOICE NO : </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.invoice_no || ''}</span>
               </td>
               <td colSpan={3} className="border border-black bg-white"
                 style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
-                <span style={{ fontWeight: 'bold' }}>LOT QTY. : </span>
+                <span style={{ fontWeight: 'bold' }}>LOT QTY : </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.lot_qty || ''}</span>
               </td>
               <td colSpan={1} className="border border-black bg-white" />
@@ -328,8 +290,8 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
 
         {/* ── SECTION 3: INSPECTION TABLE ── */}
         <table
-          className="w-full border-2 border-black border-t-0"
-          style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}
+          className="di-insp-table w-full border border-black border-t-0"
+          style={{ borderCollapse: 'collapse', tableLayout: 'fixed', width: '100%' }}
         >
           <colgroup>
             <col style={{ width: '4%' }} />
@@ -374,7 +336,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
               const row  = inspItems[i] || null;
               const srNo = row?.item?.trim() ? (i + 1) : '';
               return (
-                <tr key={i} style={{ height: "50px" }}>
+                <tr key={i} style={{ height: `${Math.max(20, Math.floor(754 / TOTAL_ROWS))}px` }}>
                   <td className={TD} style={{ fontSize: '10px' }}>{srNo}</td>
                   <td className={`${TD} !text-left !pl-1.5`}
                     style={{ fontSize: '10px', fontWeight: row?.item ? '600' : '400' }}>
@@ -410,11 +372,21 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
               );
             })}
 
+          </tbody>
+        </table>
+
+        {/* ── FOOTER TABLE — separate from inspection table ── */}
+        <table
+          className="w-full border border-black border-t-0"
+          style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}
+        >
+          <tbody>
+
             {/* ── SUPPLIER REMARKS — full width ── */}
             <tr>
-              <td colSpan={12}
-                className="border border-black bg-white px-3 text-left"
-                style={{ height: '36px', verticalAlign: 'left' }}>
+              <td colSpan={2}
+                className="border border-black bg-white px-3"
+                style={{ height: '36px', verticalAlign: 'middle', textAlign: 'left' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '11px' }}>Supplier Remarks: </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.supplier_remarks || ''}</span>
               </td>
@@ -422,15 +394,15 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
 
             {/* ── INSPECTED BY | VERIFIED BY — side by side ── */}
             <tr>
-              <td colSpan={6}
-                className="border border-black bg-white px-3 text-left"
-                style={{ height: '36px', verticalAlign: 'left' }}>
+              <td
+                className="border border-black bg-white px-3"
+                style={{ height: '36px', verticalAlign: 'middle', textAlign: 'left', width: '50%' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '11px' }}>Inspected By:- </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.inspected_by || ''}</span>
               </td>
-              <td colSpan={6}
-                className="border border-black bg-white px-3 text-left"
-                style={{ height: '36px', verticalAlign: 'left' }}>
+              <td
+                className=" border-black bg-white px-3"
+                style={{ height: '36px', verticalAlign: 'middle', textAlign: 'left', width: '50%' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '11px' }}>Verified By :- </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.verified_by || ''}</span>
               </td>
@@ -438,9 +410,9 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
 
             {/* ── APPROVED BY — full width ── */}
             <tr>
-              <td colSpan={12}
-                className="border border-black bg-white px-3 text-left"
-                style={{ height: '36px', verticalAlign: 'left' }}>
+              <td colSpan={2}
+                className="border border-black bg-white px-3"
+                style={{ height: '36px', verticalAlign: 'middle', textAlign: 'left' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '11px' }}>Approved By:- </span>
                 <span style={{ fontSize: '11px' }}>{currentReport?.approved_by || ''}</span>
               </td>

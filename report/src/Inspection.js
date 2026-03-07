@@ -39,10 +39,9 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
 
   // ── Build schedule rows for report ──
   const buildScheduleRows = () => {
-  const empty20 = () => Array(20).fill('');
+    const empty20 = () => Array(20).fill('');
 
     // Group entries by operator + machine_no + date = ek SR row
-    // Andar multiple SETUP slots ho sakte hain — woh alag TIME groups banenge
     const grouped = {};
     let srCounter = 1;
     scheduleEntries.forEach(entry => {
@@ -77,7 +76,6 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
         return (a.row_order??0) - (b.row_order??0);
       });
 
-      // har slot_index = alag TIME group (isliye 2 SETUP = 2 alag TIME cells)
       const slotMap = {};
       sorted.forEach(e => {
         const si = e.slot_index ?? 0;
@@ -112,12 +110,12 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
 
   // ── Print layout heights (A4 landscape 6mm margin = 749px usable) ──
   const TOTAL_USABLE   = 572;
-  const SCHED_THEAD    = 22;                                         
-  const SCHED_ROW_H    = 26;                                         
+  const SCHED_THEAD    = 22;
+  const SCHED_ROW_H    = 26;
   const SCHED_H        = SCHED_THEAD + totalSchedHtmlRows * SCHED_ROW_H;
-  const INSP_THEAD     = 26;                                         
-  const inspAvailable  = TOTAL_USABLE - SCHED_H - INSP_THEAD;       
-  const inspRowH       = Math.max(18, inspAvailable / 10);           
+  const INSP_THEAD     = 26;
+  const inspAvailable  = TOTAL_USABLE - SCHED_H - INSP_THEAD;
+  const inspRowH       = Math.max(18, inspAvailable / 10);
   const inspTotalH     = INSP_THEAD + 10 * inspRowH;
 
   // ── Filter ──
@@ -161,7 +159,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
                   {label:<><i className="bi bi-calendar3" style={{marginRight:5}}></i>Date</>, content:(
                     <div style={{position:'relative',display:'flex',alignItems:'center',border:`1px solid ${filterDate?'#1976d2':'#ccc'}`,borderRadius:'6px',padding:'7px 10px',background:filterDate?'#e3f2fd':'#fff',cursor:'pointer'}}>
                       <span style={{fontSize:'13px',flex:1,color:filterDate?'#1976d2':'#999'}}>{filterDate?filterDate.split('-').reverse().join('/'):'Select Date'}</span>
-                      <input type="date"  value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/><i className="bi bi-calendar3"></i>
+                      <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/><i className="bi bi-calendar3"></i>
                     </div>
                   )},
                   {label:<><i className="bi bi-gear-fill" style={{marginRight:5}}></i>Part Name</>, content:(
@@ -190,27 +188,23 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
                 ))}
                 <div style={{display:'flex',gap:'8px',marginTop:'4px'}}>
                   <button onClick={handleFilterApply} style={{flex:1,background:'#1976d2',color:'#fff',border:'none',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}><i className="bi bi-check-circle-fill"></i> Apply</button>
-                  <button onClick={handleFilterReset}  style={{flex:1,background:'#fff',color:'#e53935',border:'1px solid #e53935',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}><i className="bi bi-arrow-counterclockwise"></i> Reset</button>
+                  <button onClick={handleFilterReset} style={{flex:1,background:'#fff',color:'#e53935',border:'1px solid #e53935',padding:'9px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}><i className="bi bi-arrow-counterclockwise"></i> Reset</button>
                 </div>
               </div>
             </>
           )}
         </div>
 
-        {/* 👇 YAHAN CONDITION LAGAYI HAI: Agar data hai, tabhi Edit aur Print button dikhega 👇 */}
         {currentReport?.customer_name && (
           <>
             <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
               <i className="bi bi-pencil-square"></i> Edit
             </button>
-
-            {/* 👇 YEH NAYA PRINT BUTTON HAI 👇 */}
             <button onClick={() => window.print()} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
               <i className="bi bi-printer-fill"></i> Print
             </button>
           </>
         )}
-
       </div>
 
       {/* ── Print Report ── */}
@@ -223,7 +217,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
             <td className="title-cell">SETUP &amp; PATROL INSPECTION REPORT</td>
             <td className="doc-info-cell">
               <table><tbody>
-                <tr><td className="doc-label">DOC NO:</td>    <td className="doc-value">{currentReport?.doc_no||'KGTL-QCL-01'}</td></tr>
+                <tr><td className="doc-label">DOC NO:</td>     <td className="doc-value">{currentReport?.doc_no||'KGTL-QCL-01'}</td></tr>
                 <tr><td className="doc-label">REVISION NO:</td><td className="doc-value">{currentReport?.revision_no||'01'}</td></tr>
                 <tr><td className="doc-label">DATE:</td>       <td className="doc-value">{displayDate||'DD/MM/YYYY'}</td></tr>
               </tbody></table>
@@ -235,17 +229,17 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
         <table className="fleet-info-table">
           <tbody>
             <tr>
-              <td className="field-label">CUSTOMER NAME</td>   <td className="field-input">{currentReport?.customer_name||''}</td>
-              <td className="field-label">PART NAME</td><td className="field-input">{currentReport?.part_name||''}</td>
+              <td className="field-label">CUSTOMER NAME</td><td className="field-input">{currentReport?.customer_name||''}</td>
+              <td className="field-label">PART NAME</td>    <td className="field-input">{currentReport?.part_name||''}</td>
             </tr>
             <tr>
-              <td className="field-label">OPERATION NAME</td>  <td className="field-input">{currentReport?.operation_name||''}</td>
-              <td className="field-label">PART NUMBER</td>  <td className="field-input">{currentReport?.part_number||''}</td>
+              <td className="field-label">OPERATION NAME</td><td className="field-input">{currentReport?.operation_name||''}</td>
+              <td className="field-label">PART NUMBER</td>   <td className="field-input">{currentReport?.part_number||''}</td>
             </tr>
           </tbody>
         </table>
 
-        {/* INSPECTION  */}
+        {/* INSPECTION */}
         <table className="inspection-table" style={{height:`${inspTotalH}px`}}>
           <thead>
             <tr style={{height:`${INSP_THEAD}px`}}>
@@ -273,19 +267,19 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
           </tbody>
         </table>
 
-        {/* SCHEDULE — each row 26px fixed */}
+        {/* SCHEDULE */}
         <div className="schedule-wrapper">
           <table className="schedule-table">
             <colgroup>
-              <col style={{width:'2%'}}/>   {/* SR */}
-              <col style={{width:'7%'}}/>   {/* DATE */}
-              <col style={{width:'8%'}}/>   {/* OPERATOR */}
-              <col style={{width:'4%'}}/>   {/* M/C NO */}
-              <col style={{width:'3.5%'}}/> {/* TIME */}
+              <col style={{width:'2%'}}/>
+              <col style={{width:'7%'}}/>
+              <col style={{width:'8%'}}/>
+              <col style={{width:'4%'}}/>
+              <col style={{width:'3.5%'}}/>
               {Array.from({length:totalFilledCols},(_,i)=><col key={i} style={{width:colPct}}/>)}
-              <col style={{width:'2.5%'}}/> {/* JDG */}
-              <col style={{width:'7.5%'}}/> {/* SIGN INSPECTED */}
-              <col style={{width:'7.5%'}}/> {/* SIGN VERIFIED */}
+              <col style={{width:'2.5%'}}/>
+              <col style={{width:'7.5%'}}/>
+              <col style={{width:'7.5%'}}/>
             </colgroup>
             <thead>
               <tr style={{height:`${SCHED_THEAD}px`}}>
@@ -300,10 +294,8 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
               {scheduleRows.map((si, rowIdx)=>{
                 const totalTimeRows = si.slots.length;
                 const timeSpans = si.slots.map((row, idx) => {
-                  // Same slotKey ki pehli row ko rowSpan milega
                   const prev = si.slots[idx - 1];
                   if (!prev || prev.slotKey !== row.slotKey) {
-                    // Count consecutive rows with same slotKey
                     let count = 0;
                     for (let j = idx; j < si.slots.length && si.slots[j].slotKey === row.slotKey; j++) count++;
                     return count;
@@ -342,7 +334,7 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
           </table>
         </div>
 
-        {/* FOOTER  */}
+        {/* FOOTER */}
         <div className="footer">
           <div className="signature-field">
             <label>PREPARED BY:</label>
