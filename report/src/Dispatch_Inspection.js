@@ -257,9 +257,9 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
             ── */}
             <tr style={{ height: '22px' }}>
 
-              {/* SUPPLIER NAME : value  →  C1–C4 */}
+              {/* SUPPLIER NAME : value  →  C1–C3 */}
               <td
-                colSpan={4}
+                colSpan={3}
                 className="border border-black bg-white"
                 style={{ fontSize: '8px', padding: '2px 5px', textAlign: 'left' }}
               >
@@ -267,9 +267,9 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                 <span style={{ fontSize: '9px' }}>{currentReport?.supplier_name || ''}</span>
               </td>
 
-              {/* PART NO : value  →  C5–C6 */}
+              {/* PART NO : value  →  C4–C6 */}
               <td
-                colSpan={2}
+                colSpan={3}
                 className="border border-black bg-white"
                 style={{ fontSize: '8px', padding: '2px 5px', textAlign: 'left' }}
               >
