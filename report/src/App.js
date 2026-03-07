@@ -9,6 +9,7 @@ import SelectionPage from './Selection';
 import RawMaterial from './RawMaterial';
 import LayoutReport from './LayoutReport';
 import Dispatch from './Dispatch';
+import Dispatch_Inspection from './Dispatch_Inspection';
 import PDIReport from './PDIReport';
 import SOPProcedure from './SOPProcedure';
 import { getReportById, createReport, updateReport } from './services/api';
@@ -56,6 +57,10 @@ function AppContent() {
   const [formItems, setFormItems]         = useState([]);
   const [loading, setLoading]             = useState(false);
   const [formKey, setFormKey]             = useState(0);
+
+  // ── Dispatch Inspection state ──
+  const [diReport,    setDiReport]    = useState(null);
+  const [diItems,     setDiItems]     = useState([]);
 
   const location = useLocation();
 
@@ -203,6 +208,36 @@ function AppContent() {
     }
   };
 
+  // ── Dispatch Inspection filter handler ──
+  const handleDiFilter = async ({ date, partName, customerName }) => {
+    try {
+      setLoading(true);
+      const params = [];
+      if (date)         params.push(`date=${date}`);
+      if (partName)     params.push(`part_name=${encodeURIComponent(partName)}`);
+      if (customerName) params.push(`customer_name=${encodeURIComponent(customerName)}`);
+
+      const url = `http://localhost:8000/api/pdi-reports/?${params.join('&')}`;
+      const response = await fetch(url);
+      const reports  = await response.json();
+
+      if (reports && reports.length > 0) {
+        const sorted = [...reports].sort((a, b) => b.id - a.id);
+        const fullRes = await fetch(`http://localhost:8000/api/pdi-reports/${sorted[0].id}/`);
+        const data    = await fullRes.json();
+        setDiReport(data);
+        setDiItems(data.items || []);
+      } else {
+        alert('No PDI report found for selected filters.');
+      }
+    } catch (error) {
+      console.error('Dispatch filter error:', error);
+      alert('Error applying filter: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '18px', color: '#666' }}>
@@ -259,6 +294,14 @@ function AppContent() {
       <Route path="/raw-material" element={<RawMaterial />} />
       <Route path="/layout-report" element={<LayoutReport />} />
       <Route path="/dispatch" element={<Dispatch />} />
+      <Route path="/dispatch-inspection" element={
+        <Dispatch_Inspection
+          items={diItems}
+          currentReport={diReport}
+          onFilter={handleDiFilter}
+          onEditForm={() => {}}
+        />
+      } />
       <Route path="/pdi-report" element={<PDIReport />} />
       <Route path="/sop-procedure" element={<SOPProcedure />} />
     </Routes>

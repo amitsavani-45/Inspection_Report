@@ -1,6 +1,10 @@
 from rest_framework import serializers
-from .models import InspectionReport, InspectionItem, ScheduleEntry
+from .models import InspectionReport, InspectionItem, ScheduleEntry, PDIReport, PDIItem
 
+
+# ══════════════════════════════════════════
+#  SETUP & PATROL INSPECTION SERIALIZERS
+# ══════════════════════════════════════════
 
 class InspectionItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,7 +13,6 @@ class InspectionItemSerializer(serializers.ModelSerializer):
 
 
 class ScheduleEntrySerializer(serializers.ModelSerializer):
-    """Read-only serializer — fetching/displaying ke liye"""
     values = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -55,7 +58,6 @@ class InspectionReportSerializer(serializers.ModelSerializer):
 class ScheduleEntryWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleEntry
-        # ✅ 'id' nahi hai — DRF ko id milega to NULL save hoga
         fields = [
             'sr', 'row_order', 'slot_index', 'date', 'operator', 'machine_no', 'time_type',
             'value_1',  'value_2',  'value_3',  'value_4',
@@ -83,7 +85,6 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data    = validated_data.pop('items', [])
         schedule_data = validated_data.pop('schedule_entries', [])
-
         report = InspectionReport.objects.create(**validated_data)
 
         for item_data in items_data:
@@ -98,7 +99,6 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
             entry_data.pop('id', None)
             entry_data.pop('values', None)
             entry_data.pop('_isNew', None)
-            # Frontend se filled_at aaya? Wahi use karo. Nahi aaya? Abhi ka time
             if not entry_data.get('filled_at'):
                 entry_data['filled_at'] = timezone.now().astimezone(ist)
             ScheduleEntry.objects.create(report=report, **entry_data)
@@ -109,23 +109,17 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
         items_data    = validated_data.pop('items', None)
         schedule_data = validated_data.pop('schedule_entries', None)
 
-        # Report header update
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Items replace
         if items_data is not None:
             instance.items.all().delete()
             for item_data in items_data:
                 item_data.pop('id', None)
                 InspectionItem.objects.create(report=instance, **item_data)
 
-        # ✅ MAIN FIX — SARI entries DELETE mat karo!
-        # Sirf jo slot_index + row_order aa raha hai usse UPDATE karo
-        # Baaki purani entries INTACT rahein — unka date/values nahi badlega
         if schedule_data is not None:
-
             for entry_data in schedule_data:
                 entry_data.pop('id', None)
                 entry_data.pop('values', None)
@@ -143,11 +137,9 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
                     for field, value in entry_data.items():
                         if field == 'date' and not value:
                             continue
-                        # filled_at sirf tab update karo jab naya value aaya ho
                         if field == 'filled_at' and not value:
                             continue
                         setattr(existing, field, value)
-                    # Agar filled_at nahi aaya toh purana rakho — overwrite mat karo
                     if entry_data.get('filled_at'):
                         existing.filled_at = entry_data['filled_at']
                     existing.save()
@@ -158,5 +150,75 @@ class InspectionReportCreateSerializer(serializers.ModelSerializer):
                         ist = pytz.timezone('Asia/Kolkata')
                         entry_data['filled_at'] = timezone.now().astimezone(ist)
                     ScheduleEntry.objects.create(report=instance, **entry_data)
+
+        return instance
+
+
+# ══════════════════════════════════════════
+#  PDI REPORT SERIALIZERS
+# ══════════════════════════════════════════
+
+class PDIItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PDIItem
+        fields = [
+            'sr_no', 'item', 'spec', 'tolerance', 'method',
+            'vendor_obs1', 'vendor_obs2', 'vendor_judge',
+            'cust_obs1',   'cust_obs2',   'cust_judge',
+            'remarks',
+        ]
+
+
+class PDIReportSerializer(serializers.ModelSerializer):
+    """Read serializer — full detail with items"""
+    items = PDIItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PDIReport
+        fields = [
+            'id', 'page_no',
+            'supplier_name', 'part_no', 'inspection_date', 'customer_name',
+            'part_name', 'invoice_no', 'lot_qty',
+            'supplier_remarks', 'inspected_by', 'verified_by', 'approved_by',
+            'created_at', 'items',
+        ]
+
+
+class PDIReportCreateSerializer(serializers.ModelSerializer):
+    """Write serializer — create/update with items"""
+    items = PDIItemSerializer(many=True, required=False)
+
+    class Meta:
+        model = PDIReport
+        fields = [
+            'id', 'page_no',
+            'supplier_name', 'part_no', 'inspection_date', 'customer_name',
+            'part_name', 'invoice_no', 'lot_qty',
+            'supplier_remarks', 'inspected_by', 'verified_by', 'approved_by',
+            'items',
+        ]
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items', [])
+        report = PDIReport.objects.create(**validated_data)
+        for item_data in items_data:
+            item_data.pop('id', None)
+            PDIItem.objects.create(report=report, **item_data)
+        return report
+
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('items', None)
+
+        # Update header fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Replace items
+        if items_data is not None:
+            instance.items.all().delete()
+            for item_data in items_data:
+                item_data.pop('id', None)
+                PDIItem.objects.create(report=instance, **item_data)
 
         return instance

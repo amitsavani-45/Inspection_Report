@@ -12,7 +12,6 @@ class InspectionReport(models.Model):
     customer_name = models.CharField(max_length=200, blank=True)
     prepared_by = models.CharField(max_length=100, blank=True)
     approved_by = models.CharField(max_length=100, blank=True)
-  
 
     class Meta:
         db_table = 'inspection_reports'
@@ -58,9 +57,7 @@ class ScheduleEntry(models.Model):
         related_name='schedule_entries'
     )
     sr = models.IntegerField(default=1)
-    # row_order: 0 = UP, 1 = DOWN
     row_order = models.IntegerField(default=0)
-    # slot_index: konsa slot hai (0=pehla, 1=doosra SETUP, etc.)
     slot_index = models.IntegerField(default=0)
     date = models.DateField(null=True, blank=True)
     operator = models.CharField(max_length=100, blank=True)
@@ -90,12 +87,64 @@ class ScheduleEntry(models.Model):
 
     judgment  = models.CharField(max_length=50, blank=True)
     signature = models.CharField(max_length=100, blank=True)
-    filled_at = models.DateTimeField(null=True, blank=True)  # IST time jab fill kiya
+    filled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'schedule_entries'
-        # slot_index se order karo — yahi correct form order hai
         ordering = ['sr', 'slot_index', 'row_order']
 
     def __str__(self):
         return f"SR {self.sr} - {self.time_type} - {'UP' if self.row_order == 0 else 'DOWN'}"
+
+
+# ══════════════════════════════════════════
+#  PDI REPORT MODELS (Pre Dispatch Inspection)
+# ══════════════════════════════════════════
+
+class PDIReport(models.Model):
+    """Pre Dispatch Inspection Report header"""
+    page_no          = models.CharField(max_length=20, default='01 OF 01')
+    supplier_name    = models.CharField(max_length=200, blank=True)
+    part_no          = models.CharField(max_length=100, blank=True)
+    inspection_date  = models.DateField(default=timezone.now)
+    customer_name    = models.CharField(max_length=200, blank=True)
+    part_name        = models.CharField(max_length=200, blank=True)
+    invoice_no       = models.CharField(max_length=100, blank=True)
+    lot_qty          = models.CharField(max_length=50, blank=True)
+    supplier_remarks = models.TextField(blank=True)
+    inspected_by     = models.CharField(max_length=100, blank=True)
+    verified_by      = models.CharField(max_length=100, blank=True)
+    approved_by      = models.CharField(max_length=100, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'pdi_reports'
+        ordering = ['-inspection_date', '-id']
+
+    def __str__(self):
+        return f"PDI - {self.part_name} - {self.inspection_date}"
+
+
+class PDIItem(models.Model):
+    """Individual inspection row in PDI Report"""
+    report       = models.ForeignKey(PDIReport, on_delete=models.CASCADE, related_name='items')
+    sr_no        = models.IntegerField()
+    item         = models.CharField(max_length=300, blank=True)
+    spec         = models.CharField(max_length=200, blank=True)
+    tolerance    = models.CharField(max_length=100, blank=True)
+    method       = models.CharField(max_length=100, blank=True)
+    vendor_obs1  = models.CharField(max_length=100, blank=True)
+    vendor_obs2  = models.CharField(max_length=100, blank=True)
+    vendor_judge = models.CharField(max_length=50, blank=True)
+    cust_obs1    = models.CharField(max_length=100, blank=True)
+    cust_obs2    = models.CharField(max_length=100, blank=True)
+    cust_judge   = models.CharField(max_length=50, blank=True)
+    remarks      = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        db_table = 'pdi_items'
+        ordering = ['sr_no']
+        unique_together = ['report', 'sr_no']
+
+    def __str__(self):
+        return f"{self.sr_no}. {self.item}"

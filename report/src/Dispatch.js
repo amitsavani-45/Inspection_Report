@@ -25,7 +25,7 @@ const Dispatch = () => {
           <div className="select-arrow"><i className="bi bi-arrow-right"></i></div>
         </div>
 
-        <div className="select-card print-data-card" onClick={() => alert('Dispatch Reports — Coming Soon!')}>
+        <div className="select-card print-data-card" onClick={() => navigate('/dispatch-inspection')} >
           <div className="select-icon-wrapper">
             <i className="bi bi-printer-fill select-icon"></i>
           </div>

@@ -1,0 +1,129 @@
+/* ══════════════════════════════════════════
+   Dispatch_Inspection.css  — v4 final
+   ══════════════════════════════════════════ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.di-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.di-report {
+  background: white;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+table { width: 100%; border-collapse: collapse; }
+td, th { border: 1px solid black; text-align: center; vertical-align: middle; overflow: hidden; }
+
+/* ── HEADER ── */
+.di-header-table { border: 2px solid black; }
+.di-logo-cell { width: 100px; padding: 5px 8px; text-align: center; border-right: 2px solid black; }
+.di-logo-image { max-width: 100%; max-height: 50px; object-fit: contain; }
+.di-title-cell { font-weight: bold; font-size: 15px; padding: 0 10px; letter-spacing: 0.5px; text-align: center; }
+.di-pageno-cell { width: 160px; padding: 0; border-left: 2px solid black; }
+.di-pageno-cell table { border: none; }
+.di-pageno-cell table td { border: none; border-bottom: 1px solid black; padding: 3px 7px; font-size: 10px; height: 24px; text-align: left; }
+.di-pageno-cell table tr:last-child td { border-bottom: none; }
+.di-pn-label { font-weight: bold; width: 75px; border-right: 1px solid black !important; font-size: 9.5px; background: #f5f5f5; }
+.di-pn-value { font-size: 11px; font-weight: 700; }
+
+/* ── INFO TABLE ── */
+.di-info-table { border: 2px solid black; }
+.di-info-table td { padding: 3px 7px; height: 22px; }
+.di-info-label { background: #f5f5f5; font-size: 9.5px; font-weight: bold; text-transform: uppercase; white-space: nowrap; width: 105px; }
+.di-info-value { font-size: 10.5px; font-weight: 600; text-align: left; padding-left: 7px; }
+
+/* ── INSPECTION TABLE ── */
+.di-insp-table { border: 2px solid black; table-layout: fixed; width: 100%; }
+.di-th-sr     { width: 4%;  }
+.di-th-item   { width: 20%; }
+.di-th-spec   { width: 11%; }
+.di-th-tol    { width: 8%;  }
+.di-th-method { width: 9%;  }
+.di-th-obs    { width: 6%;  }
+.di-th-judge  { width: 8%;  }
+.di-th-remarks{ width: 10%; }
+.di-th-group { background: #f5f5f5 !important; font-size: 10px; font-weight: bold; }
+.di-insp-table th { background: #f5f5f5; font-weight: bold; font-size: 10px; padding: 3px 2px; line-height: 1.2; }
+.di-insp-table td { font-size: 9.5px; padding: 2px 3px; }
+.di-td-center { text-align: center; }
+.di-td-left   { text-align: left; padding-left: 5px !important; }
+.di-insp-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+/* ── REMARKS & FOOTER — now inside inspection table as last rows ── */
+
+/* ══════════════════════════════════════════════════════
+   PRINT — A4 Portrait 6mm margin → 769×1056px
+   ══════════════════════════════════════════════════════ */
+@media print {
+  .no-print { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  html, body, #root {
+    margin: 0 !important; padding: 0 !important;
+    width: 769px !important; height: 1056px !important;
+    overflow: hidden !important; background: white !important;
+  }
+
+  .di-container {
+    padding: 0 !important; background: white !important;
+    min-height: unset !important;
+    width: 769px !important; height: 1056px !important;
+    overflow: hidden !important;
+  }
+
+  .di-report {
+    display: flex !important; flex-direction: column !important;
+    width: 769px !important; height: 1056px !important;
+    padding: 0 !important; margin: 0 !important;
+    gap: 2px !important; box-shadow: none !important;
+    overflow: hidden !important; background: white !important;
+  }
+
+  .di-header-table {
+    flex: 0 0 56px !important; height: 56px !important; max-height: 56px !important;
+    width: 769px !important; overflow: hidden !important;
+  }
+  .di-logo-image  { max-height: 38px !important; }
+  .di-title-cell  { font-size: 11px !important; }
+  .di-pn-label    { font-size: 7px !important; }
+  .di-pn-value    { font-size: 8.5px !important; }
+  .di-pageno-cell table td { height: 18px !important; font-size: 7px !important; padding: 0 4px !important; }
+
+  .di-info-table {
+    flex: 0 0 46px !important; height: 46px !important; max-height: 46px !important;
+    width: 769px !important; overflow: hidden !important;
+  }
+  .di-info-table td { height: 23px !important; font-size: 7px !important; padding: 0 4px !important; }
+  .di-info-label   { font-size: 6.5px !important; width: 75px !important; }
+  .di-info-value   { font-size: 7.5px !important; }
+
+  .di-insp-table {
+    flex: 0 0 auto !important; width: 769px !important;
+    overflow: hidden !important; table-layout: fixed !important;
+  }
+  .di-insp-table th {
+    font-size: 7px !important; padding: 1px 1px !important;
+    background: #f5f5f5 !important; line-height: 1.1 !important;
+  }
+  .di-insp-table td { font-size: 7.5px !important; padding: 0 1px !important; overflow: hidden !important; }
+  .di-insp-table tbody tr:nth-child(even) td { background: #fafafa !important; }
+
+  .di-remarks-table {
+    flex: 0 0 28px !important; height: 28px !important; max-height: 28px !important;
+    width: 769px !important; overflow: hidden !important;
+  }
+  .di-remarks-cell { font-size: 7.5px !important; padding: 3px 7px !important; height: 28px !important; }
+
+}
+
+@page { size: A4 portrait; margin: 6mm; }

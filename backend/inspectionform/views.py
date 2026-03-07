@@ -2,39 +2,36 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
-from .models import InspectionReport, InspectionItem, ScheduleEntry
+from .models import InspectionReport, InspectionItem, ScheduleEntry, PDIReport, PDIItem
 from .serializers import (
     InspectionReportSerializer,
     InspectionReportCreateSerializer,
     InspectionItemSerializer,
-    ScheduleEntrySerializer
+    ScheduleEntrySerializer,
+    PDIReportSerializer,
+    PDIReportCreateSerializer,
+    PDIItemSerializer,
 )
 
 
-# ================= DROPDOWN OPTIONS (DB se fetch) =================
+# ══════════════════════════════════════════
+#  DROPDOWN OPTIONS
+# ══════════════════════════════════════════
 
 @api_view(['GET'])
 def dropdown_options(request):
-    """
-    L1_part_info_master aur L2_process_report_master se data fetch karo
-    """
     from django.db import connection
 
     with connection.cursor() as cursor:
-
-        # Customer - L1 se
         cursor.execute('SELECT DISTINCT customer_name FROM public."L1_part_info_master" WHERE customer_name IS NOT NULL AND customer_name != \'\' ORDER BY customer_name')
         customers = [row[0] for row in cursor.fetchall()]
 
-        # Part Name - L1 se
         cursor.execute('SELECT DISTINCT part_name FROM public."L1_part_info_master" WHERE part_name IS NOT NULL AND part_name != \'\' ORDER BY part_name')
         part_names = [row[0] for row in cursor.fetchall()]
 
-        # Part Number - L1 se
         cursor.execute('SELECT DISTINCT part_no FROM public."L1_part_info_master" WHERE part_no IS NOT NULL AND part_no != \'\' ORDER BY part_no')
         part_numbers = [row[0] for row in cursor.fetchall()]
 
-        # Operation - L2 se (report_name)
         cursor.execute('SELECT DISTINCT report_name FROM public."L2_process_report_master" WHERE report_name IS NOT NULL AND report_name != \'\' ORDER BY report_name')
         operations = [row[0] for row in cursor.fetchall()]
 
@@ -48,10 +45,6 @@ def dropdown_options(request):
 
 @api_view(['GET'])
 def inspection_items_by_operation(request):
-    """
-    Operation select karne par L3 se Product/Process items fetch karo
-    Spec aur Instrument bhi saath mein aayega
-    """
     from django.db import connection
 
     operation = request.query_params.get('operation', '')
@@ -83,13 +76,12 @@ def inspection_items_by_operation(request):
         elif category == 'PROCESS':
             process_items.append(item)
 
-    return Response({
-        'product': product_items,
-        'process': process_items,
-    })
+    return Response({'product': product_items, 'process': process_items})
 
 
-# ================= REPORTS =================
+# ══════════════════════════════════════════
+#  SETUP & PATROL INSPECTION VIEWS
+# ══════════════════════════════════════════
 
 class InspectionReportViewSet(viewsets.ModelViewSet):
     queryset = InspectionReport.objects.all()
@@ -99,24 +91,17 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
             return InspectionReportCreateSerializer
         return InspectionReportSerializer
 
-    # ✅ FILTER SUPPORT
     def get_queryset(self):
         queryset = InspectionReport.objects.all().order_by("-date", "-id")
-
-        date = self.request.query_params.get('date')
-        part_name = self.request.query_params.get('part_name')
-        operation_name = self.request.query_params.get('operation_name')
+        date          = self.request.query_params.get('date')
+        part_name     = self.request.query_params.get('part_name')
+        operation_name= self.request.query_params.get('operation_name')
         customer_name = self.request.query_params.get('customer_name')
 
-        if date:
-            queryset = queryset.filter(date=date)
-        if part_name:
-            queryset = queryset.filter(part_name=part_name)
-        if operation_name:
-            queryset = queryset.filter(operation_name=operation_name)
-        if customer_name:
-            queryset = queryset.filter(customer_name=customer_name)
-
+        if date:           queryset = queryset.filter(date=date)
+        if part_name:      queryset = queryset.filter(part_name=part_name)
+        if operation_name: queryset = queryset.filter(operation_name=operation_name)
+        if customer_name:  queryset = queryset.filter(customer_name=customer_name)
         return queryset
 
     def list(self, request):
@@ -131,8 +116,6 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         try:
-            import json
-            # JSON data safely copy karo
             if hasattr(request.data, 'dict'):
                 data = request.data.dict()
             else:
@@ -142,10 +125,7 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
             serializer = InspectionReportCreateSerializer(data=data)
             if serializer.is_valid():
                 report = serializer.save()
-                return Response(
-                    InspectionReportSerializer(report).data,
-                    status=status.HTTP_201_CREATED
-                )
+                return Response(InspectionReportSerializer(report).data, status=status.HTTP_201_CREATED)
             print("SERIALIZER ERRORS:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -158,7 +138,7 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
             report = InspectionReport.objects.get(pk=pk)
         except InspectionReport.DoesNotExist:
             return Response(
-                {"detail": f"Report with ID {pk} not found. Please refresh the page and try again."},
+                {"detail": f"Report with ID {pk} not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = InspectionReportCreateSerializer(report, data=request.data)
@@ -169,11 +149,7 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, pk=None):
         report = get_object_or_404(InspectionReport, pk=pk)
-        serializer = InspectionReportCreateSerializer(
-            report,
-            data=request.data,
-            partial=True
-        )
+        serializer = InspectionReportCreateSerializer(report, data=request.data, partial=True)
         if serializer.is_valid():
             report = serializer.save()
             return Response(InspectionReportSerializer(report).data)
@@ -184,8 +160,6 @@ class InspectionReportViewSet(viewsets.ModelViewSet):
         report.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-# ================= ITEMS =================
 
 class InspectionItemViewSet(viewsets.ModelViewSet):
     queryset = InspectionItem.objects.all()
@@ -199,8 +173,6 @@ class InspectionItemViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-# ================= SCHEDULE =================
-
 class ScheduleEntryViewSet(viewsets.ModelViewSet):
     queryset = ScheduleEntry.objects.all()
     serializer_class = ScheduleEntrySerializer
@@ -211,3 +183,73 @@ class ScheduleEntryViewSet(viewsets.ModelViewSet):
         if report_id:
             queryset = queryset.filter(report_id=report_id)
         return queryset
+
+
+# ══════════════════════════════════════════
+#  PDI REPORT VIEWS
+# ══════════════════════════════════════════
+
+class PDIReportViewSet(viewsets.ModelViewSet):
+    queryset = PDIReport.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PDIReportCreateSerializer
+        return PDIReportSerializer
+
+    def get_queryset(self):
+        queryset = PDIReport.objects.all().order_by('-inspection_date', '-id')
+
+        date          = self.request.query_params.get('date')
+        part_name     = self.request.query_params.get('part_name')
+        customer_name = self.request.query_params.get('customer_name')
+        part_no       = self.request.query_params.get('part_no')
+
+        if date:          queryset = queryset.filter(inspection_date=date)
+        if part_name:     queryset = queryset.filter(part_name=part_name)
+        if customer_name: queryset = queryset.filter(customer_name=customer_name)
+        if part_no:       queryset = queryset.filter(part_no=part_no)
+
+        return queryset
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        serializer = PDIReportSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        report = get_object_or_404(PDIReport, pk=pk)
+        serializer = PDIReportSerializer(report)
+        return Response(serializer.data)
+
+    def create(self, request):
+        try:
+            serializer = PDIReportCreateSerializer(data=request.data)
+            if serializer.is_valid():
+                report = serializer.save()
+                return Response(PDIReportSerializer(report).data, status=status.HTTP_201_CREATED)
+            print("PDI SERIALIZER ERRORS:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import traceback
+            print("PDI CREATE ERROR:", traceback.format_exc())
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def update(self, request, pk=None):
+        try:
+            report = PDIReport.objects.get(pk=pk)
+        except PDIReport.DoesNotExist:
+            return Response(
+                {"detail": f"PDI Report with ID {pk} not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = PDIReportCreateSerializer(report, data=request.data)
+        if serializer.is_valid():
+            report = serializer.save()
+            return Response(PDIReportSerializer(report).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        report = get_object_or_404(PDIReport, pk=pk)
+        report.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
