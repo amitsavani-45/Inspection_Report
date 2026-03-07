@@ -197,7 +197,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                 <img src={atomone} alt="ATOM ONE" className="block mx-auto object-contain" style={{ width: '120px', height: 'auto' }} />
               </td>
               <td className="text-center align-middle" style={{ padding: '6px' }}>
-                <span className="uppercase font-black tracking-wide" style={{ fontSize: '22px' }}>
+                <span className="uppercase font-black tracking-wide" style={{ fontSize: '20px' }}>
                   Pre Dispatch Inspection Report
                 </span>
               </td>
@@ -206,7 +206,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                   <span style={{ fontSize: '14px', fontWeight: 'bold' }}>PAGE NO.</span>
                 </div>
                 <div className="px-3 py-2">
-                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{currentReport?.page_no || '01 OF 01'}</span>
+                  <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{currentReport?.page_no || '01 OF 01'}</span>
                 </div>
               </td>
             </tr>
@@ -265,7 +265,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
             {/* ── INFO ROW 2 ── */}
             <tr style={{ height: '18px' }}>
               <td colSpan={2} className="border border-black bg-white"
-                style={{ fontSize: '11px', padding: '4px 7px', fontWeight: 'bold', textAlign: 'left' }}>
+                style={{ fontSize: '9.5px', padding: '4px 7px', fontWeight: 'bold', textAlign: 'left' }}>
                 PART NAME :
               </td>
               <td colSpan={3} className="border border-black bg-white"

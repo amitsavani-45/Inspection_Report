@@ -19,6 +19,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  
 }
 
 table { width: 100%; border-collapse: collapse; }
