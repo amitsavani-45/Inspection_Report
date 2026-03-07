@@ -117,23 +117,23 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
   const labelCell = {
     backgroundColor: '#f5f5f5',  // Grey background for labels
     fontWeight: '700',            // Bold text
-    fontSize: '9px',             // ← Label font size yahan change karo
+    fontSize: '8px',             // ← Label font size yahan change karo
     textTransform: 'uppercase',   // UPPERCASE text
     whiteSpace: 'nowrap',         // Text wrap mat karo
-    padding: '4px 6px',          // ← Label padding yahan change karo
+    padding: '3px 5px',          // ← Label padding yahan change karo
     border: '1px solid black',
     verticalAlign: 'middle',
-    letterSpacing: '0.2px',
+    letterSpacing: '0px',
   };
 
   const valueCell = {
-    fontSize: '11px',            // ← Value font size yahan change karo
+    fontSize: '10px',            // ← Value font size yahan change karo
     fontWeight: '500',
-    padding: '5px 8px',          // ← Value cell padding yahan change karo
+    padding: '3px 6px',          // ← Value cell padding yahan change karo
     border: '1px solid black',
     verticalAlign: 'middle',
     textAlign: 'left',
-    minWidth: '40px',
+    minWidth: '30px',
   };
 
   // ============================================================
@@ -308,13 +308,20 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
              ── Naya row add karna ho → tbody mein <tr> add karo
              ── Field change karna ho → currentReport?.field_name badlo
             ══════════════════════════════════════════ */}
+        {/*
+          INFO TABLE — 12-col fixed layout (same as inspection table)
+          IMAGE 1 layout:
+          Row1: SUPPLIER NAME:[val........] | PART NO:[val] | INSPECTION DATE.:[val] | CUSTOMER NAME:-[val]
+          Row2: PART NAME:[val.............] | INVOICE NO.:-[val............] | LOT QTY.:[val]
+
+          Col widths: 4+20+11+8+9 = 52% left | 6+6+8 = 20% vendor | 6+6+8 = 20% cust | 8% remarks
+        */}
         <table style={{
           width:'100%',
           borderCollapse:'collapse',
           border:'2px solid black',
-          tableLayout:'fixed',  // Fixed — inspection table se align hoga
+          tableLayout:'fixed',
         }}>
-          {/* Colgroup — INSPECTION TABLE ke saath exact match */}
           <colgroup>
             <col style={{ width:'4%' }} />
             <col style={{ width:'20%' }} />
@@ -332,40 +339,32 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
 
           <tbody>
 
-            {/* ── INFO ROW 1: SUPPLIER NAME | CUSTOMER NAME ──
-                 Left  (col 1-2 label + col 3-5 value) = 52%
-                 Right (col 6-7 label + col 8-12 value) = 48%  */}
-            <tr style={{ height:'28px' }}>
+            {/* ── ROW 1: SUPPLIER NAME | PART NO | INSPECTION DATE | CUSTOMER NAME
+                 12 cols total:
+                 SUPPLIER NAME label(col1-2) + value(col3-4)   = 4+20+11+8     = 43%
+                 PART NO label(col5) + value(col6)             = 9+6            = 15%
+                 INSPECTION DATE label(col7) + value(col8)     = 6+8            = 14%
+                 CUSTOMER NAME label(col9-10) + value(col11-12)= 6+6+8+8        = 28% */}
+            <tr style={{ height:'24px' }}>
               <td style={{ ...labelCell }} colSpan={2}>SUPPLIER NAME :</td>
-              <td style={{ ...valueCell }} colSpan={3}>{currentReport?.supplier_name || ''}</td>
-              <td style={{ ...labelCell }} colSpan={2}>CUSTOMER NAME :</td>
-              <td style={{ ...valueCell }} colSpan={5}>{currentReport?.customer_name || ''}</td>
+              <td style={{ ...valueCell }} colSpan={2}>{currentReport?.supplier_name || ''}</td>
+              <td style={{ ...labelCell }} colSpan={1}>PART NO :</td>
+              <td style={{ ...valueCell }} colSpan={2}>{currentReport?.part_no || ''}</td>
+              <td style={{ ...labelCell }} colSpan={1}>INSPECTION DATE. :</td>
+              <td style={{ ...valueCell }} colSpan={1}>{displayDate}</td>
+              <td style={{ ...labelCell }} colSpan={2}>CUSTOMER NAME :-</td>
+              <td style={{ ...valueCell }} colSpan={1}>{currentReport?.customer_name || ''}</td>
             </tr>
 
-            {/* ── INFO ROW 2: PART NAME | PART NO ──
-                 Same split as Row 1  */}
-            <tr style={{ height:'28px' }}>
+            {/* ── ROW 2: PART NAME | INVOICE NO | LOT QTY
+                 PART NAME label(col1-2) + value(col3-5)        = 52%
+                 INVOICE NO label(col6-7) + value(col8)         = 20% (VENDOR OBS ke neeche)
+                 LOT QTY label(col9-10) + value(col11-12)       = 28% (CUSTOMER OBS ke neeche) */}
+            <tr style={{ height:'24px' }}>
               <td style={{ ...labelCell }} colSpan={2}>PART NAME :</td>
               <td style={{ ...valueCell }} colSpan={3}>{currentReport?.part_name || ''}</td>
-              <td style={{ ...labelCell }} colSpan={2}>PART NO :</td>
-              <td style={{ ...valueCell }} colSpan={5}>{currentReport?.part_no || ''}</td>
-            </tr>
-
-            {/* ── INFO ROW 3: INSPECTION DATE | INVOICE NO | LOT QTY ──
-                 INSPECTION DATE : col 1-2 label + col 3-5 value  (LEFT 52%)
-                 INVOICE NO      : col 6-7 label + col 8 value    (VENDOR OBS ke neeche)
-                 LOT QTY         : col 9-10 label + col 11-12 value (CUSTOMER OBS ke neeche)
-                 NOTE: INVOICE NO label colSpan=2 diya taaki poora text "INVOICE NO. :-" dikhe ── */}
-            <tr style={{ height:'28px' }}>
-              {/* Inspection Date — left half */}
-              <td style={{ ...labelCell }} colSpan={2}>INSPECTION DATE. :</td>
-              <td style={{ ...valueCell }} colSpan={3}>{displayDate}</td>
-
-              {/* Invoice No — VENDOR OBS ke neeche perfectly align */}
-              <td style={{ ...labelCell }} colSpan={2}>INVOICE NO. :-</td>  {/* colSpan=2 → poora label dikhega */}
+              <td style={{ ...labelCell }} colSpan={2}>INVOICE NO. :-</td>
               <td style={{ ...valueCell }} colSpan={1}>{currentReport?.invoice_no || ''}</td>
-
-              {/* Lot Qty — CUSTOMER OBS ke neeche perfectly align */}
               <td style={{ ...labelCell }} colSpan={2}>LOT QTY. :</td>
               <td style={{ ...valueCell }} colSpan={2}>{currentReport?.lot_qty || ''}</td>
             </tr>
