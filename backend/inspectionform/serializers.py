@@ -2,10 +2,6 @@ from rest_framework import serializers
 from .models import InspectionReport, InspectionItem, ScheduleEntry, PDIReport, PDIItem
 
 
-# ══════════════════════════════════════════
-#  SETUP & PATROL INSPECTION SERIALIZERS
-# ══════════════════════════════════════════
-
 class InspectionItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InspectionItem
@@ -179,6 +175,7 @@ class PDIReportSerializer(serializers.ModelSerializer):
             'id', 'page_no',
             'supplier_name', 'part_no', 'inspection_date', 'customer_name',
             'part_name', 'invoice_no', 'lot_qty',
+            'operation_name',                              # ← ADDED
             'supplier_remarks', 'inspected_by', 'verified_by', 'approved_by',
             'created_at', 'items',
         ]
@@ -194,6 +191,7 @@ class PDIReportCreateSerializer(serializers.ModelSerializer):
             'id', 'page_no',
             'supplier_name', 'part_no', 'inspection_date', 'customer_name',
             'part_name', 'invoice_no', 'lot_qty',
+            'operation_name',                              # ← ADDED
             'supplier_remarks', 'inspected_by', 'verified_by', 'approved_by',
             'items',
         ]
@@ -209,12 +207,10 @@ class PDIReportCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         items_data = validated_data.pop('items', None)
 
-        # Update header fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Replace items
         if items_data is not None:
             instance.items.all().delete()
             for item_data in items_data:

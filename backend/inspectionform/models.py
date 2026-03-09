@@ -94,7 +94,7 @@ class ScheduleEntry(models.Model):
         ordering = ['sr', 'slot_index', 'row_order']
 
     def __str__(self):
-        return f"SR {self.sr} - {self.time_type} - {'UP' if self.row_order == 0 else 'DOWN'}"
+        return f"SR {self.sr} - {self.time_type} - {{'UP' if self.row_order == 0 else 'DOWN'}}"
 
 
 # ══════════════════════════════════════════
@@ -111,6 +111,7 @@ class PDIReport(models.Model):
     part_name        = models.CharField(max_length=200, blank=True)
     invoice_no       = models.CharField(max_length=100, blank=True)
     lot_qty          = models.CharField(max_length=50, blank=True)
+    operation_name   = models.CharField(max_length=200, blank=True)   # ← ADDED
     supplier_remarks = models.TextField(blank=True)
     inspected_by     = models.CharField(max_length=100, blank=True)
     verified_by      = models.CharField(max_length=100, blank=True)

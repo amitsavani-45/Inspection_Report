@@ -52,7 +52,7 @@ const sections = [
     id: 'pdi-report',
     title: 'PDI Report',
     icon: 'bi bi-shield-check',
-    description: 'Pre-Delivery Inspection (PDI) records',
+    description: 'Pre-Dispatch Inspection (PDI) records',
     color: '#c62828', // Red
     bg: '#ffebee',
     border: '#ef9a9a',
