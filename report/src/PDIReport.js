@@ -289,27 +289,23 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                 <span style={{ fontSize: '11px' }}>{currentReport?.customer_name || ''}</span>
               </td>
             </tr>
-            <tr style={{ height: '18px' }}>
-              <td colSpan={2} className="border border-black bg-white"
-                style={{ fontSize: '9.5px', padding: '4px 7px', fontWeight: 'bold', textAlign: 'left' }}>
-                PART NAME :
-              </td>
-              <td colSpan={3} className="border border-black bg-white"
-                style={{ fontSize: '10.5px', padding: '3px 5px', textAlign: 'left' }}>
-                {currentReport?.part_name || ''}
-              </td>
-              <td colSpan={3} className="border border-black bg-white"
-                style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
-                <span style={{ fontWeight: 'bold' }}>INVOICE NO : </span>
-                <span style={{ fontSize: '11px' }}>{currentReport?.invoice_no || ''}</span>
-              </td>
-              <td colSpan={3} className="border border-black bg-white"
-                style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
-                <span style={{ fontWeight: 'bold' }}>LOT QTY : </span>
-                <span style={{ fontSize: '11px' }}>{currentReport?.lot_qty || ''}</span>
-              </td>
-              <td colSpan={1} className="border border-black bg-white" />
-            </tr>
+          <tr style={{ height: '18px' }}>
+  <td colSpan={5} className="border border-black bg-white"
+    style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
+    <span style={{ fontWeight: 'bold' }}>PART NAME : </span>
+    <span style={{ fontSize: '11px' }}>{currentReport?.part_name || ''}</span>
+  </td>
+  <td colSpan={3} className="border border-black bg-white"
+    style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
+    <span style={{ fontWeight: 'bold' }}>INVOICE NO : </span>
+    <span style={{ fontSize: '11px' }}>{currentReport?.invoice_no || ''}</span>
+  </td>
+  <td colSpan={4} className="border border-black bg-white"
+    style={{ fontSize: '9.5px', padding: '3px 5px', textAlign: 'left' }}>
+    <span style={{ fontWeight: 'bold' }}>LOT QTY : </span>
+    <span style={{ fontSize: '11px' }}>{currentReport?.lot_qty || ''}</span>
+  </td>
+</tr>
           </tbody>
         </table>
 
