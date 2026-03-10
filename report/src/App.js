@@ -9,9 +9,11 @@ import SelectionPage from './Selection';
 import RawMaterial from './RawMaterial';
 import LayoutReport from './LayoutReport';
 import Dispatch from './Dispatch';
-import Dispatch_Inspection from './Dispatch_Inspection';
+import Dispatch_Inspection from './PDIReport';
+import PDIReportselection from './PDIReportselection';
 import PDIReport from './PDIReport';
 import SOPProcedure from './SOPProcedure';
+import PDIForm from './PDIForm';
 import { getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
@@ -46,8 +48,58 @@ function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
   );
 }
 
-// 👇 NAYA COMPONENT BANA DIYA HAI TAAKI ROUTE CHANGE DETECT HO SAKE 👇
+// ── PDI Form Route Wrapper — location key se fresh mount guarantee ──
+function PDIFormRouteWrapper({ onSavePDI }) {
+  const location = useLocation();
+  const initialData  = location.state?.initialData  || {};
+  const editReportId = location.state?.editReportId || null;
+  return (
+    <PDIFormWrapper
+      key={location.key}
+      onSavePDI={onSavePDI}
+      initialData={initialData}
+      editReportId={editReportId}
+    />
+  );
+}
+
+// ── PDI Form Wrapper ──
+function PDIFormWrapper({ onSavePDI, initialData = {}, editReportId = null }) {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (formData) => {
+    try {
+      if (editReportId) {
+        const response = await fetch(`http://localhost:8000/api/pdi-reports/${editReportId}/`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        alert('✅ PDI Report updated successfully!');
+      } else {
+        if (onSavePDI) await onSavePDI(formData);
+        alert('✅ PDI Report saved successfully!');
+      }
+      navigate('/pdi-report');
+    } catch (error) {
+      console.error('PDI save error:', error);
+      alert('Failed to save PDI: ' + error.message);
+    }
+  };
+
+  return (
+    <PDIForm
+      onSubmit={handleSubmit}
+      onCancel={() => navigate('/pdi-report')}
+      initialData={initialData}
+    />
+  );
+}
+
 function AppContent() {
+  const navigate = useNavigate();
+
   const [currentReport, setCurrentReport] = useState({
     doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
     part_name: '', part_number: '', operation_name: '', customer_name: '',
@@ -58,13 +110,11 @@ function AppContent() {
   const [loading, setLoading]             = useState(false);
   const [formKey, setFormKey]             = useState(0);
 
-  // ── Dispatch Inspection state ──
-  const [diReport,    setDiReport]    = useState(null);
-  const [diItems,     setDiItems]     = useState([]);
+  const [diReport, setDiReport] = useState(null);
+  const [diItems,  setDiItems]  = useState([]);
 
   const location = useLocation();
 
-  // 👇 YAHAN MAGIC HOGA: Jab bhi aap Home ya Selection page par jayenge, data blank ho jayega
   useEffect(() => {
     if (location.pathname === '/' || location.pathname === '/selection') {
       setCurrentReport({
@@ -155,7 +205,7 @@ function AppContent() {
         const { _isNew: _flag, values, id, ...cleanEntry } = entry;
         return {
           ...cleanEntry,
-          sr:         cleanEntry.sr         ?? 1,            
+          sr:         cleanEntry.sr         ?? 1,
           slot_index: cleanEntry.slot_index ?? 0,
           row_order:  cleanEntry.row_order  ?? 0,
         };
@@ -169,8 +219,8 @@ function AppContent() {
         part_number:      formData.partNumber    || '',
         operation_name:   formData.operationName || '',
         customer_name:    formData.customerName  || '',
-        prepared_by:      formData.preparedBy    || '',   
-        approved_by:      formData.approvedBy    || '',   
+        prepared_by:      formData.preparedBy    || '',
+        approved_by:      formData.approvedBy    || '',
         items:            updatedItems,
         schedule_entries: newScheduleEntries,
       };
@@ -180,12 +230,8 @@ function AppContent() {
       if (!isNew && currentReport?.id) {
         try {
           const check = await fetch(`http://localhost:8000/api/reports/${currentReport.id}/`);
-          if (check.ok) {
-            reportId = currentReport.id;
-          }
-        } catch (_) {
-          // network error — create new
-        }
+          if (check.ok) reportId = currentReport.id;
+        } catch (_) {}
       }
 
       if (reportId) {
@@ -208,7 +254,59 @@ function AppContent() {
     }
   };
 
-  // ── Dispatch Inspection filter handler ──
+  // ── PDI Report save handler (new) ──
+  const handleSavePDI = async (formData) => {
+    const payload = {
+      supplier_name:    formData.supplier_name    || '',
+      customer_name:    formData.customer_name    || '',
+      part_name:        formData.part_name        || '',
+      part_no:          formData.part_no          || '',
+      inspection_date:  formData.inspection_date  || new Date().toISOString().split('T')[0],
+      invoice_no:       formData.invoice_no       || '',
+      lot_qty:          formData.lot_qty          || '',
+      page_no:          formData.page_no          || '01 OF 01',
+      operation_name:   formData.operation_name   || '',
+      supplier_remarks: formData.supplier_remarks || '',
+      inspected_by:     formData.inspected_by     || '',
+      verified_by:      formData.verified_by      || '',
+      approved_by:      formData.approved_by      || '',
+      items:            formData.items            || [],
+    };
+
+    const response = await fetch('http://localhost:8000/api/pdi-reports/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(err);
+    }
+
+    return await response.json();
+  };
+
+  // ── PDI Edit handler — fresh full data fetch karke navigate karo ──
+  // Yahi asli fix hai: diReport cached hota hai jisme operation_name missing ho sakta hai
+  const handlePdiEdit = async (report) => {
+    try {
+      setLoading(true);
+      // Fresh full report fetch — ensures operation_name aur baaki sab fields aayein
+      const res = await fetch(`http://localhost:8000/api/pdi-reports/${report?.id}/`);
+      if (!res.ok) throw new Error('Fetch failed');
+      const fullReport = await res.json();
+      navigate('/pdi-form', { state: { initialData: fullReport, editReportId: fullReport.id } });
+    } catch (err) {
+      console.error('PDI edit fetch error:', err);
+      // Fallback: jo cached data hai use hi bhejo
+      navigate('/pdi-form', { state: { initialData: report || {}, editReportId: report?.id || null } });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Dispatch / PDI Inspection filter handler ──
   const handleDiFilter = async ({ date, partName, customerName }) => {
     try {
       setLoading(true);
@@ -262,7 +360,7 @@ function AppContent() {
           }}
           onDateChange={handleDateChange}
           onFilter={handleFilter}
-          onNewForm={() => { 
+          onNewForm={() => {
             setCurrentReport({
               doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
               part_name: '', part_number: '', operation_name: '', customer_name: '',
@@ -270,7 +368,7 @@ function AppContent() {
             });
             setViewItems([]);
             setFormItems([]);
-            setFormKey(k => k + 1); 
+            setFormKey(k => k + 1);
           }}
           onEditForm={() => { setFormKey(k => k + 1); }}
         />
@@ -299,16 +397,29 @@ function AppContent() {
           items={diItems}
           currentReport={diReport}
           onFilter={handleDiFilter}
-          onEditForm={() => {}}
+          onEditForm={handlePdiEdit}
         />
       } />
-      <Route path="/pdi-report" element={<PDIReport />} />
+
+      {/* ── PDI Routes ── */}
+      <Route path="/pdi-report" element={<PDIReportselection />} />
+      <Route path="/pdi-report-view" element={
+        <PDIReport
+          items={diItems}
+          currentReport={diReport}
+          onFilter={handleDiFilter}
+          onEditForm={handlePdiEdit}
+        />
+      } />
+
+      {/* ── PDI Fill / Edit Form ── */}
+      <Route path="/pdi-form" element={<PDIFormRouteWrapper onSavePDI={handleSavePDI} />} />
+
       <Route path="/sop-procedure" element={<SOPProcedure />} />
     </Routes>
   );
 }
 
-// App wrapper for Router
 function App() {
   return (
     <BrowserRouter>
