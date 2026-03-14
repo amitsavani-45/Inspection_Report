@@ -1,0 +1,239 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Screen container ── */
+.rb-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.rb-report {
+  background: white;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Base table reset ── */
+table { width: 100%; border-collapse: collapse; }
+
+td, th {
+  border: 1px solid black;
+  text-align: center;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+.rb-header-table { border: 2px solid black; }
+
+.rb-logo-cell {
+  width: 120px;
+  padding: 6px;
+  text-align: center;
+  border-right: 2px solid black;
+}
+
+.rb-logo-image {
+  max-width: 100%;
+  max-height: 50px;
+  object-fit: contain;
+}
+
+.rb-title-cell {
+  font-weight: bold;
+  font-size: 20px;
+  padding: 0 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.rb-doc-info-cell {
+  width: 200px;
+  padding: 0;
+  border-left: 2px solid black;
+}
+
+.rb-doc-info-cell table { border: none; }
+
+.rb-doc-info-cell table td {
+  border: none;
+  border-bottom: 1px solid black;
+  padding: 4px 8px;
+  font-size: 10px;
+  height: 22px;
+  text-align: left;
+}
+
+.rb-doc-info-cell table tr:last-child td { border-bottom: none; }
+
+.rb-doc-label {
+  font-weight: bold;
+  width: 65px;
+  border-right: 1px solid black !important;
+  background-color: #c0c0c0;
+}
+
+.rb-doc-value { font-size: 11px; font-weight: 600; }
+
+/* ── ATTENDANCE TABLE ── */
+.rb-att-table {
+  border: 2px solid black;
+  table-layout: fixed;
+}
+
+.rb-att-table th {
+  background: #f5f5f5;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 4px 2px;
+  height: 32px;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.rb-att-table td {
+  font-size: 10px;
+  padding: 2px;
+  height: 30px;
+}
+
+.rb-att-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+/* ── LEGEND ── */
+.rb-legend {
+  border: 2px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 30px;
+  font-size: 12px;
+  font-weight: bold;
+  min-height: 34px;
+}
+
+/* ── FOOTER ── */
+.rb-footer {
+  border: 2px solid black;
+  display: flex;
+  align-items: stretch;
+  min-height: 50px;
+}
+
+.rb-remarks-label {
+  width: 140px;
+  border-right: 1px solid black;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.rb-remarks-value {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+
+/* ══════════════════════════════════════
+   @page — A4 LANDSCAPE
+   ══════════════════════════════════════ */
+@page {
+  size: A4 landscape;
+  margin: 6mm;
+}
+
+/* ══════════════════════════════════════
+   PRINT STYLES
+   ══════════════════════════════════════ */
+@media print {
+
+  .no-print { display: none !important; }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  #root {
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .rb-container {
+    padding: 0 !important;
+    background: white !important;
+    min-height: unset !important;
+  }
+
+  .rb-report {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 190mm !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    gap: 2px !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .rb-header-table { flex: 0 0 auto !important; width: 100% !important; }
+  .rb-logo-image { max-height: 38px !important; }
+  .rb-title-cell { font-size: 14px !important; }
+  .rb-doc-info-cell table td { height: 19px !important; font-size: 7.5px !important; padding: 0 5px !important; }
+  .rb-doc-label { font-size: 7.5px !important; }
+  .rb-doc-value { font-size: 8.5px !important; }
+
+  .rb-att-table {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+  .rb-att-table th {
+    font-size: 7.5px !important;
+    padding: 1px 1px !important;
+    height: 24px !important;
+    background: #f5f5f5 !important;
+  }
+  .rb-att-table td {
+    font-size: 8px !important;
+    padding: 0 1px !important;
+    overflow: hidden !important;
+    height: 24px !important;
+  }
+  .rb-att-table tbody tr:nth-child(even) td { background: #fafafa !important; }
+
+  .rb-legend {
+    flex: 0 0 auto !important;
+    padding: 3px 20px !important;
+    font-size: 9px !important;
+    min-height: 26px !important;
+  }
+
+  .rb-footer {
+    flex: 0 0 auto !important;
+    min-height: 36px !important;
+  }
+  .rb-remarks-label { font-size: 9px !important; padding: 4px 8px !important; width: 110px !important; }
+  .rb-remarks-value { font-size: 9px !important; padding: 4px 8px !important; }
+}

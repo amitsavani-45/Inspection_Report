@@ -16,6 +16,7 @@ import SOPProcedure from './SOPProcedure';
 import PDIForm from './PDIForm';
 import Scrapnoteprint from './Scrapnoteprint';
 import ScrapNoteSelection from './ScrapNoteSelection';
+import RedBinAttendance from './RedBinAttendance';
 import { getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
@@ -117,7 +118,7 @@ function AppContent() {
   const [diReport, setDiReport] = useState(null);
   const [diItems,  setDiItems]  = useState([]);
 
-  // ── Scrap Note state ──
+  // ── Scrap Note state (reused for RedBin if needed) ──
   const [scrapReport, setScrapReport] = useState(null);
   const [scrapItems,  setScrapItems]  = useState([]);
 
@@ -295,7 +296,7 @@ function AppContent() {
     return await response.json();
   };
 
-  // ── PDI Edit handler — fresh full data fetch karke navigate karo ──
+  // ── PDI Edit handler ──
   const handlePdiEdit = async (report) => {
     try {
       setLoading(true);
@@ -360,17 +361,17 @@ function AppContent() {
         setScrapReport(data);
         setScrapItems(data.items || []);
       } else {
-        alert('No Scrap Note found for selected filters.');
+        alert('No record found for selected filters.');
       }
     } catch (error) {
-      console.error('Scrap filter error:', error);
+      console.error('Filter error:', error);
       alert('Error applying filter: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Scrap Note edit handler ──
+  // ── Scrap / RedBin edit handler ──
   const handleScrapEdit = async (report) => {
     try {
       setLoading(true);
@@ -379,7 +380,7 @@ function AppContent() {
       const fullReport = await res.json();
       navigate('/scrap-note-form', { state: { initialData: fullReport, editReportId: fullReport.id } });
     } catch (err) {
-      console.error('Scrap edit fetch error:', err);
+      console.error('Edit fetch error:', err);
       navigate('/scrap-note-form', { state: { initialData: report || {}, editReportId: report?.id || null } });
     } finally {
       setLoading(false);
@@ -400,7 +401,7 @@ function AppContent() {
   return (
     <Routes>
       {/* ── Main ── */}
-      <Route path="/"         element={<QMS_Portal />} />
+      <Route path="/"          element={<QMS_Portal />} />
       <Route path="/selection" element={<SelectionPage />} />
 
       {/* ── Inspection / Control Chart ── */}
@@ -447,10 +448,10 @@ function AppContent() {
       } />
 
       {/* ── Other Modules ── */}
-      <Route path="/raw-material"   element={<RawMaterial />} />
-      <Route path="/layout-report"  element={<LayoutReport />} />
-      <Route path="/dispatch"       element={<Dispatch />} />
-      <Route path="/sop-procedure"  element={<SOPProcedure />} />
+      <Route path="/raw-material"  element={<RawMaterial />} />
+      <Route path="/layout-report" element={<LayoutReport />} />
+      <Route path="/dispatch"      element={<Dispatch />} />
+      <Route path="/sop-procedure" element={<SOPProcedure />} />
 
       {/* ── Dispatch Inspection ── */}
       <Route path="/dispatch-inspection" element={
@@ -474,17 +475,16 @@ function AppContent() {
       } />
       <Route path="/pdi-form" element={<PDIFormRouteWrapper onSavePDI={handleSavePDI} />} />
 
-      {/* ── Scrap Note Routes ── */}
-      <Route path="/scrap-note" element={<Scrapnoteprint />} />
+      {/* ── Red Bin Attendance — scrap-note route pe open hoga ── */}
+      <Route path="/scrap-note" element={<RedBinAttendance />} />
       <Route path="/scrap-note-view" element={
-        <Scrapnoteprint
+        <RedBinAttendance
           items={scrapItems}
           currentReport={scrapReport}
           onFilter={handleScrapFilter}
           onEditForm={handleScrapEdit}
         />
       } />
-      {/* /scrap-note-form — ScrapNoteForm component banne ke baad yahan add karna */}
     </Routes>
   );
 }

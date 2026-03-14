@@ -1,0 +1,264 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Screen container ── */
+.sn-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.sn-report {
+  background: white;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Base table reset ── */
+table { width: 100%; border-collapse: collapse; }
+
+td, th {
+  border: 1px solid black;
+  text-align: center;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+.sn-header-table { border: 2px solid black; }
+
+.sn-logo-cell {
+  width: 120px;
+  padding: 6px;
+  text-align: center;
+  border-right: 2px solid black;
+}
+
+.sn-logo-image {
+  max-width: 100%;
+  max-height: 55px;
+  object-fit: contain;
+}
+
+.sn-title-cell {
+  font-weight: bold;
+  font-size: 22px;
+  padding: 0 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.sn-doc-info-cell {
+  width: 220px;
+  padding: 0;
+  border-left: 2px solid black;
+}
+
+.sn-doc-info-cell table { border: none; }
+
+.sn-doc-info-cell table td {
+  border: none;
+  border-bottom: 1px solid black;
+  padding: 4px 8px;
+  font-size: 11px;
+  height: 24px;
+  text-align: left;
+}
+
+.sn-doc-info-cell table tr:last-child td { border-bottom: none; }
+
+.sn-doc-label {
+  font-weight: bold;
+  width: 80px;
+  border-right: 1px solid black !important;
+  background-color: #c0c0c0;
+}
+
+.sn-doc-value { font-size: 13px; font-weight: 600; }
+
+/* ── SCRAP TABLE ── */
+.sn-scrap-table { border: 2px solid black; table-layout: fixed; }
+
+.sn-scrap-table th {
+  background: #f5f5f5;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 6px 4px;
+  height: 30px;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.sn-scrap-table td {
+  font-size: 11px;
+  padding: 4px;
+  height: 30px;
+}
+
+.sn-scrap-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+/* ── FOOTER ── */
+.sn-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 10px 4px;
+  margin-top: 8px;
+}
+
+.sn-signature-field {
+  display: flex;
+  align-items: flex-end;
+  min-width: 300px;
+  gap: 8px;
+}
+
+.sn-signature-field label {
+  font-weight: bold;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-bottom: 2px;
+}
+
+.sn-signature-field input {
+  flex: 1;
+  border: none;
+  border-bottom: 1.5px solid black;
+  outline: none;
+  font-size: 11px;
+  background: transparent;
+  min-width: 200px;
+}
+
+/* ══════════════════════════════════════
+   @page — A4 LANDSCAPE
+   ══════════════════════════════════════ */
+@page {
+  size: A4 landscape;
+  margin: 6mm;
+}
+
+/* ══════════════════════════════════════
+   PRINT STYLES
+   ══════════════════════════════════════ */
+@media print {
+
+  .no-print { display: none !important; }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  #root {
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .sn-container {
+    padding: 0 !important;
+    background: white !important;
+    min-height: unset !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .sn-report {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 190mm !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    gap: 2px !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* ── HEADER ── */
+  .sn-header-table {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  .sn-logo-image { max-height: 42px !important; }
+  .sn-title-cell { font-size: 16px !important; }
+  .sn-doc-info-cell table td {
+    height: 21px !important;
+    font-size: 8.5px !important;
+    padding: 0 6px !important;
+  }
+  .sn-doc-label { font-size: 8.5px !important; }
+  .sn-doc-value { font-size: 10px !important; }
+
+  /* ── SCRAP TABLE ── */
+  .sn-scrap-table {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    table-layout: fixed !important;
+    height: auto !important;
+  }
+  .sn-scrap-table th {
+    font-size: 9px !important;
+    padding: 2px 3px !important;
+    background: #f5f5f5 !important;
+    height: 26px !important;
+  }
+  .sn-scrap-table td {
+    font-size: 9px !important;
+    padding: 2px 3px !important;
+    overflow: hidden !important;
+    height: 26px !important;
+  }
+  .sn-scrap-table tbody tr:nth-child(even) td { background: #fafafa !important; }
+
+  /* ── FOOTER ── */
+  .sn-footer {
+    flex: 0 0 auto !important;
+    margin-top: 8px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    padding: 4px 10px 6px !important;
+  }
+  .sn-signature-field {
+    display: flex !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+    min-width: 280px !important;
+  }
+  .sn-signature-field label {
+    font-size: 10px !important;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+    padding-bottom: 2px !important;
+  }
+  .sn-signature-field input {
+    font-size: 10px !important;
+    border: none !important;
+    border-bottom: 1.5px solid black !important;
+    min-width: 200px !important;
+    flex: 1 !important;
+    background: transparent !important;
+    outline: none !important;
+  }
+}
