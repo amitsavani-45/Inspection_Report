@@ -42,7 +42,7 @@ const formatDisplay = (dateStr) => {
 
 // ── Shared class strings ──
 const TH = 'border border-black font-bold text-center align-middle leading-tight';
-const TH_STYLE = { backgroundColor: '#ffffff' };
+const TH_STYLE = { backgroundColor: '#c0c0c0' };
 const TD = 'border border-black text-center align-middle bg-white px-0.5 py-px';
 
 // ── Minimum rows to always show ──
@@ -256,20 +256,20 @@ const Scrapnoteprint = ({ items = [], currentReport, onFilter, onEditForm }) => 
                 <table style={{ borderCollapse: 'collapse', width: '100%', height: '100%' }}>
                   <tbody>
                     <tr>
-                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>DOC.NO.</td>
-                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px' }}>
+                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px', fontWeight: 'bold', whiteSpace: 'nowrap', backgroundColor: '#c0c0c0' }}>DOC.NO.</td>
+                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px', backgroundColor: '#ffffff' }}>
                         {currentReport?.doc_no || 'AOT-F-QC-04'}
                       </td>
                     </tr>
                     <tr>
-                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px', fontWeight: 'bold' }}>REV.NO.</td>
-                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px' }}>
+                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px', fontWeight: 'bold', backgroundColor: '#c0c0c0' }}>REV.NO.</td>
+                      <td className="border-b border-black px-3 py-1" style={{ fontSize: '10px', backgroundColor: '#ffffff' }}>
                         {currentReport?.rev_no || '00'}
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-3 py-1" style={{ fontSize: '10px', fontWeight: 'bold' }}>DATE</td>
-                      <td className="px-3 py-1" style={{ fontSize: '10px' }}>
+                      <td className="px-3 py-1" style={{ fontSize: '10px', fontWeight: 'bold', backgroundColor: '#c0c0c0' }}>DATE</td>
+                      <td className="px-3 py-1" style={{ fontSize: '10px', backgroundColor: '#ffffff' }}>
                         {formatDisplay(currentReport?.doc_date) || '01.01.2019'}
                       </td>
                     </tr>

@@ -102,24 +102,25 @@ function PDIFormWrapper({ onSavePDI, initialData = {}, editReportId = null }) {
 function AppContent() {
   const navigate = useNavigate();
 
+  // ── Inspection Report state ──
   const [currentReport, setCurrentReport] = useState({
     doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
     part_name: '', part_number: '', operation_name: '', customer_name: '',
     items: [], schedule_entries: [],
   });
-  const [viewItems, setViewItems]         = useState([]);
-  const [formItems, setFormItems]         = useState([]);
-  const [loading, setLoading]             = useState(false);
-  const [formKey, setFormKey]             = useState(0);
+  const [viewItems, setViewItems] = useState([]);
+  const [formItems, setFormItems] = useState([]);
+  const [loading, setLoading]     = useState(false);
+  const [formKey, setFormKey]     = useState(0);
 
+  // ── PDI / Dispatch Inspection state ──
   const [diReport, setDiReport] = useState(null);
   const [diItems,  setDiItems]  = useState([]);
-const [diReport, setDiReport] = useState(null);
-const [diItems,  setDiItems]  = useState([]);
 
-// ── Scrap Note state ──   ← YEH ADD KARO
-const [scrapReport, setScrapReport] = useState(null);
-const [scrapItems,  setScrapItems]  = useState([]);
+  // ── Scrap Note state ──
+  const [scrapReport, setScrapReport] = useState(null);
+  const [scrapItems,  setScrapItems]  = useState([]);
+
   const location = useLocation();
 
   useEffect(() => {
@@ -147,7 +148,7 @@ const [scrapItems,  setScrapItems]  = useState([]);
       const reports  = await response.json();
       if (reports && reports.length > 0) {
         const sorted = [...reports].sort((a, b) => b.id - a.id);
-        const full = await getReportById(sorted[0].id);
+        const full   = await getReportById(sorted[0].id);
         applyReport(full);
       } else {
         setCurrentReport({
@@ -175,13 +176,13 @@ const [scrapItems,  setScrapItems]  = useState([]);
       if (operation)    params.push(`operation_name=${encodeURIComponent(operation)}`);
       if (customerName) params.push(`customer_name=${encodeURIComponent(customerName)}`);
 
-      const url = `http://localhost:8000/api/reports/?${params.join('&')}`;
+      const url      = `http://localhost:8000/api/reports/?${params.join('&')}`;
       const response = await fetch(url);
       const reports  = await response.json();
 
       if (reports && reports.length > 0) {
         const sorted = [...reports].sort((a, b) => b.id - a.id);
-        const full = await getReportById(sorted[0].id);
+        const full   = await getReportById(sorted[0].id);
         applyReport(full);
       } else {
         alert('No report found for selected filters.');
@@ -196,8 +197,8 @@ const [scrapItems,  setScrapItems]  = useState([]);
 
   const handleAddItem = async (formData) => {
     try {
-      const date   = formData.scheduleDate || new Date().toISOString().split('T')[0];
-      const isNew  = formData._isNew === true;
+      const date  = formData.scheduleDate || new Date().toISOString().split('T')[0];
+      const isNew = formData._isNew === true;
 
       const updatedItems = (formData.items || []).map(item => ({
         sr_no:        item.sr_no,
@@ -295,18 +296,15 @@ const [scrapItems,  setScrapItems]  = useState([]);
   };
 
   // ── PDI Edit handler — fresh full data fetch karke navigate karo ──
-  // Yahi asli fix hai: diReport cached hota hai jisme operation_name missing ho sakta hai
   const handlePdiEdit = async (report) => {
     try {
       setLoading(true);
-      // Fresh full report fetch — ensures operation_name aur baaki sab fields aayein
       const res = await fetch(`http://localhost:8000/api/pdi-reports/${report?.id}/`);
       if (!res.ok) throw new Error('Fetch failed');
       const fullReport = await res.json();
       navigate('/pdi-form', { state: { initialData: fullReport, editReportId: fullReport.id } });
     } catch (err) {
       console.error('PDI edit fetch error:', err);
-      // Fallback: jo cached data hai use hi bhejo
       navigate('/pdi-form', { state: { initialData: report || {}, editReportId: report?.id || null } });
     } finally {
       setLoading(false);
@@ -322,12 +320,12 @@ const [scrapItems,  setScrapItems]  = useState([]);
       if (partName)     params.push(`part_name=${encodeURIComponent(partName)}`);
       if (customerName) params.push(`customer_name=${encodeURIComponent(customerName)}`);
 
-      const url = `http://localhost:8000/api/pdi-reports/?${params.join('&')}`;
+      const url      = `http://localhost:8000/api/pdi-reports/?${params.join('&')}`;
       const response = await fetch(url);
       const reports  = await response.json();
 
       if (reports && reports.length > 0) {
-        const sorted = [...reports].sort((a, b) => b.id - a.id);
+        const sorted  = [...reports].sort((a, b) => b.id - a.id);
         const fullRes = await fetch(`http://localhost:8000/api/pdi-reports/${sorted[0].id}/`);
         const data    = await fullRes.json();
         setDiReport(data);
@@ -343,9 +341,57 @@ const [scrapItems,  setScrapItems]  = useState([]);
     }
   };
 
+  // ── Scrap Note filter handler ──
+  const handleScrapFilter = async ({ date, partName }) => {
+    try {
+      setLoading(true);
+      const params = [];
+      if (date)     params.push(`date=${date}`);
+      if (partName) params.push(`part_name=${encodeURIComponent(partName)}`);
+
+      const url      = `http://localhost:8000/api/scrap-notes/?${params.join('&')}`;
+      const response = await fetch(url);
+      const reports  = await response.json();
+
+      if (reports && reports.length > 0) {
+        const sorted  = [...reports].sort((a, b) => b.id - a.id);
+        const fullRes = await fetch(`http://localhost:8000/api/scrap-notes/${sorted[0].id}/`);
+        const data    = await fullRes.json();
+        setScrapReport(data);
+        setScrapItems(data.items || []);
+      } else {
+        alert('No Scrap Note found for selected filters.');
+      }
+    } catch (error) {
+      console.error('Scrap filter error:', error);
+      alert('Error applying filter: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Scrap Note edit handler ──
+  const handleScrapEdit = async (report) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`http://localhost:8000/api/scrap-notes/${report?.id}/`);
+      if (!res.ok) throw new Error('Fetch failed');
+      const fullReport = await res.json();
+      navigate('/scrap-note-form', { state: { initialData: fullReport, editReportId: fullReport.id } });
+    } catch (err) {
+      console.error('Scrap edit fetch error:', err);
+      navigate('/scrap-note-form', { state: { initialData: report || {}, editReportId: report?.id || null } });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '18px', color: '#666' }}>
+      <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        height: '100vh', fontSize: '18px', color: '#666'
+      }}>
         Loading...
       </div>
     );
@@ -353,8 +399,11 @@ const [scrapItems,  setScrapItems]  = useState([]);
 
   return (
     <Routes>
-      <Route path="/" element={<QMS_Portal />} />
+      {/* ── Main ── */}
+      <Route path="/"         element={<QMS_Portal />} />
       <Route path="/selection" element={<SelectionPage />} />
+
+      {/* ── Inspection / Control Chart ── */}
       <Route path="/inspection" element={
         <Inspection
           items={viewItems}
@@ -396,9 +445,14 @@ const [scrapItems,  setScrapItems]  = useState([]);
           currentReport={currentReport}
         />
       } />
-      <Route path="/raw-material" element={<RawMaterial />} />
-      <Route path="/layout-report" element={<LayoutReport />} />
-      <Route path="/dispatch" element={<Dispatch />} />
+
+      {/* ── Other Modules ── */}
+      <Route path="/raw-material"   element={<RawMaterial />} />
+      <Route path="/layout-report"  element={<LayoutReport />} />
+      <Route path="/dispatch"       element={<Dispatch />} />
+      <Route path="/sop-procedure"  element={<SOPProcedure />} />
+
+      {/* ── Dispatch Inspection ── */}
       <Route path="/dispatch-inspection" element={
         <Dispatch_Inspection
           items={diItems}
@@ -418,18 +472,19 @@ const [scrapItems,  setScrapItems]  = useState([]);
           onEditForm={handlePdiEdit}
         />
       } />
-
-      {/* ── PDI Fill / Edit Form ── */}
       <Route path="/pdi-form" element={<PDIFormRouteWrapper onSavePDI={handleSavePDI} />} />
-{/* ── Scrap Note Routes ── */}
-  <Route path="/scrap-note" element={<ScrapNoteSelection />} />
-  <Route path="/scrap-note-view" element={
-  <Scrapnoteprint
-    items={scrapItems}
-    currentReport={scrapReport}
-  />
-} />
-      <Route path="/sop-procedure" element={<SOPProcedure />} />
+
+      {/* ── Scrap Note Routes ── */}
+      <Route path="/scrap-note" element={<Scrapnoteprint />} />
+      <Route path="/scrap-note-view" element={
+        <Scrapnoteprint
+          items={scrapItems}
+          currentReport={scrapReport}
+          onFilter={handleScrapFilter}
+          onEditForm={handleScrapEdit}
+        />
+      } />
+      {/* /scrap-note-form — ScrapNoteForm component banne ke baad yahan add karna */}
     </Routes>
   );
 }

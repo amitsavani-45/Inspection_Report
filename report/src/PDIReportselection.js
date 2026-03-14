@@ -1,3 +1,4 @@
+// PDIReportselection.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Selection.css';
@@ -25,7 +26,7 @@ const PDIReportselection = () => {
           <div className="select-arrow"><i className="bi bi-arrow-right"></i></div>
         </div>
 
-        <div className="select-card print-data-card" onClick={() => navigate('/pdi-report-view')}>
+        <div className="select-card print-data-card" onClick={() => navigate('/scrap-note-view')}>
           <div className="select-icon-wrapper">
             <i className="bi bi-printer-fill select-icon"></i>
           </div>
