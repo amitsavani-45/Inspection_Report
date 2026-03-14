@@ -15,27 +15,31 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0; /* CHANGED */
 }
 
 /* ── Base table reset ── */
-table { width: 100%; border-collapse: collapse; }
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  border-spacing: 0;
+}
 
 td, th {
-  border: 1px solid black;
+  border:  0.1px solid #000;
   text-align: center;
   vertical-align: middle;
   overflow: hidden;
 }
 
 /* ── HEADER ── */
-.rb-header-table { border: 2px solid black; }
+.rb-header-table { border: 1px solid black; } /* CHANGED */
 
 .rb-logo-cell {
   width: 120px;
   padding: 6px;
   text-align: center;
-  border-right: 2px solid black;
+  border-right: 1px solid black; /* CHANGED */
 }
 
 .rb-logo-image {
@@ -56,7 +60,7 @@ td, th {
 .rb-doc-info-cell {
   width: 200px;
   padding: 0;
-  border-left: 2px solid black;
+  border-left: 1px solid black; /* CHANGED */
 }
 
 .rb-doc-info-cell table { border: none; }
@@ -83,7 +87,7 @@ td, th {
 
 /* ── ATTENDANCE TABLE ── */
 .rb-att-table {
-  border: 2px solid black;
+  border: 1px solid black; /* CHANGED */
   table-layout: fixed;
 }
 
@@ -108,7 +112,7 @@ td, th {
 
 /* ── LEGEND ── */
 .rb-legend {
-  border: 2px solid black;
+  border: 1px solid black; /* CHANGED */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -120,7 +124,7 @@ td, th {
 
 /* ── FOOTER ── */
 .rb-footer {
-  border: 2px solid black;
+  border: 1px solid black; /* CHANGED */
   display: flex;
   align-items: stretch;
   min-height: 50px;
@@ -191,7 +195,7 @@ td, th {
     min-height: 190mm !important;
     padding: 0 !important;
     margin: 0 auto !important;
-    gap: 2px !important;
+    gap: 0 !important; /* CHANGED */
     box-shadow: none !important;
     overflow: visible !important;
     background: white !important;
