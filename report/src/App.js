@@ -14,6 +14,8 @@ import PDIReportselection from './PDIReportselection';
 import PDIReport from './PDIReport';
 import SOPProcedure from './SOPProcedure';
 import PDIForm from './PDIForm';
+import Scrapnoteprint from './Scrapnoteprint';
+import ScrapNoteSelection from './ScrapNoteSelection';
 import { getReportById, createReport, updateReport } from './services/api';
 
 function FormPageWrapper({ onAddItem, items = [], currentReport = null }) {
@@ -112,7 +114,12 @@ function AppContent() {
 
   const [diReport, setDiReport] = useState(null);
   const [diItems,  setDiItems]  = useState([]);
+const [diReport, setDiReport] = useState(null);
+const [diItems,  setDiItems]  = useState([]);
 
+// ── Scrap Note state ──   ← YEH ADD KARO
+const [scrapReport, setScrapReport] = useState(null);
+const [scrapItems,  setScrapItems]  = useState([]);
   const location = useLocation();
 
   useEffect(() => {
@@ -414,7 +421,14 @@ function AppContent() {
 
       {/* ── PDI Fill / Edit Form ── */}
       <Route path="/pdi-form" element={<PDIFormRouteWrapper onSavePDI={handleSavePDI} />} />
-
+{/* ── Scrap Note Routes ── */}
+  <Route path="/scrap-note" element={<ScrapNoteSelection />} />
+  <Route path="/scrap-note-view" element={
+  <Scrapnoteprint
+    items={scrapItems}
+    currentReport={scrapReport}
+  />
+} />
       <Route path="/sop-procedure" element={<SOPProcedure />} />
     </Routes>
   );

@@ -28,7 +28,7 @@ const sections = [
   },
   {
     id: 'layout-report',
-    title: 'Layout Report',
+    title: 'Scrap Note',
     icon: 'bi bi-calculator',
     description: 'View and manage layout inspection reports',
     color: '#ef6c00', // Orange
