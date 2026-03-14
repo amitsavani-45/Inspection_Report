@@ -22,7 +22,6 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
   const [filterOp,       setFilterOp]       = useState('');
   const [filterCustomer, setFilterCustomer] = useState('');
 
-  // DB se dropdown options
   const [dbOptions, setDbOptions] = useState({ customers: [], part_names: [], operations: [] });
   useEffect(() => {
     getDropdownOptions()
@@ -37,88 +36,181 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
   const totalRows       = 10;
   const totalFilledCols = Math.min(productCount + processItems.filter(x=>x.item&&x.item.trim()!=='').length, 20);
 
-  // ── Build schedule rows for report ──
   const buildScheduleRows = () => {
     const empty20 = () => Array(20).fill('');
-
-    // Group entries by operator + machine_no + date = ek SR row
     const grouped = {};
     let srCounter = 1;
     scheduleEntries.forEach(entry => {
       const groupKey = `${entry.operator||''}__${entry.machine_no||''}__${entry.date||''}`;
       if (!grouped[groupKey]) {
-        grouped[groupKey] = {
-          sr: srCounter++,
-          date: formatDisplay(entry.date) || '',
-          operator: entry.operator || '',
-          mcNo: entry.machine_no || '',
-          rawEntries: []
-        };
+        grouped[groupKey] = { sr: srCounter++, date: formatDisplay(entry.date)||'', operator: entry.operator||'', mcNo: entry.machine_no||'', rawEntries: [] };
       }
       grouped[groupKey].rawEntries.push(entry);
     });
 
     if (Object.keys(grouped).length === 0) {
-      return [{
-        sr:1, date:'', operator:'', mcNo:'',
-        slots:[
-          {time:'SETUP', row_order:0, values:empty20()},
-          {time:'4HRS',  row_order:0, values:empty20()},
-          {time:'LAST',  row_order:0, values:empty20()},
-        ]
-      }];
+      return [{ sr:1, date:'', operator:'', mcNo:'', slots:[
+        {time:'SETUP', row_order:0, values:empty20()},
+        {time:'4HRS',  row_order:0, values:empty20()},
+        {time:'LAST',  row_order:0, values:empty20()},
+      ]}];
     }
 
     return Object.values(grouped).map(grp => {
       const sorted = [...grp.rawEntries].sort((a,b) => {
-        const si = (a.slot_index??0) - (b.slot_index??0);
+        const si = (a.slot_index??0)-(b.slot_index??0);
         if (si!==0) return si;
-        return (a.row_order??0) - (b.row_order??0);
+        return (a.row_order??0)-(b.row_order??0);
       });
-
       const slotMap = {};
       sorted.forEach(e => {
-        const si = e.slot_index ?? 0;
-        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type || 'SETUP', readings: [] };
+        const si = e.slot_index??0;
+        if (!slotMap[si]) slotMap[si] = { time_type: e.time_type||'SETUP', readings: [] };
         const vals = empty20();
-        for(let i=0; i<20; i++) vals[i] = e[`value_${i+1}`] || '';
-        const ri = e.row_order ?? 0;
-        slotMap[si].readings[ri] = vals;
+        for(let i=0;i<20;i++) vals[i]=e[`value_${i+1}`]||'';
+        slotMap[si].readings[e.row_order??0] = vals;
       });
-
-      const timeOrder = { SETUP: 0, '4HRS': 1, '2HRS': 1, LAST: 2 };
+      const timeOrder = { SETUP:0,'4HRS':1,'2HRS':1,LAST:2 };
       const slots = Object.entries(slotMap)
-        .sort((a,b) => {
-          const ta = timeOrder[a[1].time_type] ?? 9;
-          const tb = timeOrder[b[1].time_type] ?? 9;
-          if (ta !== tb) return ta - tb;
-          return Number(a[0]) - Number(b[0]);
-        })
-        .flatMap(([slotKey, s]) => {
-          if (!s.readings[0]) s.readings[0] = empty20();
-          return s.readings
-            .map((vals, ri) => ({time: s.time_type, slotKey, row_order: ri, values: vals || empty20()}))
-            .filter((row, ri) => ri === 0 || row.values.some(v => v !== ''));
-        });
-
-      return { sr: grp.sr, date: grp.date, operator: grp.operator, mcNo: grp.mcNo, slots };
+        .sort((a,b)=>{ const ta=timeOrder[a[1].time_type]??9,tb=timeOrder[b[1].time_type]??9; return ta!==tb?ta-tb:Number(a[0])-Number(b[0]); })
+        .flatMap(([slotKey,s])=>{ if(!s.readings[0])s.readings[0]=empty20(); return s.readings.map((vals,ri)=>({time:s.time_type,slotKey,row_order:ri,values:vals||empty20()})).filter((row,ri)=>ri===0||row.values.some(v=>v!=='')); });
+      return { sr:grp.sr, date:grp.date, operator:grp.operator, mcNo:grp.mcNo, slots };
     });
   };
 
   const scheduleRows       = buildScheduleRows();
-  const totalSchedHtmlRows = scheduleRows.reduce((sum,s)=>sum+s.slots.length, 0);
+  const totalSchedHtmlRows = scheduleRows.reduce((sum,s)=>sum+s.slots.length,0);
 
-  // ── Print layout heights (A4 landscape 6mm margin = 749px usable) ──
-  const TOTAL_USABLE   = 572;
-  const SCHED_THEAD    = 22;
-  const SCHED_ROW_H    = 26;
-  const SCHED_H        = SCHED_THEAD + totalSchedHtmlRows * SCHED_ROW_H;
-  const INSP_THEAD     = 26;
-  const inspAvailable  = TOTAL_USABLE - SCHED_H - INSP_THEAD;
-  const inspRowH       = Math.max(18, inspAvailable / 10);
-  const inspTotalH     = INSP_THEAD + 10 * inspRowH;
+  const TOTAL_USABLE  = 572;
+  const SCHED_THEAD   = 22;
+  const SCHED_ROW_H   = 26;
+  const SCHED_H       = SCHED_THEAD + totalSchedHtmlRows * SCHED_ROW_H;
+  const INSP_THEAD    = 26;
+  const inspAvailable = TOTAL_USABLE - SCHED_H - INSP_THEAD;
+  const inspRowH      = Math.max(18, inspAvailable/10);
+  const inspTotalH    = INSP_THEAD + 10*inspRowH;
 
-  // ── Filter ──
+  const colPct = `${(75/Math.max(totalFilledCols,1)).toFixed(2)}%`;
+
+  // ══════════════════════════════════════
+  // PRINT FUNCTION — New Window Approach
+  // 100% Guaranteed A4 Landscape
+  // ══════════════════════════════════════
+  const handlePrint = () => {
+    const reportEl = document.getElementById('inspection-print-area');
+    if (!reportEl) return;
+
+    const printWindow = window.open('', '_blank', 'width=1200,height=800');
+
+    // Collect all stylesheets from current page
+    const styles = Array.from(document.styleSheets).map(sheet => {
+      try {
+        return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+      } catch(e) { return ''; }
+    }).join('\n');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8"/>
+          <title>Setup & Patrol Inspection Report</title>
+          <style>
+            /* ── FORCE A4 LANDSCAPE ── */
+            @page {
+              size: A4 landscape;
+              margin: 6mm;
+            }
+
+            * { margin:0; padding:0; box-sizing:border-box; }
+
+            html, body {
+              width: 297mm;
+              height: 210mm;
+              overflow: hidden;
+              background: white;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            /* ── Paste all existing styles ── */
+            ${styles}
+
+            /* ── Override for print ── */
+            .inspection-report {
+              display: flex !important;
+              flex-direction: column !important;
+              width: 285mm !important;
+              height: 198mm !important;
+              padding: 0 !important;
+              margin: 0 auto !important;
+              gap: 2px !important;
+              box-shadow: none !important;
+              overflow: hidden !important;
+              background: white !important;
+            }
+
+            .inspection-container {
+              padding: 0 !important;
+              background: white !important;
+            }
+
+            .no-print { display: none !important; }
+
+            table { width:100%; border-collapse:collapse; }
+            td, th { border:1px solid black; text-align:center; vertical-align:middle; overflow:hidden; }
+
+            .header-table { border:2px solid black; flex:0 0 auto; }
+            .logo-cell { width:120px; padding:6px; text-align:center; border-right:2px solid black; }
+            .logo-image { max-width:100%; max-height:42px; object-fit:contain; }
+            .title-cell { font-weight:bold; font-size:13px; padding:0 12px; letter-spacing:0.5px; }
+            .doc-info-cell { width:220px; padding:0; border-left:2px solid black; }
+            .doc-info-cell table { border:none; }
+            .doc-info-cell table td { border:none; border-bottom:1px solid black; padding:0 6px; font-size:8.5px; height:21px; text-align:left; }
+            .doc-info-cell table tr:last-child td { border-bottom:none; }
+            .doc-label { font-weight:bold; width:95px; border-right:1px solid black !important; font-size:8.5px; }
+            .doc-value { font-size:10px; font-weight:600; }
+
+            .fleet-info-table { border:2px solid black; flex:0 0 auto; }
+            .fleet-info-table td { padding:0 8px; height:26px; font-size:9.5px; }
+            .field-label { background:#f5f5f5; font-size:8.5px; font-weight:bold; text-transform:uppercase; width:13%; }
+            .field-input { width:37%; font-size:10.5px; font-weight:600; text-align:left; padding-left:10px; }
+
+            .inspection-table { border:2px solid black; table-layout:fixed; flex:1 1 auto; }
+            .inspection-table th { background:#f5f5f5; font-weight:bold; font-size:9px; padding:1px 3px; }
+            .inspection-table td { font-size:9px; padding:0 3px; overflow:hidden; }
+            .inspection-table tbody tr:nth-child(even) td { background:#fafafa; }
+
+            .schedule-wrapper { flex:0 0 auto; }
+            .schedule-table { border:2px solid black; table-layout:fixed; width:100%; border-collapse:collapse; }
+            .schedule-table thead tr { height:22px; }
+            .schedule-table th { background:#f5f5f5; font-weight:bold; font-size:8px; padding:1px 2px; height:22px; white-space:normal; word-break:break-word; line-height:1.1; }
+            .schedule-table td { font-size:8.5px; padding:0 2px; overflow:hidden; }
+
+            .footer { flex:0 0 auto; display:flex; justify-content:space-between; align-items:flex-end; padding:4px 10px 6px; margin-top:auto; }
+            .signature-field { display:flex; align-items:flex-end; gap:8px; min-width:280px; }
+            .signature-field label { font-size:10px; font-weight:bold; white-space:nowrap; padding-bottom:2px; }
+            .signature-field input { font-size:10px; border:none; border-bottom:1.5px solid black; min-width:200px; flex:1; background:transparent; outline:none; }
+          </style>
+        </head>
+        <body>
+          ${reportEl.outerHTML}
+          <script>
+            // Wait for images to load then print
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                setTimeout(function() { window.close(); }, 500);
+              }, 300);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+  };
+
   const isAnyFilterActive = filterDate||filterPart||filterOp||filterCustomer;
   const handleFilterApply = () => {
     if (!isAnyFilterActive){ alert('Please select at least one filter.'); return; }
@@ -131,14 +223,12 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
     setShowFilter(false);
   };
 
-  const colPct = `${(75/Math.max(totalFilledCols,1)).toFixed(2)}%`;
-
   return (
     <div className="inspection-container">
 
-      {/* ── Top Bar (no-print) ── */}
+      {/* ── Top Bar ── */}
       <div className="no-print" style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:'12px',marginBottom:'10px'}}>
-        
+
         <button onClick={()=>navigate('/selection')} style={{background:'#607d8b',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
           <i className="bi bi-arrow-left-circle-fill"></i> Back
         </button>
@@ -200,15 +290,15 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
             <button onClick={()=>{ if(onEditForm) onEditForm(); navigate('/form?mode=edit'); }} style={{background:'#ff9800',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
               <i className="bi bi-pencil-square"></i> Edit
             </button>
-            <button onClick={() => window.print()} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+            <button onClick={handlePrint} style={{background:'#4CAF50',color:'#fff',border:'none',padding:'8px 20px',borderRadius:'6px',fontWeight:'bold',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
               <i className="bi bi-printer-fill"></i> Print
             </button>
           </>
         )}
       </div>
 
-      {/* ── Print Report ── */}
-      <div className="inspection-report">
+      {/* ── Report Area — id lagaya print ke liye ── */}
+      <div className="inspection-report" id="inspection-print-area">
 
         {/* HEADER */}
         <table className="header-table">
@@ -291,13 +381,13 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
               </tr>
             </thead>
             <tbody>
-              {scheduleRows.map((si, rowIdx)=>{
+              {scheduleRows.map((si,rowIdx)=>{
                 const totalTimeRows = si.slots.length;
-                const timeSpans = si.slots.map((row, idx) => {
-                  const prev = si.slots[idx - 1];
-                  if (!prev || prev.slotKey !== row.slotKey) {
-                    let count = 0;
-                    for (let j = idx; j < si.slots.length && si.slots[j].slotKey === row.slotKey; j++) count++;
+                const timeSpans = si.slots.map((row,idx)=>{
+                  const prev = si.slots[idx-1];
+                  if (!prev||prev.slotKey!==row.slotKey){
+                    let count=0;
+                    for(let j=idx;j<si.slots.length&&si.slots[j].slotKey===row.slotKey;j++) count++;
                     return count;
                   }
                   return 0;
@@ -308,22 +398,18 @@ const Inspection = ({ items=[], currentReport, onFilter, onEditForm }) => {
                       const span = timeSpans[timeIdx];
                       return (
                         <tr key={`${rowIdx}-${timeIdx}`} style={{height:`${SCHED_ROW_H}px`}}>
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{textAlign:'center',fontWeight:'bold',verticalAlign:'middle',fontSize:'10px'}}>{si.sr}</td>}
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{textAlign:'center',fontSize:'8px',verticalAlign:'middle',whiteSpace:'normal',lineHeight:'1.2'}}>{si.date||''}</td>}
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{textAlign:'center',fontSize:'8px',verticalAlign:'middle',whiteSpace:'normal',lineHeight:'1.2'}}>{si.operator||''}</td>}
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{textAlign:'center',fontSize:'9px',verticalAlign:'middle'}}>{si.mcNo||''}</td>}
-                          {span>0 && (
-                            <td rowSpan={span} style={{textAlign:'center',fontWeight:'bold',fontSize:'8.5px',verticalAlign:'middle'}}>
-                              {row.time}
-                            </td>
-                          )}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{textAlign:'center',fontWeight:'bold',verticalAlign:'middle',fontSize:'10px'}}>{si.sr}</td>}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{textAlign:'center',fontSize:'8px',verticalAlign:'middle',whiteSpace:'normal',lineHeight:'1.2'}}>{si.date||''}</td>}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{textAlign:'center',fontSize:'8px',verticalAlign:'middle',whiteSpace:'normal',lineHeight:'1.2'}}>{si.operator||''}</td>}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{textAlign:'center',fontSize:'9px',verticalAlign:'middle'}}>{si.mcNo||''}</td>}
+                          {span>0&&<td rowSpan={span} style={{textAlign:'center',fontWeight:'bold',fontSize:'8.5px',verticalAlign:'middle'}}>{row.time}</td>}
                           {Array.from({length:totalFilledCols},(_,ci)=>{
                             const val=row.values[ci]||'';
                             return <td key={ci} style={{textAlign:'center',fontSize:'9px',fontWeight:val?'600':'normal'}}>{val}</td>;
                           })}
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{verticalAlign:'middle'}}></td>}
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{verticalAlign:'middle'}}></td>}
-                          {timeIdx===0 && <td rowSpan={totalTimeRows} style={{verticalAlign:'middle'}}></td>}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{verticalAlign:'middle'}}></td>}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{verticalAlign:'middle'}}></td>}
+                          {timeIdx===0&&<td rowSpan={totalTimeRows} style={{verticalAlign:'middle'}}></td>}
                         </tr>
                       );
                     })}
