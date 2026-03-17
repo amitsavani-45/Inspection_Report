@@ -211,9 +211,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
         </button>
       </div>
 
-      {/* ══════════════════════════════════════
-           REPORT — A4 Portrait
-          ══════════════════════════════════════ */}
+    
       <div
         className="di-report bg-white mx-auto shadow-md"
         style={{
