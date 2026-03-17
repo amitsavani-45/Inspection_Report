@@ -393,7 +393,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
           </tbody>
         </table>
 
-        {/* ── FOOTER TABLE ── */}
+   
         <table
           className="w-full border border-black border-t-0"
           style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}
