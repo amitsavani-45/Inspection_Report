@@ -94,7 +94,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
           <i className="bi bi-arrow-left-circle-fill"></i> Back
         </button>
 
-        {/* Filter */}
+        
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowFilter(p => !p)}
@@ -159,7 +159,7 @@ const Dispatch_Inspection = ({ items = [], currentReport, onFilter, onEditForm }
                   </select>
                 </div>
 
-                {/* Customer */}
+               
                 <div style={{ marginBottom: '14px' }}>
                   <label style={{ fontSize: '11px', fontWeight: '700', color: '#555', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }}>
                     <i className="bi bi-building" style={{ marginRight: 5 }}></i>Customer
