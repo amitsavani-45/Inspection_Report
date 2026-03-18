@@ -11,7 +11,7 @@ import { getDropdownOptions } from './services/api';
 import './Scrapnoteprint.css';
 import atomone from './image/atomone.jpg';
 
-// ── Date format helper: "2024-01-15" → "15/01/2024" ──
+
 const formatDisplay = (dateStr) => {
   if (!dateStr) return '';
   const parts = String(dateStr).split('-');
