@@ -273,7 +273,7 @@ const ReadingTable = ({ slot, isModal, colLabels, onAddReading, onRemoveReading,
   );
 };
 
-/* ── LockedSlotCard: outside Form ── */
+
 const LockedSlotCard = ({ slot, colLabels }) => {
   const typeColor = slot.type==='SETUP'?'#2563eb':slot.type==='4HRS'?'#7c3aed':'#e11d48';
   const filledTime = slot.savedAt
