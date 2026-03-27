@@ -1,4 +1,5 @@
-// @ts-nocheck
+
+
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
