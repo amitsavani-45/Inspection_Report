@@ -146,7 +146,7 @@ const InspItem = ({ row, onUpdate, srNum, isProduct, onRemove, dbItems = [] }) =
   );
 };
 
-// ─── Observation Fill Table (Step 2 main UI) ───
+
 const ObsTable = ({ rows, onUpdate }) => {
   const judgeStyle = (val) => ({
     padding: '4px 8px', borderRadius: 6, border: `1.5px solid ${val === 'OK' ? '#22c55e' : val === 'NG' ? '#ef4444' : '#e2e8f0'}`,
