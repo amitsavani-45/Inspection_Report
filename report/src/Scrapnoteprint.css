@@ -135,9 +135,6 @@ td, th {
   min-width: 200px;
 }
 
-/* ══════════════════════════════════════
-   @page — A4 LANDSCAPE
-   ══════════════════════════════════════ */
 @page {
   size: A4 landscape;
   margin: 6mm;
