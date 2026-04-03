@@ -67,8 +67,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'inspection_db',
         'USER': 'postgres',
-        'PASSWORD': 'amit45',
-        'HOST': 'localhost',
+        
         'PORT': '5432',
     }
 }
