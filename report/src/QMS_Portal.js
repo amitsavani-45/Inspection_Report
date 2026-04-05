@@ -1,4 +1,4 @@
-import React from 'react';
+8import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import atomone from './image/atomone.jpg';
 import './QMS_Portal.css';
@@ -83,7 +83,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* ── Top Header Bar (Logo & Date only) ── */}
+      
       <div className="dashboard-header">
         <div className="dashboard-header-left">
           <img src={atomone} alt="ATOM ONE" className="dashboard-logo" />
