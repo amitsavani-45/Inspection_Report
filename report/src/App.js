@@ -1,5 +1,5 @@
 
-/* eslint-disable */
+/* es
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import QMS_Portal from './QMS_Portal';
