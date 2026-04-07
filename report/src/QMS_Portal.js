@@ -95,7 +95,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ── Main Heading (Now below the header) ── */}
+      
       <div className="dashboard-main-heading">
         <h1 className="dashboard-title">Quality Management System</h1>
         <p className="dashboard-subtitle">Select a module to continue</p>
