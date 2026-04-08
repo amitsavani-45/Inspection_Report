@@ -103,7 +103,7 @@ function PDIFormWrapper({ onSavePDI, initialData = {}, editReportId = null }) {
 function AppContent() {
   const navigate = useNavigate();
 
-  // ── Inspection Report state ──
+ 
   const [currentReport, setCurrentReport] = useState({
     doc_no: 'KGTL-QCL-01', revision_no: '01', date: '',
     part_name: '', part_number: '', operation_name: '', customer_name: '',
