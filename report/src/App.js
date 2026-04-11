@@ -118,7 +118,7 @@ function AppContent() {
   const [diReport, setDiReport] = useState(null);
   const [diItems,  setDiItems]  = useState([]);
 
-  // ── Scrap Note state (reused for RedBin if needed) ──
+  // 
   const [scrapReport, setScrapReport] = useState(null);
   const [scrapItems,  setScrapItems]  = useState([]);
 
