@@ -101,7 +101,8 @@ const Dashboard = () => {
         <p className="dashboard-subtitle">Select a module to continue</p>
       </div>
 
-      {/* ── Cards Grid ── */}
+
+  
       <div className="dashboard-grid">
         {sections.map((section) => (
           <div
