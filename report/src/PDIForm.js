@@ -215,11 +215,7 @@ const ObsTable = ({ rows, onUpdate }) => {
       </table>
     </div>
   );
-};
 
-// ═══════════════════════════════════════════
-//  MAIN PDIForm component
-// ═══════════════════════════════════════════
 const PDIForm = ({ onSubmit, onCancel, initialData = {}, items = [] }) => {
   // ── DEBUG ──
   console.log('PDIForm initialData:', JSON.stringify(initialData, null, 2));
