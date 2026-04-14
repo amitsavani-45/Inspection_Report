@@ -2,7 +2,7 @@
 //  RedBin_Attendance.js
 //  Red Bin Attendance Sheet — Landscape A4
 //  DOC.NO. AOT-F-QC-05
-//  Logic: Days change automatically based on selected month/year
+
 // ============================================================
 
 import React, { useState, useEffect } from 'react';
