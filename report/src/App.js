@@ -263,7 +263,7 @@ function AppContent() {
     }
   };
 
-  // ── PDI Report save handler (new) ──
+  // ──
   const handleSavePDI = async (formData) => {
     const payload = {
       supplier_name:    formData.supplier_name    || '',
