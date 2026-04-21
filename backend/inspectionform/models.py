@@ -98,7 +98,7 @@ class ScheduleEntry(models.Model):
 
 
 # ══════════════════════════════════════════
-#  PDI REPORT MODELS (Pre Dispatch Inspection)
+#  
 # ══════════════════════════════════════════
 
 class PDIReport(models.Model):
