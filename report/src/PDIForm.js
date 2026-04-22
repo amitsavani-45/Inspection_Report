@@ -50,11 +50,7 @@ const STEPS = [
 ];
 
 const emptyRow = () => ({ name: '', spec: '', tolerance: '', inst: '' });
-const emptyObs = () => ({ vendor_obs1: '', vendor_obs2: '', vendor_judge: '', cust_obs1: '', cust_obs2: '', cust_judge: '', remarks: '' });
-
-// ─────────────────────────────────────────
-//  Sub-components
-// ─────────────────────────────────────────
+const emptyObs = () => ({ vendor_obs1: '', vendor_obs2: '', vendor_judge: '', cust_obs1: '', cust_obs2: '', cust_judge: '', remarks: ;
 
 const Field = ({ label, value, onChange, options, placeholder, required }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
