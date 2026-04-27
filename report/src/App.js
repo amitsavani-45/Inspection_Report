@@ -371,7 +371,7 @@ function AppContent() {
     }
   };
 
-  // ── Scrap / RedBin edit handler ──
+ 
   const handleScrapEdit = async (report) => {
     try {
       setLoading(true);
