@@ -14,7 +14,6 @@ const Dispatch = () => {
         <h2 className="selection-title">Dispatch</h2>
         <p className="selection-subtitle">Final dispatch inspection and tracking</p>
       </div>
-
       <div className="selection-cards-wrapper">
         <div className="select-card fill-data-card" onClick={() => alert('Dispatch Entry form — Coming Soon!')}>
           <div className="select-icon-wrapper">
@@ -24,7 +23,6 @@ const Dispatch = () => {
           <p>Enter new dispatch inspection record</p>
           <div className="select-arrow"><i className="bi bi-arrow-right"></i></div>
         </div>
-
         <div className="select-card print-data-card" onClick={() => navigate('/dispatch-inspection')} >
           <div className="select-icon-wrapper">
             <i className="bi bi-printer-fill select-icon"></i>
