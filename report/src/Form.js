@@ -52,8 +52,7 @@ const READING_COLORS = [
 ];
 
 /* ─────────────────────────────────────────────────────────────
-   ALL sub-components defined OUTSIDE Form so React never
-   re-creates them on state change → inputs keep focus
+   
 ───────────────────────────────────────────────────────────── */
 
 const Field = ({ label, value, onChange, options, placeholder, required }) => (
