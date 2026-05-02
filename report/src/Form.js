@@ -158,7 +158,7 @@ const CombinedTable = ({ productRows, processRows }) => {
   );
 };
 
-/* ── ReadingTable: outside Form so it never remounts on state change ── */
+/
 const ReadingTable = ({ slot, isModal, colLabels, onAddReading, onRemoveReading, onSetVal, onSaveAndClose, onDone }) => {
   const typeColor = slot.type==='SETUP'?'#2563eb':slot.type==='4HRS'?'#7c3aed':'#e11d48';
   const inputStyle = (val, ri) => {
